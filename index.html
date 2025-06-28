@@ -740,7 +740,7 @@
                         <div id="advancedResults" class="advanced-results mt-3">
                             <!-- Scam DNA Fingerprint -->
                             <div id="fingerprintSection" class="feature-section mb-3 d-none">
-                                <h6><i data-feather="fingerprint"></i> Scam DNA Fingerprint</h6>
+                                <h6><i data-feather="hash"></i> Scam DNA Fingerprint</h6>
                                 <div id="fingerprintResults" class="feature-content"></div>
                             </div>
 
@@ -867,6 +867,40 @@
                 
                 // Load HTML5 QR Code library
                 this.loadQRCodeLibrary();
+            }
+
+            showRegionDetails(regionName, regionData) {
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Regional Threat Details - ${regionName}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <strong>Risk Level:</strong> 
+                                    <span class="badge bg-${regionData.risk === 'critical' ? 'danger' : regionData.risk === 'high' ? 'warning' : 'success'}">${regionData.risk.toUpperCase()}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Reports:</strong> ${regionData.reports}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Trend:</strong> ${regionData.trend}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Last Update:</strong> ${regionData.lastUpdate || 'Recent'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                const modalInstance = new bootstrap.Modal(modal);
+                modalInstance.show();
+                modal.addEventListener('hidden.bs.modal', () => modal.remove());
             }
 
             setupEventListeners() {
@@ -1721,7 +1755,7 @@
                             <h6 class="text-info">🗺️ Malaysia Threat Heatmap</h6>
                             <div class="risk-heatmap-enhanced">
                                 ${Object.entries(assessment.heatmapData).map(([region, data]) => `
-                                    <div class="risk-region-enhanced risk-${data.risk}" onclick="this.showRegionDetails('${region}', ${JSON.stringify(data).replace(/"/g, '&quot;')})">
+                                    <div class="risk-region-enhanced risk-${data.risk}" onclick="window.paySavvy.showRegionDetails('${region}', ${JSON.stringify(data).replace(/"/g, '&quot;')})">
                                         <div class="region-header">
                                             <strong>${region}</strong>
                                             <span class="trend-indicator ${data.trend.startsWith('+') ? 'trend-up' : 'trend-down'}">${data.trend}</span>
