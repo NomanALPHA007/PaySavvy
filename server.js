@@ -8,7 +8,17 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, {
+  index: 'index.html',
+  dotfiles: 'ignore',
+  etag: false,
+  extensions: ['html', 'js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg'],
+  maxAge: '1d',
+  redirect: false,
+  setHeaders: function (res, path, stat) {
+    res.set('x-timestamp', Date.now())
+  }
+}));
 
 // Multiple health check endpoints for different deployment platforms
 app.get('/health', (req, res) => {
@@ -55,6 +65,21 @@ app.use('/src', express.static(path.join(__dirname, 'src')));
 app.use('/server', express.static(path.join(__dirname, 'server')));
 app.use('/shared', express.static(path.join(__dirname, 'shared')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// Handle 404 for non-existent routes (except API routes)
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API route not found' });
+  }
+  
+  // For all other routes, serve the main app
+  res.sendFile(path.join(__dirname, 'index.html'), (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).send('Server error');
+    }
+  });
+});
 
 // Create HTTP server
 const server = createServer(app);
