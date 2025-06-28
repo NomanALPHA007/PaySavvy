@@ -8,15 +8,20 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
+// Serve static files but exclude problematic JS files
 app.use(express.static(__dirname, {
-  index: 'index.html',
+  index: false,  // Don't auto-serve index files
   dotfiles: 'ignore',
   etag: false,
-  extensions: ['html', 'js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg'],
+  extensions: ['png', 'jpg', 'jpeg', 'gif', 'svg'],  // Remove js and css
   maxAge: '1d',
   redirect: false,
   setHeaders: function (res, path, stat) {
-    res.set('x-timestamp', Date.now())
+    res.set('x-timestamp', Date.now());
+    // Add cache-busting headers for all files
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
   }
 }));
 
@@ -49,25 +54,26 @@ app.get('/', (req, res) => {
   });
   
   const fs = require('fs');
-  let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
+  let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   
   // Inject environment variables and cache buster into the HTML
   const timestamp = Date.now();
   const envScript = `
     <script>
       window.ENV = {
-        VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
+        VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}'
       };
-      window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';
+      window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}';
+      window.OPENAI_API_KEY = '${process.env.OPENAI_API_KEY || ''}';
       window.APP_VERSION = '${timestamp}';
-      console.log('Clean PaySavvy v${timestamp} loaded - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
+      console.log('PaySavvy Production v${timestamp} loaded - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
     </script>
   `;
   
   // Insert the script before the closing </head> tag
   html = html.replace('</head>', `${envScript}</head>`);
   
-  console.log('Serving simplified app - API key:', process.env.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
+  console.log('Serving production app - API key:', process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY ? 'Present' : 'Missing');
   
   res.send(html);
 });
@@ -77,10 +83,10 @@ app.get('/dashboard', (req, res) => {
   const dashboardPath = path.join(__dirname, 'public', 'dashboard.html');
   res.sendFile(dashboardPath, (err) => {
     if (err) {
-      console.log('Dashboard file not found, serving simplified app');
+      console.log('Dashboard file not found, serving production app');
       const fs = require('fs');
-      let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
-      const envScript = `<script>window.ENV = {VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'};window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';</script>`;
+      let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+      const envScript = `<script>window.ENV = {VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}'};window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}';window.OPENAI_API_KEY = '${process.env.OPENAI_API_KEY || ''}';</script>`;
       html = html.replace('</head>', `${envScript}</head>`);
       res.send(html);
     }
@@ -92,9 +98,19 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'API healthy', timestamp: new Date().toISOString() });
 });
 
-// Block specific problematic files
-app.get('/main.js', (req, res) => {
-  res.status(404).send('Legacy files disabled');
+// Block all modular JavaScript files that cause import.meta errors
+const blockedFiles = [
+  '/main.js', '/style.css', '/src/main.js', '/src/ai.js', '/src/ai/gptScan.js',
+  '/src/utils/language.js', '/src/utils/regexRules.js', '/src/utils/fingerprint.js',
+  '/src/utils/redirectTrace.js', '/src/utils/multilingualMatcher.js', '/src/utils/localHeatmap.js',
+  '/src/utils/qrDecode.js', '/src/utils/fallback.js', '/src/components/InputScanner.js',
+  '/src/components/PreferencesPanel.js', '/src/components/QRScanner.js', '/src/components/ResultBox.js'
+];
+
+blockedFiles.forEach(file => {
+  app.get(file, (req, res) => {
+    res.status(404).send('Legacy module files disabled - using production version');
+  });
 });
 
 app.get('/style.css', (req, res) => {
