@@ -1,0 +1,20 @@
+{
+  "name": "paysavvy",
+  "version": "1.0.0",
+  "description": "AI-powered scam detection platform for Malaysian users",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static build complete'",
+    "start": "echo 'Vercel deployment ready'",
+    "dev": "echo 'Use Vercel dev for local development'"
+  },
+  "keywords": ["cybersecurity", "scam-detection", "ai", "malaysia", "vercel"],
+  "author": "PaySavvy Team",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
