@@ -1,6 +1,26 @@
-# PaySavvy Pro - Vercel Deployment Fix
+# PaySavvy Pro - Deployment Guide
 
-## Issue Resolution for Your Deployment
+## Replit Deployment
+
+### Current Issue: "Could not find run command"
+This error occurs when Replit's deployment system cannot identify the proper entry point for the application.
+
+### Solution
+The project includes multiple deployment configurations:
+- `server.js` - Main Express server (port 5000)
+- `start.js` - Production start script with error handling
+- `run.sh` - Shell script for deployment environments
+- `Procfile` - Process configuration for cloud platforms
+
+### Replit Deployment Steps
+1. Click "Deploy" in your Replit workspace
+2. If you see "could not find run command", the system should use `server.js` as the default
+3. The server runs on port 5000 with proper health check endpoints
+4. Environment variables are automatically injected through `server.js`
+
+## Vercel Deployment (Alternative)
+
+### Issue Resolution for Static Deployment
 
 The screenshots show Vercel deployed an unstyled, broken version because the project configuration was incorrect for static deployment.
 
