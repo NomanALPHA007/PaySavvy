@@ -216,5 +216,8 @@ const database = {
     }
 };
 
-// Export for use in main.js
+// Export for ES modules
+export { database };
+
+// Also make available globally for backward compatibility
 window.database = database;

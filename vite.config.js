@@ -22,9 +22,9 @@ export default defineConfig({
     }
   },
   
-  // Environment variables
+  // Environment variables (only expose VITE_ prefixed vars for security)
   define: {
-    'process.env': process.env
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
   },
   
   // Base URL for deployment
