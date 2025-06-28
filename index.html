@@ -3,209 +3,549 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PaySavvy - AI-powered fake payment link detector for Malaysian users">
-    <meta name="keywords" content="scam detection, payment security, phishing, Malaysia">
-    <meta name="author" content="PaySavvy">
-    <title>PaySavvy - Smart Scam Link Detector</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <title>PaySavvy Pro - AI Scam Link Detector</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+            border-radius: 1rem 1rem 0 0;
+            padding: 1.5rem;
+        }
+
+        .url-input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .url-input {
+            background: #334155;
+            border: 2px solid #475569;
+            color: white;
+            font-size: 1.1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            background: #334155;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            color: white;
+        }
+
+        .scan-btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .results-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #1e293b;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+
+        .risk-badge {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+        }
+
+        .risk-safe { background: var(--success-color); }
+        .risk-suspicious { background: var(--warning-color); }
+        .risk-dangerous { background: var(--danger-color); }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-gradient">
-        <div class="main-container">
+    <div class="main-container">
+        <div class="container">
             <!-- Header -->
-            <header class="text-center mb-4">
-                <div class="logo-container mb-3">
-                    <i data-feather="shield" class="logo-icon"></i>
+            <div class="app-header">
+                <h1 class="app-title">PaySavvy Pro</h1>
+                <p class="text-white-50">AI-Powered Scam Link Detector for Malaysia</p>
+            </div>
+
+            <!-- Main Card -->
+            <div class="card main-card">
+                <div class="card-header">
+                    <h5 class="mb-0 text-white">
+                        <i data-feather="shield"></i>
+                        Advanced Threat Scanner
+                    </h5>
                 </div>
-                <h1 class="display-4 fw-bold text-primary mb-2">PaySavvy</h1>
-                <p class="lead text-muted">Smart Scam Link Detector</p>
-                <p class="text-secondary">Protect yourself from fake payment links and phishing scams</p>
-            </header>
 
-            <!-- Main Form -->
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-4">
-                    <form id="scanForm" class="mb-4">
-                        <div class="mb-3">
-                            <label for="urlInput" class="form-label fw-semibold">
-                                <i data-feather="link" class="me-2"></i>
-                                Paste suspicious payment URL here:
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i data-feather="globe"></i>
-                                </span>
-                                <input 
-                                    type="url" 
-                                    class="form-control form-control-lg" 
-                                    id="urlInput" 
-                                    placeholder="https://example.com/payment-link"
-                                    required
-                                    aria-describedby="urlHelp"
-                                >
-                            </div>
-                            <div id="urlHelp" class="form-text">
-                                Enter any suspicious payment or banking link you've received
-                            </div>
-                        </div>
+                <div class="card-body">
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="alert alert-danger d-none" role="alert"></div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" id="scanButton">
-                                <span class="button-text">
-                                    <i data-feather="search" class="me-2"></i>
-                                    Scan Link
-                                </span>
-                                <div class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></div>
-                                <span class="loading-text d-none">Analyzing...</span>
-                            </button>
+                    <!-- URL Input Form -->
+                    <form id="scanForm">
+                        <div class="url-input-group">
+                            <input 
+                                type="url" 
+                                class="form-control url-input" 
+                                id="urlInput" 
+                                placeholder="Paste suspicious link here (e.g., maybank-secure.com)"
+                                required
+                            >
                         </div>
+                        
+                        <button type="submit" class="btn scan-btn text-white" id="scanButton">
+                            <i data-feather="shield"></i>
+                            <span>Scan Link Now</span>
+                        </button>
                     </form>
 
-                    <!-- OpenAI API Key Input (for development/testing) -->
-                    <div class="mb-3">
-                        <details class="api-key-section">
-                            <summary class="text-muted small">
-                                <i data-feather="key" class="me-1"></i>
-                                OpenAI API Configuration (Optional)
-                            </summary>
-                            <div class="mt-2">
-                                <input 
-                                    type="password" 
-                                    class="form-control form-control-sm" 
-                                    id="apiKeyInput" 
-                                    placeholder="Enter OpenAI API key (optional)"
-                                    aria-label="OpenAI API Key"
-                                >
-                                <div class="form-text">
-                                    Leave empty to use environment variables
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-
                     <!-- Results Section -->
-                    <div id="resultsSection" class="d-none">
-                        <hr class="my-4">
-                        <h3 class="h5 mb-3">
-                            <i data-feather="clipboard" class="me-2"></i>
-                            Analysis Results
-                        </h3>
-                        
-                        <!-- Risk Level Display -->
-                        <div id="riskDisplay" class="alert mb-3" role="alert">
-                            <div class="d-flex align-items-center mb-2">
-                                <i id="riskIcon" data-feather="alert-triangle" class="me-2"></i>
-                                <strong id="riskLevel">Risk Level</strong>
-                            </div>
-                            <div id="riskExplanation" class="mb-2"></div>
-                            <div id="riskSuggestions" class="small"></div>
+                    <div id="results" class="results-section d-none">
+                        <div class="risk-display mb-3">
+                            <div id="riskBadge" class="badge risk-badge">Analyzing...</div>
+                            <p id="riskExplanation" class="mt-2 mb-0"></p>
                         </div>
 
-                        <!-- Pattern Analysis -->
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h6 class="mb-0">
-                                    <i data-feather="search" class="me-2"></i>
-                                    Pattern Analysis
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div id="patternResults">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span>Pattern Score:</span>
-                                        <span id="patternScore" class="badge">0/10</span>
-                                    </div>
-                                    <div id="detectedPatterns" class="small text-muted"></div>
-                                </div>
-                            </div>
+                        <div id="detailsSection" class="mt-3">
+                            <h6>Analysis Details:</h6>
+                            <div id="analysisDetails"></div>
                         </div>
 
-                        <!-- AI Analysis -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="mb-0">
-                                    <i data-feather="cpu" class="me-2"></i>
-                                    AI Analysis
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div id="aiResults">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span>AI Risk Assessment:</span>
-                                        <span id="aiRiskLevel" class="badge">-</span>
-                                    </div>
-                                    <div id="aiExplanation" class="small text-muted"></div>
-                                </div>
-                            </div>
+                        <div id="suggestionsSection" class="mt-3">
+                            <h6>Recommendations:</h6>
+                            <ul id="suggestionsList" class="list-unstyled"></ul>
                         </div>
-                    </div>
-
-                    <!-- Error Display -->
-                    <div id="errorSection" class="d-none">
-                        <div class="alert alert-danger" role="alert">
-                            <i data-feather="alert-circle" class="me-2"></i>
-                            <strong>Error:</strong>
-                            <span id="errorMessage"></span>
-                        </div>
-                    </div>
-
-                    <!-- Scan History Section -->
-                    <div id="historySection" class="mt-4">
-                        <details class="history-details">
-                            <summary class="text-muted mb-3">
-                                <i data-feather="clock" class="me-2"></i>
-                                Recent Scan History
-                            </summary>
-                            <div id="scanHistory" class="mt-3">
-                                <div class="text-center text-muted">
-                                    <p>No previous scans found</p>
-                                </div>
-                            </div>
-                        </details>
                     </div>
                 </div>
             </div>
-
-            <!-- Footer -->
-            <footer class="text-center mt-4">
-                <div class="row">
-                    <div class="col-md-12">
-                        <p class="text-muted small mb-2">
-                            <i data-feather="info" class="me-1"></i>
-                            Always verify suspicious links with your bank or payment provider
-                        </p>
-                        <p class="text-muted small">
-                            Built with ❤️ for Malaysian cybersecurity
-                        </p>
-                    </div>
-                </div>
-            </footer>
         </div>
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Database functionality -->
-    <script type="module" src="database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Main Application Script -->
-    <script type="module" src="main.js"></script>
-    
-    <!-- Initialize Feather Icons -->
     <script>
+        // Initialize Feather Icons
         feather.replace();
+
+        class PaySavvyCore {
+            constructor() {
+                this.apiKey = import.meta?.env?.VITE_OPENAI_API_KEY || 'demo-mode';
+                this.isScanning = false;
+                this.init();
+            }
+
+            init() {
+                console.log('PaySavvy Pro initializing...');
+                this.setupEventListeners();
+                console.log('PaySavvy Pro ready!');
+            }
+
+            setupEventListeners() {
+                const form = document.getElementById('scanForm');
+                const urlInput = document.getElementById('urlInput');
+                
+                if (form) {
+                    form.addEventListener('submit', (e) => this.handleScan(e));
+                }
+
+                if (urlInput) {
+                    urlInput.addEventListener('input', (e) => this.validateInput(e.target.value));
+                }
+            }
+
+            validateInput(url) {
+                const input = document.getElementById('urlInput');
+                const isValid = this.isValidUrl(url);
+                
+                if (url.length > 0) {
+                    input.classList.toggle('is-valid', isValid);
+                    input.classList.toggle('is-invalid', !isValid);
+                } else {
+                    input.classList.remove('is-valid', 'is-invalid');
+                }
+            }
+
+            isValidUrl(string) {
+                try {
+                    new URL(string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+
+            async handleScan(event) {
+                event.preventDefault();
+                
+                if (this.isScanning) return;
+
+                const urlInput = document.getElementById('urlInput');
+                const url = urlInput.value.trim();
+
+                if (!url) {
+                    this.showError('Please enter a URL to scan');
+                    return;
+                }
+
+                if (!this.isValidUrl(url)) {
+                    this.showError('Please enter a valid URL (include http:// or https://)');
+                    return;
+                }
+
+                this.isScanning = true;
+                this.setLoadingState(true);
+                this.hideError();
+
+                try {
+                    console.log('Scanning URL:', url);
+                    
+                    // Run pattern analysis
+                    const patternResult = this.analyzePatterns(url);
+                    console.log('Pattern analysis:', patternResult);
+
+                    // Run AI analysis (if API key available)
+                    let aiResult = null;
+                    if (this.apiKey && this.apiKey !== 'demo-mode') {
+                        try {
+                            aiResult = await this.analyzeWithAI(url);
+                            console.log('AI analysis:', aiResult);
+                        } catch (error) {
+                            console.warn('AI analysis failed:', error.message);
+                        }
+                    }
+
+                    // Combine results
+                    const finalResult = this.combineAnalysis(patternResult, aiResult);
+                    console.log('Final result:', finalResult);
+
+                    // Display results  
+                    this.displayResults(finalResult, patternResult, aiResult);
+
+                } catch (error) {
+                    console.error('Scan error:', error);
+                    this.showError('Scan failed: ' + error.message);
+                } finally {
+                    this.isScanning = false;
+                    this.setLoadingState(false);
+                }
+            }
+
+            analyzePatterns(url) {
+                const result = {
+                    riskLevel: 'safe',
+                    score: 0,
+                    flags: [],
+                    explanation: 'No suspicious patterns detected'
+                };
+
+                const domain = new URL(url).hostname.toLowerCase();
+                
+                // Malaysian bank typosquatting detection
+                const malayBanks = ['maybank', 'cimb', 'publicbank', 'rhb', 'hongleong', 'ambank'];
+                const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.cc', '.biz', '.info'];
+                
+                // Check for bank name typosquatting
+                malayBanks.forEach(bank => {
+                    if (domain.includes(bank) && !domain.includes(`${bank}.com.my`)) {
+                        result.score += 3;
+                        result.flags.push(`Suspicious ${bank} domain - may be fake`);
+                    }
+                });
+
+                // Check suspicious TLDs
+                suspiciousTlds.forEach(tld => {
+                    if (domain.endsWith(tld)) {
+                        result.score += 2;
+                        result.flags.push('Suspicious domain extension');
+                    }
+                });
+
+                // Check for common scam patterns
+                const scamKeywords = ['secure', 'update', 'verify', 'suspended', 'urgent', 'limited'];
+                scamKeywords.forEach(keyword => {
+                    if (domain.includes(keyword)) {
+                        result.score += 1;
+                        result.flags.push(`Contains suspicious keyword: ${keyword}`);
+                    }
+                });
+
+                // Set risk level based on score
+                if (result.score >= 4) {
+                    result.riskLevel = 'dangerous';
+                    result.explanation = 'High risk - multiple suspicious indicators detected';
+                } else if (result.score >= 2) {
+                    result.riskLevel = 'suspicious';
+                    result.explanation = 'Medium risk - some suspicious patterns found';
+                } else {
+                    result.riskLevel = 'safe';
+                    result.explanation = 'Low risk - no major threats detected';
+                }
+
+                return result;
+            }
+
+            async analyzeWithAI(url) {
+                if (!this.apiKey || this.apiKey === 'demo-mode') {
+                    throw new Error('AI analysis requires OpenAI API key');
+                }
+
+                const prompt = `Analyze this URL for scam/phishing threats targeting Malaysian users:
+
+URL: ${url}
+
+Focus on:
+1. Malaysian bank/e-wallet impersonation (Maybank, CIMB, Public Bank, RHB, Grab, Boost, etc.)
+2. Typosquatting and domain spoofing  
+3. Social engineering tactics
+4. URL structure anomalies
+
+Respond with JSON only:
+{
+  "riskLevel": "safe|suspicious|dangerous",
+  "confidence": 0.0-1.0,
+  "explanation": "Brief explanation for Malaysian users",
+  "flags": ["specific issues found"],
+  "suggestions": ["safety recommendations"]
+}`;
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o',
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                        response_format: { type: "json_object" },
+                        max_tokens: 500,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`AI analysis failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return JSON.parse(data.choices[0].message.content);
+            }
+
+            combineAnalysis(patternResult, aiResult) {
+                const combined = {
+                    riskLevel: patternResult.riskLevel,
+                    explanation: patternResult.explanation,
+                    flags: [...patternResult.flags],
+                    suggestions: [
+                        'Always verify URLs before entering personal information',
+                        'Check for HTTPS and valid certificates',
+                        'Contact your bank directly if suspicious'
+                    ]
+                };
+
+                // Enhance with AI results if available
+                if (aiResult) {
+                    // Use higher risk level
+                    const riskLevels = ['safe', 'suspicious', 'dangerous'];
+                    const patternRisk = riskLevels.indexOf(patternResult.riskLevel);
+                    const aiRisk = riskLevels.indexOf(aiResult.riskLevel);
+                    
+                    if (aiRisk > patternRisk) {
+                        combined.riskLevel = aiResult.riskLevel;
+                        combined.explanation = aiResult.explanation;
+                    }
+
+                    // Combine flags and suggestions
+                    combined.flags = [...new Set([...combined.flags, ...aiResult.flags])];
+                    combined.suggestions = [...new Set([...combined.suggestions, ...aiResult.suggestions])];
+                }
+
+                return combined;
+            }
+
+            displayResults(result, patternResult, aiResult) {
+                const resultsDiv = document.getElementById('results');
+                const riskBadge = document.getElementById('riskBadge');
+                const riskExplanation = document.getElementById('riskExplanation');
+                const analysisDetails = document.getElementById('analysisDetails');
+                const suggestionsList = document.getElementById('suggestionsList');
+
+                // Show results section
+                resultsDiv.classList.remove('d-none');
+
+                // Update risk badge
+                riskBadge.textContent = result.riskLevel.toUpperCase();
+                riskBadge.className = `badge risk-badge risk-${result.riskLevel}`;
+
+                // Update explanation
+                riskExplanation.textContent = result.explanation;
+
+                // Update analysis details
+                let detailsHTML = '<div class="row">';
+                detailsHTML += '<div class="col-md-6">';
+                detailsHTML += '<h6>Pattern Analysis:</h6>';
+                detailsHTML += `<p>Risk Level: <span class="badge bg-${this.getRiskColor(patternResult.riskLevel)}">${patternResult.riskLevel}</span></p>`;
+                detailsHTML += `<p>Score: ${patternResult.score}/5</p>`;
+                detailsHTML += '</div>';
+
+                if (aiResult) {
+                    detailsHTML += '<div class="col-md-6">';
+                    detailsHTML += '<h6>AI Analysis:</h6>';
+                    detailsHTML += `<p>Risk Level: <span class="badge bg-${this.getRiskColor(aiResult.riskLevel)}">${aiResult.riskLevel}</span></p>`;
+                    detailsHTML += `<p>Confidence: ${Math.round(aiResult.confidence * 100)}%</p>`;
+                    detailsHTML += '</div>';
+                }
+                detailsHTML += '</div>';
+
+                if (result.flags.length > 0) {
+                    detailsHTML += '<h6 class="mt-3">Threats Detected:</h6>';
+                    detailsHTML += '<ul class="list-unstyled">';
+                    result.flags.forEach(flag => {
+                        detailsHTML += `<li><i class="text-warning" data-feather="alert-triangle"></i> ${flag}</li>`;
+                    });
+                    detailsHTML += '</ul>';
+                }
+
+                analysisDetails.innerHTML = detailsHTML;
+
+                // Update suggestions
+                suggestionsList.innerHTML = '';
+                result.suggestions.forEach(suggestion => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<i class="text-info" data-feather="check-circle"></i> ${suggestion}`;
+                    li.className = 'mb-2';
+                    suggestionsList.appendChild(li);
+                });
+
+                // Re-initialize Feather icons
+                feather.replace();
+            }
+
+            getRiskColor(riskLevel) {
+                switch (riskLevel) {
+                    case 'safe': return 'success';
+                    case 'suspicious': return 'warning';
+                    case 'dangerous': return 'danger';
+                    default: return 'secondary';
+                }
+            }
+
+            setLoadingState(loading) {
+                const button = document.getElementById('scanButton');
+                const span = button.querySelector('span');
+                
+                if (loading) {
+                    button.disabled = true;
+                    span.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+                } else {
+                    button.disabled = false;
+                    span.textContent = 'Scan Link Now';
+                }
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('d-none');
+                
+                setTimeout(() => {
+                    errorDiv.classList.add('d-none');
+                }, 5000);
+            }
+
+            hideError() {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.classList.add('d-none');
+            }
+        }
+
+        // Initialize application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.paySavvy = new PaySavvyCore();
+        });
     </script>
 </body>
 </html>
