@@ -196,6 +196,63 @@ h1.display-4 {
     color: var(--primary-color);
 }
 
+/* History Section */
+.history-details {
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.history-details summary {
+    cursor: pointer;
+    padding: 5px;
+    user-select: none;
+    font-weight: 600;
+}
+
+.history-details summary:hover {
+    color: var(--primary-color);
+}
+
+.history-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.history-item.safe {
+    border-left-color: var(--success-color);
+}
+
+.history-item.suspicious {
+    border-left-color: var(--warning-color);
+}
+
+.history-item.dangerous {
+    border-left-color: var(--danger-color);
+}
+
+.history-item .history-url {
+    font-weight: 600;
+    color: var(--dark-text);
+    word-break: break-all;
+}
+
+.history-item .history-risk {
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.history-item .history-time {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+}
+
 /* Results Section */
 #resultsSection {
     animation: fadeIn 0.5s ease-in-out;

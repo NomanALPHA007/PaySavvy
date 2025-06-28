@@ -14,9 +14,11 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
 - **Architecture Pattern**: Single Page Application (SPA) with client-side rendering
 
 ### Backend Architecture
-- **Runtime**: Browser-based JavaScript execution
+- **Runtime**: Browser-based JavaScript execution with PostgreSQL database integration
+- **Database**: PostgreSQL with Drizzle ORM for data persistence
 - **API Integration**: Direct client-side calls to OpenAI API
-- **No Traditional Backend**: The application runs entirely in the browser without a dedicated server backend
+- **Storage**: Local storage with database backup for scan history and analytics
+- **Data Layer**: Client-side database operations with fallback to localStorage
 
 ### AI Integration
 - **Service**: OpenAI GPT-4o API
@@ -32,13 +34,20 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
 - **Risk Scoring System**: Numerical scoring with thresholds for Safe (0-2), Suspicious (3-4), and Dangerous (5+)
 - **Suspicious TLD Detection**: Identification of high-risk top-level domains
 
-### 2. User Interface (index.html + style.css)
+### 2. Database Layer (PostgreSQL + Drizzle ORM)
+- **Schema Definition**: User tracking, scanned URLs, scam reports, and analytics tables (shared/schema.ts)
+- **Database Connection**: PostgreSQL integration with Neon serverless (server/db.ts)
+- **Storage Interface**: Abstracted data operations with localStorage fallback (server/storage.ts)
+- **Client Integration**: Browser-based database operations (database.js)
+
+### 3. User Interface (index.html + style.css)
 - **Responsive Design**: Mobile-first approach with Bootstrap grid system
 - **Color-Coded Results**: Visual risk indication (green/yellow/red)
 - **Input Validation**: URL format validation and sanitization
 - **Loading States**: User feedback during API calls
+- **Scan History**: Recent scans display with risk levels and timestamps
 
-### 3. Scam Pattern Database
+### 4. Scam Pattern Database
 - **Typosquatting Patterns**: Common misspellings of Malaysian bank domains
 - **Scam Keywords**: Context-aware detection of suspicious phrases
 - **TLD Blacklist**: Known suspicious top-level domains
@@ -85,7 +94,12 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
 
 ## Changelog
 
-- June 28, 2025. Initial setup
+- June 28, 2025: Initial setup
+- June 28, 2025: Added PostgreSQL database integration with Drizzle ORM
+  - Created database schema for users, scanned URLs, scam reports, and analytics
+  - Implemented client-side database operations with localStorage fallback
+  - Added scan history display functionality
+  - Enhanced user interface with collapsible history section
 
 ## User Preferences
 

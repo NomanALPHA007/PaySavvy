@@ -79,7 +79,8 @@ const elements = {
     patternScore: document.getElementById('patternScore'),
     detectedPatterns: document.getElementById('detectedPatterns'),
     aiRiskLevel: document.getElementById('aiRiskLevel'),
-    aiExplanation: document.getElementById('aiExplanation')
+    aiExplanation: document.getElementById('aiExplanation'),
+    scanHistory: document.getElementById('scanHistory')
 };
 
 /**
@@ -88,6 +89,9 @@ const elements = {
 function init() {
     console.log('PaySavvy initialized');
     elements.form.addEventListener('submit', handleFormSubmit);
+    
+    // Load scan history
+    loadScanHistory();
     
     // Initialize feather icons
     if (typeof feather !== 'undefined') {
@@ -128,6 +132,12 @@ async function handleFormSubmit(event) {
         // Combine results and display
         const finalResult = combineAnalysis(patternAnalysis, aiAnalysis);
         displayResults(finalResult, patternAnalysis, aiAnalysis);
+        
+        // Save scan result to database
+        await saveScanToDatabase(url, patternAnalysis, aiAnalysis, finalResult);
+        
+        // Refresh scan history
+        await loadScanHistory();
         
     } catch (error) {
         console.error('Analysis error:', error);
@@ -513,6 +523,114 @@ function getEnvVar(name, defaultValue = '') {
     }
     
     return defaultValue;
+}
+
+/**
+ * Save scan result to database
+ */
+async function saveScanToDatabase(url, patternAnalysis, aiAnalysis, finalResult) {
+    try {
+        if (window.database) {
+            const urlObj = new URL(url);
+            
+            await window.database.saveScanResult({
+                url: url,
+                domain: urlObj.hostname,
+                patternScore: patternAnalysis.score,
+                patternRiskLevel: patternAnalysis.riskLevel,
+                detectedPatterns: patternAnalysis.detectedPatterns,
+                aiRiskLevel: aiAnalysis.riskLevel,
+                aiConfidence: Math.round((aiAnalysis.confidence || 0) * 100),
+                aiExplanation: aiAnalysis.explanation,
+                finalRiskLevel: finalResult.riskLevel
+            });
+            
+            // Track analytics event
+            await window.database.trackEvent('scan', {
+                riskLevel: finalResult.riskLevel,
+                domain: urlObj.hostname,
+                patternScore: patternAnalysis.score,
+                hasAiAnalysis: aiAnalysis.riskLevel !== 'Unknown'
+            });
+        }
+    } catch (error) {
+        console.error('Failed to save scan to database:', error);
+        // Continue without blocking user experience
+    }
+}
+
+/**
+ * Load and display scan history
+ */
+async function loadScanHistory() {
+    try {
+        if (window.database) {
+            const history = await window.database.getScanHistory(5);
+            displayScanHistory(history);
+        }
+    } catch (error) {
+        console.error('Failed to load scan history:', error);
+    }
+}
+
+/**
+ * Display scan history in the UI
+ */
+function displayScanHistory(history) {
+    if (!elements.scanHistory || !history || history.length === 0) {
+        if (elements.scanHistory) {
+            elements.scanHistory.innerHTML = `
+                <div class="text-center text-muted">
+                    <p>No previous scans found</p>
+                </div>
+            `;
+        }
+        return;
+    }
+
+    const historyHtml = history.map(scan => {
+        const riskClass = scan.finalRiskLevel.toLowerCase();
+        const timeAgo = formatTimeAgo(new Date(scan.scannedAt));
+        const shortUrl = scan.url.length > 50 ? scan.url.substring(0, 50) + '...' : scan.url;
+        
+        return `
+            <div class="history-item ${riskClass}">
+                <div class="history-url">${escapeHtml(shortUrl)}</div>
+                <div class="history-risk">
+                    <span class="badge ${getBadgeClass(scan.finalRiskLevel)}">${scan.finalRiskLevel}</span>
+                    <span class="ms-2">Score: ${scan.patternScore}/10</span>
+                </div>
+                <div class="history-time">${timeAgo}</div>
+            </div>
+        `;
+    }).join('');
+
+    elements.scanHistory.innerHTML = historyHtml;
+}
+
+/**
+ * Format time ago string
+ */
+function formatTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Initialize the application when DOM is loaded
