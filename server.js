@@ -10,13 +10,23 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Health check endpoint for deployment
+// Multiple health check endpoints for different deployment platforms
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    service: 'PaySavvy Server'
+    service: 'PaySavvy Server',
+    port: PORT,
+    uptime: process.uptime()
   });
+});
+
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
 });
 
 // Root endpoint - serve main application
@@ -99,11 +109,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-server.listen(PORT, '0.0.0.0', () => {
+// Start server with enhanced error handling
+server.listen(PORT, '0.0.0.0', (err) => {
+  if (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
   console.log(`PaySavvy Server running on port ${PORT}`);
-  console.log(`Health check available at http://localhost:${PORT}/health`);
-  console.log(`Application available at http://localhost:${PORT}/`);
+  console.log(`Health check available at http://0.0.0.0:${PORT}/health`);
+  console.log(`Application available at http://0.0.0.0:${PORT}/`);
+  console.log(`Server ready to accept connections`);
 });
 
 // Graceful shutdown
