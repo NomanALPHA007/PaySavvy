@@ -813,6 +813,57 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- AI Risk Management Chatbot -->
+                    <div id="chatbotModal" class="modal fade" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content" style="background: white; border: 2px solid var(--border-color);">
+                                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                                    <h5 class="modal-title text-white">
+                                        <i data-feather="message-circle"></i>
+                                        PaySavvy AI Risk Advisor
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-0">
+                                    <div id="chatbot-container">
+                                        <div id="chat-messages" class="chat-messages">
+                                            <div class="ai-message">
+                                                <div class="message-content">
+                                                    <strong>PaySavvy AI Assistant</strong>
+                                                    <p>Hello! I'm your personal cybersecurity advisor. I can help you with:</p>
+                                                    <ul>
+                                                        <li>Understanding scam risks and prevention</li>
+                                                        <li>Banking security best practices</li>
+                                                        <li>Incident response guidance</li>
+                                                        <li>Malaysian cybersecurity regulations</li>
+                                                        <li>E-wallet and digital payment safety</li>
+                                                    </ul>
+                                                    <p>What would you like to know about cybersecurity?</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="chat-input-container">
+                                            <div class="input-group">
+                                                <input type="text" id="chat-input" class="form-control" placeholder="Ask about cybersecurity risks, prevention, or get guidance..." style="border: 2px solid var(--border-color);">
+                                                <button class="btn" id="send-message" style="background: var(--primary-color); color: white;">
+                                                    <i data-feather="send"></i>
+                                                </button>
+                                            </div>
+                                            <div class="quick-questions mt-2">
+                                                <small class="text-muted">Quick questions:</small>
+                                                <div class="quick-btn-container">
+                                                    <button class="btn btn-sm quick-question" data-question="How can I identify phishing emails?">Phishing Detection</button>
+                                                    <button class="btn btn-sm quick-question" data-question="What should I do if I think I've been scammed?">Scam Response</button>
+                                                    <button class="btn btn-sm quick-question" data-question="How to secure my online banking?">Banking Security</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
