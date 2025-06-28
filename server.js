@@ -79,10 +79,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'API healthy', timestamp: new Date().toISOString() });
 });
 
-// Serve static assets
-app.use('/src', express.static(path.join(__dirname, 'src')));
-app.use('/server', express.static(path.join(__dirname, 'server')));
-app.use('/shared', express.static(path.join(__dirname, 'shared')));
+// Serve only essential static assets (disable problematic directories)
+// app.use('/src', express.static(path.join(__dirname, 'src'))); // Disabled - contains import.meta
+// app.use('/server', express.static(path.join(__dirname, 'server'))); // Disabled
+// app.use('/shared', express.static(path.join(__dirname, 'shared'))); // Disabled
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Handle 404 for non-existent routes (except API routes)
@@ -91,13 +91,22 @@ app.use((req, res, next) => {
     return res.status(404).json({ error: 'API route not found' });
   }
   
-  // For all other routes, serve the main app
-  res.sendFile(path.join(__dirname, 'index.html'), (err) => {
-    if (err) {
-      console.error('Error serving index.html:', err);
-      res.status(500).send('Server error');
-    }
-  });
+  // For all other routes, serve the simplified main app
+  const fs = require('fs');
+  let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
+  
+  // Inject environment variables
+  const envScript = `
+    <script>
+      window.ENV = {
+        VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
+      };
+      window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';
+    </script>
+  `;
+  
+  html = html.replace('</head>', `${envScript}</head>`);
+  res.send(html);
 });
 
 // Create HTTP server
