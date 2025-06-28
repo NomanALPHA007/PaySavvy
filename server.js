@@ -92,11 +92,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'API healthy', timestamp: new Date().toISOString() });
 });
 
-// Serve only essential static assets (disable problematic directories)
-// app.use('/src', express.static(path.join(__dirname, 'src'))); // Disabled - contains import.meta
-// app.use('/server', express.static(path.join(__dirname, 'server'))); // Disabled
-// app.use('/shared', express.static(path.join(__dirname, 'shared'))); // Disabled
-app.use('/public', express.static(path.join(__dirname, 'public')));
+// Block specific problematic files
+app.get('/main.js', (req, res) => {
+  res.status(404).send('Legacy files disabled');
+});
+
+app.get('/style.css', (req, res) => {
+  res.status(404).send('Legacy files disabled');
+});
 
 // Handle 404 for non-existent routes (except API routes)
 app.use((req, res, next) => {
@@ -104,24 +107,35 @@ app.use((req, res, next) => {
     return res.status(404).json({ error: 'API route not found' });
   }
   
-  // For all other routes, serve the simplified main app with cache-busting
+  // For all other routes, serve the simplified main app with aggressive cache-busting
   res.set({
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
     'Pragma': 'no-cache',
-    'Expires': '0'
+    'Expires': '0',
+    'Last-Modified': new Date().toUTCString(),
+    'ETag': Date.now().toString()
   });
   
   const fs = require('fs');
   let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
   
-  // Inject environment variables
+  // Inject environment variables with timestamp
+  const timestamp = Date.now();
   const envScript = `
     <script>
+      // Force cache clear
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => registration.unregister());
+        });
+      }
+      
       window.ENV = {
         VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
       };
       window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';
-      console.log('Simplified PaySavvy loaded - fallback route');
+      window.APP_CLEAN_VERSION = '${timestamp}';
+      console.log('Clean PaySavvy v${timestamp} - cache forced clear');
     </script>
   `;
   
