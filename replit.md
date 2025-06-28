@@ -78,9 +78,10 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
 ## Deployment Strategy
 
 ### Primary Platform: Replit
-- **Configuration**: Vite development server on port 5000
+- **Configuration**: Express.js production server on port 5000
 - **Host**: 0.0.0.0 for external access
-- **Environment**: Browser-based execution with API key management
+- **Health Checks**: /health and / endpoints for deployment monitoring
+- **Environment**: Node.js server with browser-based frontend execution
 
 ### Secondary Platform: Vercel
 - **Build Command**: `npm run build` (Vite build process)
@@ -132,6 +133,14 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Simplified vercel.json for static site deployment without build process
   - Updated deployment documentation with corrected steps and troubleshooting
   - Created fixed deployment package (paysavvy-pro-vercel-fixed.tar.gz)
+- June 28, 2025: Resolved critical deployment health check failures
+  - Created Express.js production server (server.js) with proper health check endpoints
+  - Added /health endpoint for deployment monitoring and root / endpoint serving main application
+  - Configured port 5000 with 0.0.0.0 binding for external access
+  - Added WebSocket support for real-time scam alerts and notifications
+  - Created comprehensive deployment configuration (Dockerfile, docker-compose.yml, Procfile, app.json)
+  - Updated workflow from Vite dev server to production Express server
+  - Implemented graceful shutdown handlers and error handling middleware
 
 ## User Preferences
 

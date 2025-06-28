@@ -1,0 +1,36 @@
+{
+  "name": "PaySavvy",
+  "description": "AI-powered scam detection platform for Malaysian users",
+  "repository": "https://github.com/user/paysavvy",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["cybersecurity", "scam-detection", "ai", "malaysia", "nodejs", "express"],
+  "image": "heroku/nodejs",
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment (production/development)",
+      "value": "production"
+    },
+    "VITE_OPENAI_API_KEY": {
+      "description": "OpenAI API key for AI-powered scam detection",
+      "required": false
+    },
+    "DATABASE_URL": {
+      "description": "PostgreSQL database URL",
+      "required": false
+    }
+  },
+  "scripts": {
+    "postdeploy": "echo 'PaySavvy deployment completed successfully'"
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
