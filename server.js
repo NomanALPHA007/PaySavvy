@@ -68,8 +68,12 @@ app.get('/dashboard', (req, res) => {
   const dashboardPath = path.join(__dirname, 'public', 'dashboard.html');
   res.sendFile(dashboardPath, (err) => {
     if (err) {
-      console.log('Dashboard file not found, serving index.html');
-      res.sendFile(path.join(__dirname, 'index.html'));
+      console.log('Dashboard file not found, serving simplified app');
+      const fs = require('fs');
+      let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
+      const envScript = `<script>window.ENV = {VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'};window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';</script>`;
+      html = html.replace('</head>', `${envScript}</head>`);
+      res.send(html);
     }
   });
 });

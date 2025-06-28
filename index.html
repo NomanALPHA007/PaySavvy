@@ -50,645 +50,103 @@
         }
 
         .app-title {
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-color);
             margin-bottom: 0.5rem;
         }
 
         .main-card {
             background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 1rem;
+            border-radius: 20px;
             box-shadow: 0 20px 40px rgba(5, 150, 105, 0.1);
-            max-width: 100%;
-            margin: 0 auto;
+            border: 2px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 2rem;
         }
 
         .card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            border-radius: 1rem 1rem 0 0;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
             padding: 1.5rem;
-        }
-
-        .card-header h5 {
-            color: white;
-            margin: 0;
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            border: none;
         }
 
         .url-input-group {
             position: relative;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .url-input {
-            background: white;
             border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-            padding: 1rem;
-            border-radius: 0.75rem;
-            transition: all 0.3s ease;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
             width: 100%;
-            box-sizing: border-box;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
         }
 
         .url-input:focus {
-            background: white;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.25);
             outline: none;
         }
 
-        .url-input.is-valid {
-            border-color: var(--success-color);
-        }
-
-        .url-input.is-invalid {
-            border-color: var(--danger-color);
-        }
-
         .scan-btn {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
             border: none;
+            border-radius: 15px;
             padding: 1rem 2rem;
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            font-size: 1.1rem;
             font-weight: 600;
-            border-radius: 0.75rem;
+            color: white;
             width: 100%;
             transition: all 0.3s ease;
-            color: white;
+            margin-top: 1rem;
         }
 
         .scan-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3);
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-        }
-
-        .scan-btn:disabled {
-            opacity: 0.6;
-            transform: none;
-            box-shadow: none;
+            box-shadow: 0 10px 20px rgba(5, 150, 105, 0.3);
         }
 
         .results-section {
             margin-top: 2rem;
             padding: 1.5rem;
-            background: white;
-            border-radius: 0.75rem;
+            background: var(--accent-green);
+            border-radius: 15px;
             border: 2px solid var(--border-color);
-            box-shadow: 0 4px 6px rgba(5, 150, 105, 0.1);
         }
 
         .risk-badge {
-            font-size: clamp(0.8rem, 1.5vw, 1rem);
+            font-size: 1.2rem;
             padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
+            border-radius: 10px;
             font-weight: 600;
-            color: white;
         }
 
-        .risk-safe { 
-            background: var(--success-color);
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
             color: white;
-        }
-        .risk-suspicious { 
-            background: var(--warning-color);
-            color: white;
-        }
-        .risk-dangerous { 
-            background: var(--danger-color);
-            color: white;
-        }
-        .risk-critical { 
-            background: #dc2626;
-            color: white;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid transparent;
-            border-top: 2px solid currentColor;
+            border: none;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .feature-section {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
-        }
-
-        .feature-section h6 {
-            color: var(--primary-color);
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-
-        .feature-content {
-            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-            color: var(--text-secondary);
-        }
-
-        .advanced-features {
-            margin-top: 2rem;
-        }
-
-        .advanced-features .btn {
-            background: white;
-            border: 2px solid var(--border-color);
-            color: var(--primary-color);
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             transition: all 0.3s ease;
-            font-weight: 500;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
         }
 
-        .advanced-features .btn:hover {
-            border-color: var(--primary-color);
-            background: var(--accent-green);
-            transform: translateY(-1px);
-        }
-
-        .advanced-features .btn:focus {
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-        }
-
-        .fingerprint-hash {
-            font-family: monospace;
-            font-size: 0.8rem;
-            background: rgba(0,0,0,0.3);
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            word-break: break-all;
-        }
-
-        .redirect-chain {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .redirect-step {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: 0.25rem;
-            border-left: 3px solid #64748b;
-        }
-
-        .redirect-step.suspicious {
-            border-left-color: var(--warning-color);
-        }
-
-        .redirect-step.dangerous {
-            border-left-color: var(--danger-color);
-        }
-
-        .language-flags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .language-flag {
-            background: rgba(37, 99, 235, 0.2);
-            border: 1px solid var(--primary-color);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.8rem;
-        }
-
-        .risk-heatmap {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .risk-region {
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            text-align: center;
-            font-size: 0.8rem;
-        }
-
-        .risk-low { background: rgba(16, 185, 129, 0.2); border: 1px solid var(--success-color); }
-        .risk-medium { background: rgba(245, 158, 11, 0.2); border: 1px solid var(--warning-color); }
-        .risk-high { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger-color); }
-        .risk-critical { background: rgba(220, 38, 38, 0.3); border: 2px solid #dc2626; }
-
-        /* Enhanced Regional Risk Heatmap */
-        .risk-heatmap-enhanced {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .risk-region-enhanced {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid var(--border-color);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.1);
-        }
-
-        .risk-region-enhanced:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(5, 150, 105, 0.2);
-            border-color: var(--primary-color);
-        }
-
-        .risk-region-enhanced.risk-critical {
-            border-color: #dc2626;
-            background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
-        }
-
-        .risk-region-enhanced.risk-high {
-            border-color: #f59e0b;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
-        }
-
-        .risk-region-enhanced.risk-medium {
-            border-color: var(--primary-light);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
-        }
-
-        .risk-region-enhanced.risk-low {
-            border-color: var(--success-color);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 1) 100%);
-        }
-
-        .region-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .region-header strong {
-            color: var(--text-primary);
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-        }
-
-        .trend-indicator {
-            font-size: clamp(0.7rem, 1.5vw, 0.8rem);
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .trend-up {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .trend-down {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .region-stats {
-            margin-bottom: 0.75rem;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            padding: 0.25rem 0;
-        }
-
-        .stat-number {
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .stat-value {
-            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
-            font-weight: 600;
-            color: var(--warning-color);
-        }
-
-        .stat-label {
-            font-size: clamp(0.7rem, 1.5vw, 0.8rem);
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .stat-unit {
-            font-size: clamp(0.65rem, 1.3vw, 0.75rem);
-            color: var(--secondary-color);
-        }
-
-        .hotspots {
-            border-top: 1px solid rgba(100, 116, 139, 0.3);
-            padding-top: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Economic Impact Styling */
-        .economic-impact {
-            background: linear-gradient(135deg, var(--accent-green) 0%, rgba(255, 255, 255, 1) 100%);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            border: 2px solid var(--border-color);
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);
-        }
-
-        .economic-impact h6 {
-            color: var(--primary-color);
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .impact-stat {
-            text-align: center;
-            padding: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: clamp(1.2rem, 3vw, 1.5rem);
-            font-weight: 800;
-            line-height: 1.2;
-            color: var(--primary-color);
-        }
-
-        .stat-label {
-            font-size: clamp(0.7rem, 1.5vw, 0.8rem);
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-            font-weight: 500;
-        }
-
-        /* Trending Threats */
-        .trend-item {
-            transition: all 0.3s ease;
-            border-radius: 0.5rem;
-        }
-
-        .trend-item:hover {
-            transform: translateX(5px);
-            background: rgba(245, 158, 11, 0.2) !important;
-        }
-
-        /* Protection Tips Grid */
-        .tips-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-        }
-
-        .tip-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 0.5rem;
-            border: 2px solid var(--border-color);
-            border-left: 4px solid var(--success-color);
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.05);
-        }
-
-        .tip-item:hover {
-            background: var(--accent-green);
-            transform: translateX(3px);
-            border-left-color: var(--primary-color);
-            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.15);
-        }
-
-        .tip-icon {
-            color: var(--success-color);
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-top: 0.1rem;
-            flex-shrink: 0;
-        }
-
-        .tip-item span {
-            color: var(--text-primary);
-            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-            line-height: 1.5;
-        }
-
-        /* Live Indicator Animation */
-        .live-indicator {
-            font-size: 0.7rem;
-            color: #ef4444;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Summary Stats */
-        .summary-stat {
-            padding: 0.5rem;
-        }
-
-        .summary-stat .badge {
-            font-size: 0.8rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .summary-stat small {
-            display: block;
-            color: #94a3b8;
-            font-size: 0.7rem;
-        }
-
-        /* Comprehensive Responsive Design */
-        @media (max-width: 1200px) {
-            .main-container {
-                padding: 0.75rem;
-            }
-            
-            .risk-heatmap-enhanced {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-container {
-                padding: 0.5rem;
-            }
-            
-            .app-header {
-                margin-bottom: 1.5rem;
-            }
-            
-            .card-header {
-                padding: 1rem;
-            }
-            
-            .results-section {
-                padding: 1rem;
-                margin-top: 1.5rem;
-            }
-            
-            .risk-heatmap-enhanced {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-            
-            .region-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-            
-            .advanced-features .row {
-                margin: 0;
-            }
-            
-            .advanced-features .col-md-6 {
-                padding: 0.25rem;
-            }
-            
-            .economic-impact {
-                padding: 1rem;
-            }
-            
-            .feature-section {
-                padding: 0.75rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .main-container {
-                padding: 0.25rem;
-            }
-            
-            .url-input, .scan-btn {
-                font-size: 1rem;
-            }
-            
-            .risk-badge {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
-            }
-            
-            .tip-item {
-                padding: 0.75rem;
-                gap: 0.5rem;
-            }
-            
-            .stat-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.25rem;
-            }
-            
-            .economic-impact .row {
-                margin: 0;
-            }
-            
-            .economic-impact .col-6 {
-                padding: 0.25rem;
-            }
-        }
-
-        /* Touch-friendly interactions */
-        @media (hover: none) and (pointer: coarse) {
-            .risk-region-enhanced,
-            .tip-item,
-            .trend-item,
-            .advanced-features .btn {
-                min-height: 44px;
-            }
-            
-            .scan-btn {
-                min-height: 48px;
-            }
-        }
-
-        /* High DPI displays */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            .main-card {
-                box-shadow: 0 25px 50px rgba(5, 150, 105, 0.15);
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --card-bg: #f9fdf9;
-                --text-primary: #064e3b;
-                --text-secondary: #374151;
-            }
-        }
-
-        /* Reduced motion accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-            
-            .live-indicator {
-                animation: none;
-            }
-        }
-
-        /* Print styles */
-        @media print {
-            body {
-                background: white;
-                color: black;
-            }
-            
-            .main-card,
-            .feature-section,
-            .results-section {
-                border: 1px solid #ccc;
-                box-shadow: none;
-            }
-            
-            .advanced-features,
-            .scan-btn {
-                display: none;
-            }
+        .ai-chat-btn:hover {
+            transform: scale(1.1);
+            background: var(--primary-dark);
         }
     </style>
 </head>
+
 <body>
     <div class="main-container">
         <div class="container">
@@ -735,83 +193,44 @@
                             <div id="riskBadge" class="badge risk-badge">Analyzing...</div>
                             <p id="riskExplanation" class="mt-2 mb-0"></p>
                         </div>
-
-                        <!-- Advanced Features Results -->
-                        <div id="advancedResults" class="advanced-results mt-3">
-                            <!-- Scam DNA Fingerprint -->
-                            <div id="fingerprintSection" class="feature-section mb-3 d-none">
-                                <h6><i data-feather="hash"></i> Scam DNA Fingerprint</h6>
-                                <div id="fingerprintResults" class="feature-content"></div>
-                            </div>
-
-                            <!-- Redirect Chain -->
-                            <div id="redirectSection" class="feature-section mb-3 d-none">
-                                <h6><i data-feather="link"></i> Redirect Chain Analysis</h6>
-                                <div id="redirectResults" class="feature-content"></div>
-                            </div>
-
-                            <!-- Multilingual Detection -->
-                            <div id="multilingualSection" class="feature-section mb-3 d-none">
-                                <h6><i data-feather="globe"></i> ASEAN Language Analysis</h6>
-                                <div id="multilingualResults" class="feature-content"></div>
-                            </div>
-
-                            <!-- Regional Risk -->
-                            <div id="regionalSection" class="feature-section mb-3 d-none">
-                                <h6><i data-feather="map"></i> Regional Risk Assessment</h6>
-                                <div id="regionalResults" class="feature-content"></div>
-                            </div>
-                        </div>
-
-                        <div id="detailsSection" class="mt-3">
-                            <h6>Analysis Details:</h6>
-                            <div id="analysisDetails"></div>
-                        </div>
-
-                        <div id="suggestionsSection" class="mt-3">
-                            <h6>Recommendations:</h6>
-                            <ul id="suggestionsList" class="list-unstyled"></ul>
+                        
+                        <div id="aiAnalysis" class="mt-3 d-none">
+                            <h6>AI Analysis:</h6>
+                            <div id="aiContent" class="alert alert-info"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Advanced Features Panel -->
-                    <div class="advanced-features mt-4">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <button class="btn btn-outline-light w-100" id="qrScannerBtn">
-                                    <i data-feather="camera"></i> QR Scanner
-                                </button>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <button class="btn btn-outline-light w-100" id="pasteShieldBtn">
-                                    <i data-feather="clipboard"></i> Paste Shield: <span id="pasteStatus">ON</span>
-                                </button>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <button class="btn btn-outline-light w-100" id="chatbotBtn">
-                                    <i data-feather="message-circle"></i> AI Assistant
-                                </button>
-                            </div>
+    <!-- AI Chat Button -->
+    <button class="ai-chat-btn" id="aiChatBtn" data-bs-toggle="modal" data-bs-target="#chatModal">
+        <i data-feather="message-circle"></i>
+    </button>
+
+    <!-- AI Chat Modal -->
+    <div class="modal fade" id="chatModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i data-feather="shield"></i>
+                        PaySavvy AI Assistant
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="chatMessages" style="height: 300px; overflow-y: auto; margin-bottom: 1rem;">
+                        <div class="alert alert-info">
+                            Hello! I'm your PaySavvy AI Assistant. I can help you with cybersecurity questions and scam detection. What would you like to know?
                         </div>
                     </div>
-
-                    <!-- QR Scanner Modal -->
-                    <div id="qrModal" class="modal fade" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content bg-dark">
-                                <div class="modal-header">
-                                    <h5 class="modal-title text-white">QR Code Scanner</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div id="qr-reader" style="width: 100%;"></div>
-                                    <div class="mt-3">
-                                        <input type="file" id="qr-file-input" accept="image/*" class="form-control">
-                                        <small class="text-muted">Or upload an image containing a QR code</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="input-group">
+                        <input type="text" id="chatInput" class="form-control" placeholder="Ask me about cybersecurity...">
+                        <button class="btn btn-primary" id="chatSend">
+                            <i data-feather="send"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -826,1076 +245,308 @@
         // Initialize Feather Icons
         feather.replace();
 
-        class PaySavvyCore {
+        class PaySavvyApp {
             constructor() {
-                this.apiKey = this.getEnvVar('VITE_OPENAI_API_KEY') || 'demo-mode';
-                this.isScanning = false;
-                this.pasteShieldEnabled = true;
-                this.fingerprintCache = new Map();
-                this.qrScanner = null;
+                this.apiKey = this.getApiKey();
                 this.init();
+            }
+
+            getApiKey() {
+                return window.ENV?.VITE_OPENAI_API_KEY || window.VITE_OPENAI_API_KEY || '';
             }
 
             init() {
                 console.log('PaySavvy Pro initializing...');
                 this.setupEventListeners();
-                this.setupAdvancedFeatures();
-                console.log('PaySavvy Pro ready with 6 advanced features!');
-            }
-
-            getEnvVar(name, defaultValue = '') {
-                // Check for environment variables in different contexts
-                if (typeof window !== 'undefined' && window.ENV && window.ENV[name]) {
-                    return window.ENV[name];
-                }
-                if (typeof process !== 'undefined' && process.env && process.env[name]) {
-                    return process.env[name];
-                }
-                // For client-side, check for inline script variables
-                if (typeof window !== 'undefined' && window[name]) {
-                    return window[name];
-                }
-                return defaultValue;
-            }
-
-            setupAdvancedFeatures() {
-                // Initialize Paste Shield
-                this.setupPasteShield();
-                
-                // Setup QR Scanner
-                this.setupQRScanner();
-                
-                // Load HTML5 QR Code library
-                this.loadQRCodeLibrary();
-            }
-
-            showRegionDetails(regionName, regionData) {
-                const modal = document.createElement('div');
-                modal.className = 'modal fade';
-                modal.innerHTML = `
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Regional Threat Details - ${regionName}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <strong>Risk Level:</strong> 
-                                    <span class="badge bg-${regionData.risk === 'critical' ? 'danger' : regionData.risk === 'high' ? 'warning' : 'success'}">${regionData.risk.toUpperCase()}</span>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Reports:</strong> ${regionData.reports}
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Trend:</strong> ${regionData.trend}
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Last Update:</strong> ${regionData.lastUpdate || 'Recent'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-                const modalInstance = new bootstrap.Modal(modal);
-                modalInstance.show();
-                modal.addEventListener('hidden.bs.modal', () => modal.remove());
+                console.log('PaySavvy ready! API Key:', this.apiKey ? 'Configured' : 'Missing');
             }
 
             setupEventListeners() {
                 const form = document.getElementById('scanForm');
-                const urlInput = document.getElementById('urlInput');
-                const qrScannerBtn = document.getElementById('qrScannerBtn');
-                const pasteShieldBtn = document.getElementById('pasteShieldBtn');
-                
+                const chatSend = document.getElementById('chatSend');
+                const chatInput = document.getElementById('chatInput');
+
                 if (form) {
                     form.addEventListener('submit', (e) => this.handleScan(e));
                 }
 
-                if (urlInput) {
-                    urlInput.addEventListener('input', (e) => this.validateInput(e.target.value));
+                if (chatSend) {
+                    chatSend.addEventListener('click', () => this.sendChatMessage());
                 }
 
-                if (qrScannerBtn) {
-                    qrScannerBtn.addEventListener('click', () => this.toggleQRScanner());
-                }
-
-                if (pasteShieldBtn) {
-                    pasteShieldBtn.addEventListener('click', () => this.togglePasteShield());
+                if (chatInput) {
+                    chatInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.sendChatMessage();
+                    });
                 }
             }
 
-            setupPasteShield() {
+            async handleScan(event) {
+                event.preventDefault();
+                
                 const urlInput = document.getElementById('urlInput');
-                if (urlInput) {
-                    urlInput.addEventListener('paste', (e) => this.handlePasteShield(e));
-                }
-            }
-
-            handlePasteShield(event) {
-                if (!this.pasteShieldEnabled) return;
+                const url = urlInput.value.trim();
                 
-                const pastedText = (event.clipboardData || window.clipboardData).getData('text');
-                const suspiciousPatterns = [
-                    /bit\.ly/i, /tinyurl/i, /t\.co/i, /goo\.gl/i,
-                    /secure.*bank/i, /update.*account/i, /verify.*now/i,
-                    /suspended.*account/i, /urgent.*action/i
-                ];
-
-                const hasSuspiciousContent = suspiciousPatterns.some(pattern => pattern.test(pastedText));
-                
-                if (hasSuspiciousContent) {
-                    event.preventDefault();
-                    this.showPasteShieldAlert(pastedText);
-                }
-            }
-
-            showPasteShieldAlert(content) {
-                const modal = document.createElement('div');
-                modal.className = 'modal fade';
-                modal.innerHTML = `
-                    <div class="modal-dialog">
-                        <div class="modal-content bg-dark text-white">
-                            <div class="modal-header border-warning">
-                                <h5 class="modal-title text-warning">
-                                    <i data-feather="shield"></i> Paste Shield Alert
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="alert alert-warning">
-                                    <strong>⚠️ Suspicious content detected!</strong>
-                                    <p class="mb-2">The pasted content contains potentially suspicious patterns commonly used in scams.</p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Detected content:</label>
-                                    <div class="bg-secondary p-2 rounded text-break" style="font-size: 0.9rem;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</div>
-                                </div>
-                                <p class="text-muted">Would you like to proceed with the scan anyway?</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-warning" onclick="this.allowPaste('${content.replace(/'/g, '\\\'')}')" data-bs-dismiss="modal">
-                                    Scan Anyway
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(modal);
-                const bsModal = new bootstrap.Modal(modal);
-                bsModal.show();
-                
-                modal.addEventListener('hidden.bs.modal', () => {
-                    document.body.removeChild(modal);
-                });
-
-                feather.replace();
-            }
-
-            allowPaste(content) {
-                const urlInput = document.getElementById('urlInput');
-                if (urlInput) {
-                    urlInput.value = content;
-                    urlInput.focus();
-                }
-            }
-
-            togglePasteShield() {
-                this.pasteShieldEnabled = !this.pasteShieldEnabled;
-                const status = document.getElementById('pasteStatus');
-                status.textContent = this.pasteShieldEnabled ? 'ON' : 'OFF';
-                status.className = this.pasteShieldEnabled ? 'text-success' : 'text-danger';
-            }
-
-            loadQRCodeLibrary() {
-                if (!window.Html5Qrcode) {
-                    const script = document.createElement('script');
-                    script.src = 'https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js';
-                    script.onload = () => {
-                        console.log('QR Code library loaded');
-                    };
-                    document.head.appendChild(script);
-                }
-            }
-
-            setupQRScanner() {
-                const fileInput = document.getElementById('qr-file-input');
-                if (fileInput) {
-                    fileInput.addEventListener('change', (e) => this.handleQRFileUpload(e));
-                }
-            }
-
-            toggleQRScanner() {
-                const modal = document.getElementById('qrModal');
-                const bsModal = new bootstrap.Modal(modal);
-                bsModal.show();
-                
-                // Initialize camera scanner when modal is shown
-                modal.addEventListener('shown.bs.modal', () => {
-                    this.startQRCamera();
-                });
-                
-                modal.addEventListener('hidden.bs.modal', () => {
-                    this.stopQRCamera();
-                });
-            }
-
-            startQRCamera() {
-                if (!window.Html5Qrcode) {
-                    console.warn('QR Code library not loaded yet');
+                if (!url) {
+                    this.showError('Please enter a URL to scan');
                     return;
                 }
 
-                const qrReader = document.getElementById('qr-reader');
-                if (this.qrScanner) {
-                    this.qrScanner.stop();
+                if (!this.isValidUrl(url)) {
+                    this.showError('Please enter a valid URL (including http:// or https://)');
+                    return;
                 }
 
-                this.qrScanner = new Html5Qrcode("qr-reader");
-                
-                this.qrScanner.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    (decodedText) => this.handleQRResult(decodedText),
-                    (error) => console.log('QR scan error:', error)
-                ).catch(err => {
-                    console.log('Camera access denied or not available:', err);
-                    qrReader.innerHTML = '<p class="text-muted">Camera not available. Please use file upload instead.</p>';
-                });
-            }
+                this.showLoading(true);
+                this.hideError();
 
-            stopQRCamera() {
-                if (this.qrScanner) {
-                    this.qrScanner.stop().then(() => {
-                        this.qrScanner = null;
-                    }).catch(err => console.log('Stop camera error:', err));
-                }
-            }
-
-            handleQRFileUpload(event) {
-                const file = event.target.files[0];
-                if (!file || !window.Html5Qrcode) return;
-
-                Html5Qrcode.scanFile(file, true)
-                    .then(decodedText => this.handleQRResult(decodedText))
-                    .catch(err => {
-                        console.log('QR decode error:', err);
-                        this.showError('Could not decode QR code from image');
-                    });
-            }
-
-            handleQRResult(decodedText) {
-                console.log('QR Code detected:', decodedText);
-                
-                // Close QR modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('qrModal'));
-                if (modal) modal.hide();
-                
-                // Extract URL from QR code
-                const url = this.extractURLFromQR(decodedText);
-                if (url) {
-                    document.getElementById('urlInput').value = url;
-                    this.showQRSuccess(decodedText, url);
-                } else {
-                    this.showError('No URL found in QR code');
-                }
-            }
-
-            extractURLFromQR(qrText) {
-                // Check if QR text is already a URL
-                if (this.isValidUrl(qrText)) {
-                    return qrText;
-                }
-                
-                // Extract URL from common QR formats
-                const urlPattern = /(https?:\/\/[^\s]+)/i;
-                const match = qrText.match(urlPattern);
-                return match ? match[1] : null;
-            }
-
-            showQRSuccess(qrText, url) {
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-success alert-dismissible fade show mt-3';
-                alert.innerHTML = `
-                    <strong>QR Code Scanned!</strong>
-                    <br>Detected URL: <code>${url}</code>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-                
-                const form = document.getElementById('scanForm');
-                form.parentNode.insertBefore(alert, form);
-                
-                setTimeout(() => {
-                    if (alert.parentNode) {
-                        alert.parentNode.removeChild(alert);
+                try {
+                    // Basic pattern analysis
+                    const patternAnalysis = this.analyzePatterns(url);
+                    
+                    // AI analysis if API key is available
+                    let aiAnalysis = null;
+                    if (this.apiKey) {
+                        try {
+                            aiAnalysis = await this.analyzeWithAI(url);
+                        } catch (error) {
+                            console.warn('AI analysis failed:', error.message);
+                        }
                     }
-                }, 5000);
-            }
 
-            async runComprehensiveAnalysis(url) {
-                const results = {
-                    url: url,
-                    timestamp: new Date().toISOString(),
-                    basicAnalysis: null,
-                    aiAnalysis: null,
-                    fingerprint: null,
-                    redirectChain: null,
-                    multilingualAnalysis: null,
-                    regionalRisk: null,
-                    finalRisk: 'safe'
-                };
-
-                // 1. Basic Pattern Analysis
-                results.basicAnalysis = this.analyzePatterns(url);
-
-                // 2. AI Analysis (if available)
-                if (this.apiKey && this.apiKey !== 'demo-mode') {
-                    try {
-                        results.aiAnalysis = await this.analyzeWithAI(url);
-                    } catch (error) {
-                        console.warn('AI analysis failed:', error.message);
-                    }
+                    this.displayResults(patternAnalysis, aiAnalysis);
+                    
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    this.showError('Failed to analyze the URL. Please try again.');
+                } finally {
+                    this.showLoading(false);
                 }
-
-                // 3. Scam DNA Fingerprinting
-                results.fingerprint = await this.generateScamFingerprint(url);
-
-                // 4. Redirect Chain Analysis  
-                results.redirectChain = await this.analyzeRedirectChain(url);
-
-                // 5. ASEAN Multilingual Analysis
-                results.multilingualAnalysis = this.analyzeMultilingualThreats(url);
-
-                // 6. Regional Risk Assessment
-                results.regionalRisk = this.assessRegionalRisk(url);
-
-                // Combine all analyses for final risk assessment
-                results.finalRisk = this.combineAdvancedAnalysis(results);
-
-                return results;
             }
 
-            async generateScamFingerprint(url) {
-                const domain = new URL(url).hostname;
-                const fingerprint = {
-                    domain: domain,
-                    patterns: [],
-                    hash: '',
-                    riskScore: 0,
-                    matchedScams: 0
-                };
-
-                // Extract scam patterns
-                const patterns = [
-                    domain.length,
-                    domain.split('.').length,
-                    domain.includes('-') ? 1 : 0,
-                    domain.includes('secure') ? 1 : 0,
-                    domain.includes('bank') ? 1 : 0,
-                    domain.includes('update') ? 1 : 0
-                ];
-
-                fingerprint.patterns = patterns;
-                
-                // Generate SHA-256-like hash (simplified for demo)
-                fingerprint.hash = await this.generateHash(patterns.join(','));
-
-                // Check against known fingerprints
-                const knownFingerprints = this.fingerprintCache;
-                let matches = 0;
-                for (const [hash, data] of knownFingerprints) {
-                    if (this.calculateSimilarity(fingerprint.patterns, data.patterns) > 0.8) {
-                        matches++;
-                    }
-                }
-
-                fingerprint.matchedScams = matches;
-                fingerprint.riskScore = Math.min(matches * 2, 5);
-
-                // Store in cache
-                this.fingerprintCache.set(fingerprint.hash, fingerprint);
-
-                return fingerprint;
-            }
-
-            async generateHash(input) {
-                // Simple hash function for demo (in production, use crypto.subtle.digest)
-                let hash = 0;
-                for (let i = 0; i < input.length; i++) {
-                    const char = input.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash; // Convert to 32-bit integer
-                }
-                return Math.abs(hash).toString(16).padStart(8, '0');
-            }
-
-            calculateSimilarity(patterns1, patterns2) {
-                if (patterns1.length !== patterns2.length) return 0;
-                
-                let matches = 0;
-                for (let i = 0; i < patterns1.length; i++) {
-                    if (patterns1[i] === patterns2[i]) matches++;
-                }
-                
-                return matches / patterns1.length;
-            }
-
-            async analyzeRedirectChain(url) {
-                const chain = {
-                    originalUrl: url,
-                    steps: [],
-                    finalUrl: url,
-                    redirectCount: 0,
-                    suspiciousRedirects: 0,
+            analyzePatterns(url) {
+                const analysis = {
+                    score: 0,
+                    flags: [],
                     riskLevel: 'safe'
                 };
 
-                try {
-                    const commonShorteners = ['bit.ly', 't.co', 'tinyurl.com', 'goo.gl', 'ow.ly'];
-                    const domain = new URL(url).hostname;
-                    
-                    if (commonShorteners.some(shortener => domain.includes(shortener))) {
-                        chain.steps.push({
-                            url: url,
-                            status: 'shortener',
-                            risk: 'medium'
-                        });
-                        
-                        // Simulate final destination
-                        chain.finalUrl = 'https://suspicious-bank-site.com/login';
-                        chain.steps.push({
-                            url: chain.finalUrl,
-                            status: 'final',
-                            risk: 'high'
-                        });
-                        
-                        chain.redirectCount = 1;
-                        chain.suspiciousRedirects = 1;
-                        chain.riskLevel = 'dangerous';
-                    } else {
-                        chain.steps.push({
-                            url: url,
-                            status: 'direct',
-                            risk: 'low'
-                        });
+                const urlLower = url.toLowerCase();
+                const urlObj = new URL(url);
+                const domain = urlObj.hostname;
+
+                // Check suspicious TLDs
+                const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.ru', '.biz', '.cc'];
+                for (const tld of suspiciousTlds) {
+                    if (domain.endsWith(tld)) {
+                        analysis.score += 2;
+                        analysis.flags.push('Suspicious domain extension');
+                        break;
                     }
-                } catch (error) {
-                    console.warn('Redirect analysis failed:', error);
                 }
 
-                return chain;
-            }
-
-            analyzeMultilingualThreats(url) {
-                const analysis = {
-                    detectedLanguages: [],
-                    scamKeywords: [],
-                    riskScore: 0,
-                    regionalThreats: []
-                };
-
-                const domain = new URL(url).hostname.toLowerCase();
-                
-                // ASEAN multilingual scam keywords
-                const multilingualKeywords = {
-                    'english': ['secure', 'verify', 'urgent', 'suspended', 'update'],
-                    'malay': ['selamat', 'terkini', 'segera', 'dikemaskini', 'akaun'],
-                    'thai': ['ปลอดภัย', 'อัพเดท', 'ด่วน', 'ระงับ'],
-                    'vietnamese': ['an toàn', 'cập nhật', 'khẩn cấp', 'tạm ngưng'],
-                    'indonesian': ['aman', 'perbarui', 'mendesak', 'ditangguhkan'],
-                    'tagalog': ['secure', 'i-update', 'urgent', 'suspendido']
-                };
-
-                let totalMatches = 0;
-                Object.entries(multilingualKeywords).forEach(([lang, keywords]) => {
-                    const matches = keywords.filter(keyword => domain.includes(keyword));
-                    if (matches.length > 0) {
-                        analysis.detectedLanguages.push(lang);
-                        analysis.scamKeywords.push(...matches);
-                        totalMatches += matches.length;
+                // Check Malaysian bank typosquatting
+                const bankTypos = ['mayb4nk', 'mayb@nk', 'publicb@nk', 'cimb@nk', 'rhbb@nk'];
+                for (const typo of bankTypos) {
+                    if (domain.includes(typo)) {
+                        analysis.score += 3;
+                        analysis.flags.push('Possible bank impersonation');
+                        break;
                     }
-                });
-
-                analysis.riskScore = Math.min(totalMatches, 5);
-
-                // Detect regional targeting
-                if (domain.includes('malaysia') || domain.includes('.my')) {
-                    analysis.regionalThreats.push('Malaysia-targeted scam');
                 }
-                if (domain.includes('singapore') || domain.includes('.sg')) {
-                    analysis.regionalThreats.push('Singapore-targeted scam');
+
+                // Check suspicious keywords
+                const keywords = ['verify', 'urgent', 'suspended', 'blocked', 'winner', 'free'];
+                for (const keyword of keywords) {
+                    if (urlLower.includes(keyword)) {
+                        analysis.score += 1;
+                        analysis.flags.push('Suspicious keywords detected');
+                        break;
+                    }
+                }
+
+                // Determine risk level
+                if (analysis.score >= 3) {
+                    analysis.riskLevel = 'dangerous';
+                } else if (analysis.score >= 1) {
+                    analysis.riskLevel = 'suspicious';
+                } else {
+                    analysis.riskLevel = 'safe';
                 }
 
                 return analysis;
             }
 
-            assessRegionalRisk(url) {
-                const assessment = {
-                    targetRegion: 'Malaysia',
-                    riskLevel: 'low',
-                    localThreats: [],
-                    bankingRisk: 'low',
-                    ewalletRisk: 'low',
-                    heatmapData: {},
-                    trendingThreats: [],
-                    economicImpact: {},
-                    hotspots: [],
-                    protectionTips: []
-                };
+            async analyzeWithAI(url) {
+                if (!this.apiKey) {
+                    throw new Error('OpenAI API key not configured');
+                }
 
-                const domain = new URL(url).hostname.toLowerCase();
-                
-                // Enhanced Malaysian financial institutions database
-                const malayBanks = {
-                    'maybank': { official: 'maybank2u.com.my', victims: 1247, avgLoss: 'RM 8,400' },
-                    'cimb': { official: 'cimbclicks.com.my', victims: 892, avgLoss: 'RM 6,200' },
-                    'publicbank': { official: 'pbebank.com', victims: 634, avgLoss: 'RM 5,800' },
-                    'rhb': { official: 'rhbgroup.com', victims: 445, avgLoss: 'RM 4,900' },
-                    'hongleong': { official: 'hlb.com.my', victims: 287, avgLoss: 'RM 3,600' },
-                    'ambank': { official: 'ambank.com.my', victims: 198, avgLoss: 'RM 2,800' }
-                };
-
-                const malayEwallets = {
-                    'grab': { official: 'grab.com', victims: 2156, avgLoss: 'RM 450' },
-                    'boost': { official: 'myboost.com.my', victims: 1834, avgLoss: 'RM 320' },
-                    'tng': { official: 'touchngo.com.my', victims: 1456, avgLoss: 'RM 280' },
-                    'bigpay': { official: 'bigpayme.com', victims: 567, avgLoss: 'RM 180' },
-                    'shopee': { official: 'shopee.com.my', victims: 1289, avgLoss: 'RM 240' }
-                };
-
-                // Analyze domain for specific threats
-                Object.entries(malayBanks).forEach(([bank, data]) => {
-                    if (domain.includes(bank) && !domain.includes(data.official.split('.')[0])) {
-                        assessment.localThreats.push({
-                            type: 'Banking Impersonation',
-                            target: bank.toUpperCase(),
-                            severity: 'CRITICAL',
-                            victims: data.victims,
-                            avgLoss: data.avgLoss,
-                            description: `Fake ${bank} domain impersonating official banking services`
-                        });
-                        assessment.bankingRisk = 'critical';
-                        assessment.riskLevel = 'critical';
-                    }
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a cybersecurity expert specializing in Malaysian scam detection. Analyze URLs for potential threats and respond with a brief risk assessment.'
+                            },
+                            {
+                                role: 'user',
+                                content: `Analyze this URL for potential scams or phishing: ${url}`
+                            }
+                        ],
+                        max_tokens: 200,
+                        temperature: 0.3
+                    })
                 });
 
-                Object.entries(malayEwallets).forEach(([ewallet, data]) => {
-                    if (domain.includes(ewallet) && !domain.includes(data.official.split('.')[0])) {
-                        assessment.localThreats.push({
-                            type: 'E-wallet Fraud',
-                            target: ewallet.toUpperCase(),
-                            severity: 'HIGH',
-                            victims: data.victims,
-                            avgLoss: data.avgLoss,
-                            description: `Fraudulent ${ewallet} domain targeting digital wallet users`
-                        });
-                        assessment.ewalletRisk = 'high';
-                        assessment.riskLevel = assessment.riskLevel === 'critical' ? 'critical' : 'high';
-                    }
-                });
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
 
-                // Real-time threat intelligence heatmap
-                assessment.heatmapData = {
-                    'Kuala Lumpur': { 
-                        reports: 2847, 
-                        risk: 'critical',
-                        trend: '+18%',
-                        topThreat: 'Banking SMS Scams',
-                        avgLoss: 'RM 7,200',
-                        hotspots: ['KLCC', 'Bangsar', 'Mont Kiara']
-                    },
-                    'Selangor': { 
-                        reports: 2134, 
-                        risk: 'high',
-                        trend: '+12%',
-                        topThreat: 'E-wallet Phishing',
-                        avgLoss: 'RM 5,400',
-                        hotspots: ['Petaling Jaya', 'Shah Alam', 'Subang']
-                    },
-                    'Penang': { 
-                        reports: 1456, 
-                        risk: 'high',
-                        trend: '+8%',
-                        topThreat: 'Investment Scams',
-                        avgLoss: 'RM 12,800',
-                        hotspots: ['Georgetown', 'Bayan Lepas']
-                    },
-                    'Johor': { 
-                        reports: 1289, 
-                        risk: 'medium',
-                        trend: '+5%',
-                        topThreat: 'Online Shopping Fraud',
-                        avgLoss: 'RM 890',
-                        hotspots: ['Johor Bahru', 'Iskandar Puteri']
-                    },
-                    'Sarawak': { 
-                        reports: 634, 
-                        risk: 'medium',
-                        trend: '-2%',
-                        topThreat: 'Romance Scams',
-                        avgLoss: 'RM 15,600',
-                        hotspots: ['Kuching', 'Miri']
-                    },
-                    'Sabah': { 
-                        reports: 445, 
-                        risk: 'low',
-                        trend: '-5%',
-                        topThreat: 'Job Scams',
-                        avgLoss: 'RM 2,100',
-                        hotspots: ['Kota Kinabalu']
-                    },
-                    'Perak': { 
-                        reports: 567, 
-                        risk: 'medium',
-                        trend: '+3%',
-                        topThreat: 'Cryptocurrency Fraud',
-                        avgLoss: 'RM 18,900',
-                        hotspots: ['Ipoh', 'Taiping']
-                    },
-                    'Kedah': { 
-                        reports: 398, 
-                        risk: 'low',
-                        trend: '+1%',
-                        topThreat: 'Loan Scams',
-                        avgLoss: 'RM 3,400',
-                        hotspots: ['Alor Setar']
-                    }
+                const data = await response.json();
+                return {
+                    analysis: data.choices[0].message.content,
+                    riskLevel: this.extractRiskFromAI(data.choices[0].message.content)
                 };
-
-                // Current trending threats
-                assessment.trendingThreats = [
-                    {
-                        name: 'AI Voice Cloning Bank Calls',
-                        urgency: 'CRITICAL',
-                        reports: '+340%',
-                        description: 'Scammers using AI to clone family voices in fake emergency calls'
-                    },
-                    {
-                        name: 'Fake Government QR Payments',
-                        urgency: 'HIGH',
-                        reports: '+180%',
-                        description: 'Fraudulent QR codes claiming government subsidies and payments'
-                    },
-                    {
-                        name: 'Deepfake Celebrity Endorsements',
-                        urgency: 'HIGH',
-                        reports: '+125%',
-                        description: 'AI-generated videos of celebrities promoting fake investments'
-                    }
-                ];
-
-                // Economic impact analysis
-                assessment.economicImpact = {
-                    totalLosses: 'RM 1.2 billion',
-                    victimsThisYear: '156,000+',
-                    averageLoss: 'RM 7,680',
-                    topLossCategory: 'Investment Scams (RM 485M)',
-                    recoveryRate: '12%'
-                };
-
-                // Dynamic protection recommendations
-                assessment.protectionTips = [
-                    '🏦 Always verify bank URLs end with .com.my domain',
-                    '📱 Enable 2FA on all banking and e-wallet apps',
-                    '🔍 Check for SSL certificates before entering passwords',
-                    '❌ Never click links in SMS claiming urgent bank issues',
-                    '📞 Call your bank directly using official numbers to verify requests'
-                ];
-
-                return assessment;
             }
 
-            combineAdvancedAnalysis(results) {
-                const riskScores = [];
-                
-                // Basic analysis score
-                if (results.basicAnalysis) {
-                    riskScores.push(results.basicAnalysis.score);
+            extractRiskFromAI(text) {
+                const lowerText = text.toLowerCase();
+                if (lowerText.includes('high risk') || lowerText.includes('dangerous') || lowerText.includes('scam')) {
+                    return 'dangerous';
+                } else if (lowerText.includes('suspicious') || lowerText.includes('caution')) {
+                    return 'suspicious';
+                } else {
+                    return 'safe';
                 }
-
-                // AI analysis score
-                if (results.aiAnalysis) {
-                    const aiScore = results.aiAnalysis.riskLevel === 'dangerous' ? 5 : 
-                                   results.aiAnalysis.riskLevel === 'suspicious' ? 3 : 1;
-                    riskScores.push(aiScore);
-                }
-
-                // Fingerprint score
-                if (results.fingerprint) {
-                    riskScores.push(results.fingerprint.riskScore);
-                }
-
-                // Redirect chain score
-                if (results.redirectChain) {
-                    const redirectScore = results.redirectChain.riskLevel === 'dangerous' ? 5 :
-                                        results.redirectChain.riskLevel === 'suspicious' ? 3 : 1;
-                    riskScores.push(redirectScore);
-                }
-
-                // Multilingual score
-                if (results.multilingualAnalysis) {
-                    riskScores.push(results.multilingualAnalysis.riskScore);
-                }
-
-                // Regional risk score
-                if (results.regionalRisk) {
-                    const regionalScore = results.regionalRisk.riskLevel === 'high' ? 5 :
-                                        results.regionalRisk.riskLevel === 'medium' ? 3 : 1;
-                    riskScores.push(regionalScore);
-                }
-
-                // Calculate final risk
-                const averageScore = riskScores.reduce((a, b) => a + b, 0) / riskScores.length;
-                
-                if (averageScore >= 4) return 'dangerous';
-                if (averageScore >= 2.5) return 'suspicious';
-                return 'safe';
             }
 
-            displayAdvancedResults(results) {
-                const resultsDiv = document.getElementById('results');
+            displayResults(patternAnalysis, aiAnalysis) {
+                const resultsSection = document.getElementById('results');
                 const riskBadge = document.getElementById('riskBadge');
                 const riskExplanation = document.getElementById('riskExplanation');
+                const aiSection = document.getElementById('aiAnalysis');
+                const aiContent = document.getElementById('aiContent');
 
-                // Show results section
-                resultsDiv.classList.remove('d-none');
-
-                // Update main risk display
-                riskBadge.textContent = results.finalRisk.toUpperCase();
-                riskBadge.className = `badge risk-badge risk-${results.finalRisk}`;
-
-                let explanation = `Advanced analysis complete. Risk level: ${results.finalRisk}`;
-                if (results.aiAnalysis) {
-                    explanation += ` (AI confidence: ${Math.round(results.aiAnalysis.confidence * 100)}%)`;
+                // Determine overall risk
+                let overallRisk = patternAnalysis.riskLevel;
+                if (aiAnalysis && aiAnalysis.riskLevel === 'dangerous') {
+                    overallRisk = 'dangerous';
+                } else if (aiAnalysis && aiAnalysis.riskLevel === 'suspicious' && overallRisk === 'safe') {
+                    overallRisk = 'suspicious';
                 }
-                riskExplanation.textContent = explanation;
 
-                // Display advanced features
-                this.displayFingerprintResults(results.fingerprint);
-                this.displayRedirectResults(results.redirectChain);
-                this.displayMultilingualResults(results.multilingualAnalysis);
-                this.displayRegionalResults(results.regionalRisk);
+                // Update risk badge
+                const riskColors = {
+                    safe: 'bg-success',
+                    suspicious: 'bg-warning',
+                    dangerous: 'bg-danger'
+                };
 
-                // Update basic analysis details
-                this.updateAnalysisDetails(results);
+                const riskTexts = {
+                    safe: 'SAFE',
+                    suspicious: 'SUSPICIOUS',
+                    dangerous: 'DANGEROUS'
+                };
 
-                // Re-initialize Feather icons
+                riskBadge.className = `badge risk-badge ${riskColors[overallRisk]}`;
+                riskBadge.textContent = riskTexts[overallRisk];
+
+                // Update explanation
+                let explanation = `Risk Score: ${patternAnalysis.score}/5<br>`;
+                if (patternAnalysis.flags.length > 0) {
+                    explanation += `Detected issues: ${patternAnalysis.flags.join(', ')}`;
+                } else {
+                    explanation += 'No major threats detected';
+                }
+
+                riskExplanation.innerHTML = explanation;
+
+                // Show AI analysis if available
+                if (aiAnalysis) {
+                    aiContent.textContent = aiAnalysis.analysis;
+                    aiSection.classList.remove('d-none');
+                } else {
+                    aiSection.classList.add('d-none');
+                }
+
+                resultsSection.classList.remove('d-none');
                 feather.replace();
             }
 
-            displayFingerprintResults(fingerprint) {
-                if (!fingerprint) return;
+            async sendChatMessage() {
+                const chatInput = document.getElementById('chatInput');
+                const chatMessages = document.getElementById('chatMessages');
+                const message = chatInput.value.trim();
 
-                const section = document.getElementById('fingerprintSection');
-                const content = document.getElementById('fingerprintResults');
-                
-                section.classList.remove('d-none');
-                content.innerHTML = `
-                    <div class="fingerprint-data">
-                        <div class="mb-2">
-                            <strong>DNA Hash:</strong>
-                            <div class="fingerprint-hash">${fingerprint.hash}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">
-                                <small class="text-muted">Risk Score:</small>
-                                <div class="badge bg-${fingerprint.riskScore >= 3 ? 'danger' : fingerprint.riskScore >= 1 ? 'warning' : 'success'}">${fingerprint.riskScore}/5</div>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Similar Patterns:</small>
-                                <div>${fingerprint.matchedScams} found</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+                if (!message) return;
 
-            displayRedirectResults(redirectChain) {
-                if (!redirectChain) return;
+                // Add user message
+                this.addChatMessage(message, 'user');
+                chatInput.value = '';
 
-                const section = document.getElementById('redirectSection');
-                const content = document.getElementById('redirectResults');
-                
-                section.classList.remove('d-none');
-                content.innerHTML = `
-                    <div class="redirect-analysis">
-                        <div class="mb-2">
-                            <strong>Chain Analysis:</strong> ${redirectChain.redirectCount} redirect(s)
-                        </div>
-                        <div class="redirect-chain">
-                            ${redirectChain.steps.map((step, index) => `
-                                <div class="redirect-step ${step.risk === 'high' ? 'dangerous' : step.risk === 'medium' ? 'suspicious' : ''}">
-                                    <span class="badge bg-secondary">${index + 1}</span>
-                                    <span class="flex-grow-1">${step.url}</span>
-                                    <span class="badge bg-${step.risk === 'high' ? 'danger' : step.risk === 'medium' ? 'warning' : 'success'}">${step.status}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            displayMultilingualResults(analysis) {
-                if (!analysis) return;
-
-                const section = document.getElementById('multilingualSection');
-                const content = document.getElementById('multilingualResults');
-                
-                section.classList.remove('d-none');
-                content.innerHTML = `
-                    <div class="multilingual-analysis">
-                        <div class="mb-2">
-                            <strong>Risk Score:</strong> 
-                            <span class="badge bg-${analysis.riskScore >= 3 ? 'danger' : analysis.riskScore >= 1 ? 'warning' : 'success'}">${analysis.riskScore}/5</span>
-                        </div>
-                        ${analysis.detectedLanguages.length > 0 ? `
-                            <div class="mb-2">
-                                <small class="text-muted">Detected Languages:</small>
-                                <div class="language-flags">
-                                    ${analysis.detectedLanguages.map(lang => `<span class="language-flag">${lang}</span>`).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-                        ${analysis.scamKeywords.length > 0 ? `
-                            <div class="mb-2">
-                                <small class="text-muted">Suspicious Keywords:</small>
-                                <div>${analysis.scamKeywords.join(', ')}</div>
-                            </div>
-                        ` : ''}
-                        ${analysis.regionalThreats.length > 0 ? `
-                            <div class="alert alert-warning alert-sm">
-                                <small>⚠️ ${analysis.regionalThreats.join(', ')}</small>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            }
-
-            displayRegionalResults(assessment) {
-                if (!assessment) return;
-
-                const section = document.getElementById('regionalSection');
-                const content = document.getElementById('regionalResults');
-                
-                section.classList.remove('d-none');
-                content.innerHTML = `
-                    <div class="regional-analysis">
-                        <!-- Threat Intelligence Header -->
-                        <div class="threat-intel-header mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>Target Region:</strong> ${assessment.targetRegion}
-                                    <span class="badge bg-${assessment.riskLevel === 'critical' ? 'danger' : assessment.riskLevel === 'high' ? 'warning' : assessment.riskLevel === 'medium' ? 'info' : 'success'} ms-2">${assessment.riskLevel.toUpperCase()}</span>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">Live Intelligence</small>
-                                    <div class="live-indicator">🔴 REAL-TIME</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Economic Impact Dashboard -->
-                        <div class="economic-impact mb-3">
-                            <h6 class="text-warning">💰 Economic Impact (2024)</h6>
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="impact-stat">
-                                        <div class="stat-value text-danger">${assessment.economicImpact.totalLosses}</div>
-                                        <div class="stat-label">Total Losses</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="impact-stat">
-                                        <div class="stat-value text-warning">${assessment.economicImpact.victimsThisYear}</div>
-                                        <div class="stat-label">Victims</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Critical Threat Alerts -->
-                        ${assessment.localThreats.length > 0 ? `
-                            <div class="critical-threats mb-3">
-                                <h6 class="text-danger">🚨 CRITICAL THREAT DETECTED</h6>
-                                ${assessment.localThreats.map(threat => `
-                                    <div class="alert alert-danger mb-2">
-                                        <div class="d-flex justify-content-between">
-                                            <strong>${threat.type}: ${threat.target}</strong>
-                                            <span class="badge bg-danger">${threat.severity}</span>
-                                        </div>
-                                        <small>${threat.description}</small>
-                                        <div class="threat-stats mt-1">
-                                            <span class="badge bg-dark me-1">${threat.victims} victims</span>
-                                            <span class="badge bg-dark">${threat.avgLoss} avg loss</span>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-
-                        <!-- Trending Threats -->
-                        <div class="trending-threats mb-3">
-                            <h6 class="text-warning">📈 Trending Threats</h6>
-                            ${assessment.trendingThreats.map(trend => `
-                                <div class="trend-item mb-2 p-2" style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid var(--warning-color);">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>${trend.name}</strong>
-                                        <span class="badge bg-${trend.urgency === 'CRITICAL' ? 'danger' : 'warning'}">${trend.reports}</span>
-                                    </div>
-                                    <small class="text-muted">${trend.description}</small>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <!-- Interactive Risk Heatmap -->
-                        <div class="mb-3">
-                            <h6 class="text-info">🗺️ Malaysia Threat Heatmap</h6>
-                            <div class="risk-heatmap-enhanced">
-                                ${Object.entries(assessment.heatmapData).map(([region, data]) => `
-                                    <div class="risk-region-enhanced risk-${data.risk}" onclick="window.paySavvy.showRegionDetails('${region}', ${JSON.stringify(data).replace(/"/g, '&quot;')})">
-                                        <div class="region-header">
-                                            <strong>${region}</strong>
-                                            <span class="trend-indicator ${data.trend.startsWith('+') ? 'trend-up' : 'trend-down'}">${data.trend}</span>
-                                        </div>
-                                        <div class="region-stats">
-                                            <div class="stat-item">
-                                                <span class="stat-number">${data.reports}</span>
-                                                <span class="stat-unit">reports</span>
-                                            </div>
-                                            <div class="stat-item">
-                                                <span class="stat-label">${data.topThreat}</span>
-                                            </div>
-                                            <div class="stat-item">
-                                                <span class="stat-value">${data.avgLoss}</span>
-                                                <span class="stat-unit">avg loss</span>
-                                            </div>
-                                        </div>
-                                        <div class="hotspots">
-                                            <small>Hotspots: ${data.hotspots.join(', ')}</small>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Protection Recommendations -->
-                        <div class="protection-tips">
-                            <h6 class="text-success">🛡️ Protection Recommendations</h6>
-                            <div class="tips-grid">
-                                ${assessment.protectionTips.map(tip => `
-                                    <div class="tip-item">
-                                        <i class="tip-icon">✓</i>
-                                        <span>${tip}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Risk Intelligence Summary -->
-                        <div class="risk-summary mt-3 p-2" style="background: rgba(51, 65, 85, 0.3); border-radius: 0.5rem;">
-                            <div class="row text-center">
-                                <div class="col-4">
-                                    <div class="summary-stat">
-                                        <div class="badge bg-${assessment.bankingRisk === 'critical' ? 'danger' : assessment.bankingRisk === 'high' ? 'warning' : 'success'}">${assessment.bankingRisk.toUpperCase()}</div>
-                                        <small>Banking Risk</small>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="summary-stat">
-                                        <div class="badge bg-${assessment.ewalletRisk === 'high' ? 'danger' : assessment.ewalletRisk === 'medium' ? 'warning' : 'success'}">${assessment.ewalletRisk.toUpperCase()}</div>
-                                        <small>E-wallet Risk</small>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="summary-stat">
-                                        <div class="badge bg-info">${assessment.economicImpact.recoveryRate}</div>
-                                        <small>Recovery Rate</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            updateAnalysisDetails(results) {
-                const detailsDiv = document.getElementById('analysisDetails');
-                const suggestionsList = document.getElementById('suggestionsList');
-
-                // Analysis details
-                let detailsHTML = '<div class="row">';
-                
-                if (results.basicAnalysis) {
-                    detailsHTML += '<div class="col-md-6 mb-3">';
-                    detailsHTML += '<h6>Pattern Analysis:</h6>';
-                    detailsHTML += `<p>Risk Level: <span class="badge bg-${this.getRiskColor(results.basicAnalysis.riskLevel)}">${results.basicAnalysis.riskLevel}</span></p>`;
-                    detailsHTML += `<p>Score: ${results.basicAnalysis.score}/5</p>`;
-                    detailsHTML += '</div>';
+                if (!this.apiKey) {
+                    this.addChatMessage('Please configure your OpenAI API key to use the AI assistant.', 'bot');
+                    return;
                 }
 
-                if (results.aiAnalysis) {
-                    detailsHTML += '<div class="col-md-6 mb-3">';
-                    detailsHTML += '<h6>AI Analysis:</h6>';
-                    detailsHTML += `<p>Risk Level: <span class="badge bg-${this.getRiskColor(results.aiAnalysis.riskLevel)}">${results.aiAnalysis.riskLevel}</span></p>`;
-                    detailsHTML += `<p>Confidence: ${Math.round(results.aiAnalysis.confidence * 100)}%</p>`;
-                    detailsHTML += '</div>';
-                }
-
-                detailsHTML += '</div>';
-
-                // Combine flags from all analyses
-                const allFlags = [];
-                if (results.basicAnalysis?.flags) allFlags.push(...results.basicAnalysis.flags);
-                if (results.aiAnalysis?.flags) allFlags.push(...results.aiAnalysis.flags);
-                if (results.fingerprint?.matchedScams > 0) allFlags.push(`${results.fingerprint.matchedScams} similar scam patterns detected`);
-                if (results.regionalRisk?.localThreats) allFlags.push(...results.regionalRisk.localThreats);
-
-                if (allFlags.length > 0) {
-                    detailsHTML += '<h6 class="mt-3">Threats Detected:</h6>';
-                    detailsHTML += '<ul class="list-unstyled">';
-                    allFlags.forEach(flag => {
-                        detailsHTML += `<li class="mb-1"><i class="text-warning" data-feather="alert-triangle"></i> ${flag}</li>`;
+                try {
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: 'gpt-4o',
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: 'You are PaySavvy AI Assistant, a cybersecurity expert specializing in Malaysian online scam detection. Provide helpful, concise advice.'
+                                },
+                                {
+                                    role: 'user',
+                                    content: message
+                                }
+                            ],
+                            max_tokens: 300,
+                            temperature: 0.7
+                        })
                     });
-                    detailsHTML += '</ul>';
+
+                    if (!response.ok) {
+                        throw new Error(`API request failed: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    this.addChatMessage(data.choices[0].message.content, 'bot');
+
+                } catch (error) {
+                    console.error('Chat error:', error);
+                    this.addChatMessage('Sorry, I encountered an error. Please try again.', 'bot');
                 }
-
-                detailsDiv.innerHTML = detailsHTML;
-
-                // Combined suggestions
-                const allSuggestions = [
-                    'Always verify URLs before entering personal information',
-                    'Check for HTTPS and valid certificates',
-                    'Contact your bank directly if suspicious',
-                    'Never click links from unknown sources',
-                    'Enable two-factor authentication on accounts'
-                ];
-
-                if (results.aiAnalysis?.suggestions) {
-                    allSuggestions.push(...results.aiAnalysis.suggestions);
-                }
-
-                suggestionsList.innerHTML = '';
-                [...new Set(allSuggestions)].forEach(suggestion => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<i class="text-info" data-feather="check-circle"></i> ${suggestion}`;
-                    li.className = 'mb-2';
-                    suggestionsList.appendChild(li);
-                });
             }
 
-            validateInput(url) {
-                const input = document.getElementById('urlInput');
-                const isValid = this.isValidUrl(url);
+            addChatMessage(message, sender) {
+                const chatMessages = document.getElementById('chatMessages');
+                const messageDiv = document.createElement('div');
                 
-                if (url.length > 0) {
-                    input.classList.toggle('is-valid', isValid);
-                    input.classList.toggle('is-invalid', !isValid);
+                if (sender === 'user') {
+                    messageDiv.className = 'alert alert-primary mb-2';
+                    messageDiv.innerHTML = `<strong>You:</strong> ${message}`;
                 } else {
-                    input.classList.remove('is-valid', 'is-invalid');
+                    messageDiv.className = 'alert alert-info mb-2';
+                    messageDiv.innerHTML = `<strong>PaySavvy AI:</strong> ${message}`;
                 }
+
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
             isValidUrl(string) {
@@ -1907,575 +558,37 @@
                 }
             }
 
-            async handleScan(event) {
-                event.preventDefault();
-                
-                if (this.isScanning) return;
-
-                const urlInput = document.getElementById('urlInput');
-                const url = urlInput.value.trim();
-
-                if (!url) {
-                    this.showError('Please enter a URL to scan');
-                    return;
-                }
-
-                if (!this.isValidUrl(url)) {
-                    this.showError('Please enter a valid URL (include http:// or https://)');
-                    return;
-                }
-
-                this.isScanning = true;
-                this.setLoadingState(true);
-                this.hideError();
-
-                try {
-                    console.log('Scanning URL:', url);
-                    
-                    // Run comprehensive analysis with all 6 advanced features
-                    const analysisResults = await this.runComprehensiveAnalysis(url);
-                    console.log('Comprehensive analysis:', analysisResults);
-
-                    // Display results with advanced features
-                    this.displayAdvancedResults(analysisResults);
-
-                } catch (error) {
-                    console.error('Scan error:', error);
-                    this.showError('Scan failed: ' + error.message);
-                } finally {
-                    this.isScanning = false;
-                    this.setLoadingState(false);
-                }
-            }
-
-            analyzePatterns(url) {
-                const result = {
-                    riskLevel: 'safe',
-                    score: 0,
-                    flags: [],
-                    explanation: 'No suspicious patterns detected'
-                };
-
-                const domain = new URL(url).hostname.toLowerCase();
-                
-                // Malaysian bank typosquatting detection
-                const malayBanks = ['maybank', 'cimb', 'publicbank', 'rhb', 'hongleong', 'ambank'];
-                const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.cc', '.biz', '.info'];
-                
-                // Check for bank name typosquatting
-                malayBanks.forEach(bank => {
-                    if (domain.includes(bank) && !domain.includes(`${bank}.com.my`)) {
-                        result.score += 3;
-                        result.flags.push(`Suspicious ${bank} domain - may be fake`);
-                    }
-                });
-
-                // Check suspicious TLDs
-                suspiciousTlds.forEach(tld => {
-                    if (domain.endsWith(tld)) {
-                        result.score += 2;
-                        result.flags.push('Suspicious domain extension');
-                    }
-                });
-
-                // Check for common scam patterns
-                const scamKeywords = ['secure', 'update', 'verify', 'suspended', 'urgent', 'limited'];
-                scamKeywords.forEach(keyword => {
-                    if (domain.includes(keyword)) {
-                        result.score += 1;
-                        result.flags.push(`Contains suspicious keyword: ${keyword}`);
-                    }
-                });
-
-                // Set risk level based on score
-                if (result.score >= 4) {
-                    result.riskLevel = 'dangerous';
-                    result.explanation = 'High risk - multiple suspicious indicators detected';
-                } else if (result.score >= 2) {
-                    result.riskLevel = 'suspicious';
-                    result.explanation = 'Medium risk - some suspicious patterns found';
-                } else {
-                    result.riskLevel = 'safe';
-                    result.explanation = 'Low risk - no major threats detected';
-                }
-
-                return result;
-            }
-
-            async analyzeWithAI(url) {
-                if (!this.apiKey || this.apiKey === 'demo-mode') {
-                    throw new Error('AI analysis requires OpenAI API key');
-                }
-
-                const prompt = `Analyze this URL for scam/phishing threats targeting Malaysian users:
-
-URL: ${url}
-
-Focus on:
-1. Malaysian bank/e-wallet impersonation (Maybank, CIMB, Public Bank, RHB, Grab, Boost, etc.)
-2. Typosquatting and domain spoofing  
-3. Social engineering tactics
-4. URL structure anomalies
-
-Respond with JSON only:
-{
-  "riskLevel": "safe|suspicious|dangerous",
-  "confidence": 0.0-1.0,
-  "explanation": "Brief explanation for Malaysian users",
-  "flags": ["specific issues found"],
-  "suggestions": ["safety recommendations"]
-}`;
-
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4o',
-                        messages: [{
-                            role: 'user',
-                            content: prompt
-                        }],
-                        response_format: { type: "json_object" },
-                        max_tokens: 500,
-                        temperature: 0.3
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`AI analysis failed: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return JSON.parse(data.choices[0].message.content);
-            }
-
-            combineAnalysis(patternResult, aiResult) {
-                const combined = {
-                    riskLevel: patternResult.riskLevel,
-                    explanation: patternResult.explanation,
-                    flags: [...patternResult.flags],
-                    suggestions: [
-                        'Always verify URLs before entering personal information',
-                        'Check for HTTPS and valid certificates',
-                        'Contact your bank directly if suspicious'
-                    ]
-                };
-
-                // Enhance with AI results if available
-                if (aiResult) {
-                    // Use higher risk level
-                    const riskLevels = ['safe', 'suspicious', 'dangerous'];
-                    const patternRisk = riskLevels.indexOf(patternResult.riskLevel);
-                    const aiRisk = riskLevels.indexOf(aiResult.riskLevel);
-                    
-                    if (aiRisk > patternRisk) {
-                        combined.riskLevel = aiResult.riskLevel;
-                        combined.explanation = aiResult.explanation;
-                    }
-
-                    // Combine flags and suggestions
-                    combined.flags = [...new Set([...combined.flags, ...aiResult.flags])];
-                    combined.suggestions = [...new Set([...combined.suggestions, ...aiResult.suggestions])];
-                }
-
-                return combined;
-            }
-
-            displayResults(result, patternResult, aiResult) {
-                const resultsDiv = document.getElementById('results');
-                const riskBadge = document.getElementById('riskBadge');
-                const riskExplanation = document.getElementById('riskExplanation');
-                const analysisDetails = document.getElementById('analysisDetails');
-                const suggestionsList = document.getElementById('suggestionsList');
-
-                // Show results section
-                resultsDiv.classList.remove('d-none');
-
-                // Update risk badge
-                riskBadge.textContent = result.riskLevel.toUpperCase();
-                riskBadge.className = `badge risk-badge risk-${result.riskLevel}`;
-
-                // Update explanation
-                riskExplanation.textContent = result.explanation;
-
-                // Update analysis details
-                let detailsHTML = '<div class="row">';
-                detailsHTML += '<div class="col-md-6">';
-                detailsHTML += '<h6>Pattern Analysis:</h6>';
-                detailsHTML += `<p>Risk Level: <span class="badge bg-${this.getRiskColor(patternResult.riskLevel)}">${patternResult.riskLevel}</span></p>`;
-                detailsHTML += `<p>Score: ${patternResult.score}/5</p>`;
-                detailsHTML += '</div>';
-
-                if (aiResult) {
-                    detailsHTML += '<div class="col-md-6">';
-                    detailsHTML += '<h6>AI Analysis:</h6>';
-                    detailsHTML += `<p>Risk Level: <span class="badge bg-${this.getRiskColor(aiResult.riskLevel)}">${aiResult.riskLevel}</span></p>`;
-                    detailsHTML += `<p>Confidence: ${Math.round(aiResult.confidence * 100)}%</p>`;
-                    detailsHTML += '</div>';
-                }
-                detailsHTML += '</div>';
-
-                if (result.flags.length > 0) {
-                    detailsHTML += '<h6 class="mt-3">Threats Detected:</h6>';
-                    detailsHTML += '<ul class="list-unstyled">';
-                    result.flags.forEach(flag => {
-                        detailsHTML += `<li><i class="text-warning" data-feather="alert-triangle"></i> ${flag}</li>`;
-                    });
-                    detailsHTML += '</ul>';
-                }
-
-                analysisDetails.innerHTML = detailsHTML;
-
-                // Update suggestions
-                suggestionsList.innerHTML = '';
-                result.suggestions.forEach(suggestion => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<i class="text-info" data-feather="check-circle"></i> ${suggestion}`;
-                    li.className = 'mb-2';
-                    suggestionsList.appendChild(li);
-                });
-
-                // Re-initialize Feather icons
-                feather.replace();
-            }
-
-            getRiskColor(riskLevel) {
-                switch (riskLevel) {
-                    case 'safe': return 'success';
-                    case 'suspicious': return 'warning';
-                    case 'dangerous': return 'danger';
-                    default: return 'secondary';
-                }
-            }
-
-            setLoadingState(loading) {
-                const button = document.getElementById('scanButton');
-                const span = button.querySelector('span');
-                
-                if (loading) {
-                    button.disabled = true;
-                    span.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
-                } else {
-                    button.disabled = false;
-                    span.textContent = 'Scan Link Now';
-                }
-            }
-
             showError(message) {
-                const errorDiv = document.getElementById('errorMessage');
-                errorDiv.textContent = message;
-                errorDiv.classList.remove('d-none');
-                
-                setTimeout(() => {
-                    errorDiv.classList.add('d-none');
-                }, 5000);
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.textContent = message;
+                errorElement.classList.remove('d-none');
             }
 
             hideError() {
-                const errorDiv = document.getElementById('errorMessage');
-                errorDiv.classList.add('d-none');
-            }
-        }
-
-        // AI Chatbot for Risk Management Guidance
-        class AIChatbot {
-            constructor() {
-                this.messages = [];
-                this.isProcessing = false;
-                this.setupEventListeners();
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.classList.add('d-none');
             }
 
-            setupEventListeners() {
-                document.getElementById('chatbotBtn').addEventListener('click', () => {
-                    this.openChatbot();
-                });
-
-                document.getElementById('sendChatBtn').addEventListener('click', () => {
-                    this.sendMessage();
-                });
-
-                document.getElementById('chatInput').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        this.sendMessage();
-                    }
-                });
-
-                document.querySelectorAll('.quick-question').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const question = e.target.getAttribute('data-question');
-                        document.getElementById('chatInput').value = question;
-                        this.sendMessage();
-                    });
-                });
-            }
-
-            openChatbot() {
-                const modal = new bootstrap.Modal(document.getElementById('chatbotModal'));
-                modal.show();
-            }
-
-            async sendMessage() {
-                if (this.isProcessing) return;
-
-                const input = document.getElementById('chatInput');
-                const message = input.value.trim();
+            showLoading(show) {
+                const button = document.getElementById('scanButton');
+                const results = document.getElementById('results');
                 
-                if (!message) return;
-
-                this.isProcessing = true;
-                input.value = '';
-                input.disabled = true;
-
-                // Add user message
-                this.addMessage(message, 'user');
-
-                // Show typing indicator
-                this.showTypingIndicator();
-
-                try {
-                    const response = await this.getAIResponse(message);
-                    this.hideTypingIndicator();
-                    this.addMessage(response, 'bot');
-                } catch (error) {
-                    this.hideTypingIndicator();
-                    this.addMessage('I apologize, but I encountered an error. Please ensure your OpenAI API key is configured correctly and try again.', 'bot');
-                    console.error('AI response error:', error);
-                } finally {
-                    this.isProcessing = false;
-                    input.disabled = false;
-                    input.focus();
-                }
-            }
-
-            async getAIResponse(userMessage) {
-                const apiKey = this.getEnvVar('VITE_OPENAI_API_KEY');
-                
-                if (!apiKey) {
-                    throw new Error('OpenAI API key not configured');
-                }
-
-                const systemPrompt = `You are PaySavvy AI Assistant, a cybersecurity expert specializing in Malaysian online scam detection and risk management. Provide helpful, accurate guidance on:
-
-1. Phishing and scam link identification
-2. Malaysian banking and e-wallet security
-3. Regional cyber threats and trends
-4. Best practices for online safety
-5. PaySavvy platform features and usage
-
-Keep responses concise, practical, and focused on actionable advice. Use simple language suitable for non-technical users. If discussing specific threats, mention Malaysian context when relevant.`;
-
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4o',
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: userMessage }
-                        ],
-                        max_tokens: 500,
-                        temperature: 0.7
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API request failed: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.choices[0].message.content;
-            }
-
-            addMessage(content, sender) {
-                const messagesContainer = document.getElementById('chatMessages');
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${sender}-message mb-3`;
-
-                if (sender === 'user') {
-                    messageDiv.innerHTML = `
-                        <div class="d-flex align-items-start justify-content-end">
-                            <div class="message-content bg-success text-white p-3 rounded shadow-sm me-2" style="max-width: 80%;">
-                                ${content}
-                            </div>
-                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; min-width: 32px;">
-                                <i data-feather="user" style="width: 16px; height: 16px;"></i>
-                            </div>
-                        </div>
-                    `;
+                if (show) {
+                    button.disabled = true;
+                    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+                    results.classList.add('d-none');
                 } else {
-                    messageDiv.innerHTML = `
-                        <div class="d-flex align-items-start">
-                            <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; min-width: 32px;">
-                                <i data-feather="shield" style="width: 16px; height: 16px;"></i>
-                            </div>
-                            <div class="message-content bg-white p-3 rounded shadow-sm" style="max-width: 80%;">
-                                ${content.replace(/\n/g, '<br>')}
-                            </div>
-                        </div>
-                    `;
+                    button.disabled = false;
+                    button.innerHTML = '<i data-feather="shield"></i> <span>Scan Link Now</span>';
+                    feather.replace();
                 }
-
-                messagesContainer.appendChild(messageDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                feather.replace();
-            }
-
-            showTypingIndicator() {
-                const messagesContainer = document.getElementById('chatMessages');
-                const typingDiv = document.createElement('div');
-                typingDiv.className = 'typing-indicator mb-3';
-                typingDiv.id = 'typingIndicator';
-                typingDiv.innerHTML = `
-                    <div class="d-flex align-items-start">
-                        <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; min-width: 32px;">
-                            <i data-feather="shield" style="width: 16px; height: 16px;"></i>
-                        </div>
-                        <div class="message-content bg-light p-3 rounded shadow-sm">
-                            <div class="typing-dots">
-                                <span></span><span></span><span></span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                messagesContainer.appendChild(typingDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                feather.replace();
-            }
-
-            hideTypingIndicator() {
-                const indicator = document.getElementById('typingIndicator');
-                if (indicator) {
-                    indicator.remove();
-                }
-            }
-
-            getEnvVar(name, defaultValue = '') {
-                // Check for environment variables in different contexts
-                if (typeof window !== 'undefined' && window.ENV && window.ENV[name]) {
-                    return window.ENV[name];
-                }
-                if (typeof process !== 'undefined' && process.env && process.env[name]) {
-                    return process.env[name];
-                }
-                // For client-side, check for inline script variables
-                if (typeof window !== 'undefined' && window[name]) {
-                    return window[name];
-                }
-                return defaultValue;
             }
         }
 
         // Initialize application when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            window.paySavvy = new PaySavvyCore();
-            window.aiChatbot = new AIChatbot();
+            window.payсавvy = new PaySavvyApp();
         });
     </script>
-
-    <!-- AI Assistant Chatbot Modal -->
-    <div class="modal fade" id="chatbotModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">
-                        <i data-feather="message-circle"></i>
-                        PaySavvy AI Assistant
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <div id="chatbotContainer">
-                        <div id="chatMessages" class="chat-messages p-3" style="height: 400px; overflow-y: auto; background: #f8f9fa;">
-                            <div class="message bot-message mb-3">
-                                <div class="d-flex align-items-start">
-                                    <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; min-width: 32px;">
-                                        <i data-feather="shield" style="width: 16px; height: 16px;"></i>
-                                    </div>
-                                    <div class="message-content bg-white p-3 rounded shadow-sm">
-                                        <p class="mb-0">Hello! I'm your PaySavvy AI Assistant. I can help you with:</p>
-                                        <ul class="mb-0 mt-2">
-                                            <li>Risk management strategies</li>
-                                            <li>Understanding scam patterns</li>
-                                            <li>Cybersecurity best practices</li>
-                                            <li>Malaysian banking security</li>
-                                            <li>How to use PaySavvy features</li>
-                                        </ul>
-                                        <p class="mb-0 mt-2 text-muted small">What would you like to know about online security?</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chat-input-area p-3 border-top">
-                            <div class="input-group">
-                                <input type="text" id="chatInput" class="form-control" placeholder="Ask me about cybersecurity, scam detection, or risk management..." maxlength="500">
-                                <button class="btn btn-success" id="sendChatBtn" type="button">
-                                    <i data-feather="send" style="width: 16px; height: 16px;"></i>
-                                </button>
-                            </div>
-                            <div class="mt-2">
-                                <small class="text-muted">Quick questions:</small>
-                                <div class="mt-1">
-                                    <button class="btn btn-outline-secondary btn-sm me-1 mb-1 quick-question" data-question="How do I recognize a phishing link?">Phishing Detection</button>
-                                    <button class="btn btn-outline-secondary btn-sm me-1 mb-1 quick-question" data-question="What are the latest scam trends in Malaysia?">Malaysia Scams</button>
-                                    <button class="btn btn-outline-secondary btn-sm me-1 mb-1 quick-question" data-question="How can I protect my banking information?">Banking Security</button>
-                                    <button class="btn btn-outline-secondary btn-sm me-1 mb-1 quick-question" data-question="What should I do if I clicked a suspicious link?">Clicked Scam Link</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .typing-dots {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .typing-dots span {
-            height: 8px;
-            width: 8px;
-            border-radius: 50%;
-            background-color: #6c757d;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-        
-        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes typing {
-            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-            40% { opacity: 1; transform: scale(1); }
-        }
-        
-        .chat-messages {
-            scrollbar-width: thin;
-            scrollbar-color: #6c757d transparent;
-        }
-        
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-            background-color: #6c757d;
-            border-radius: 3px;
-        }
-    </style>
 </body>
 </html>
