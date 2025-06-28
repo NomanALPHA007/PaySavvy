@@ -39,9 +39,24 @@ app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
 
-// Root endpoint - serve main application
+// Root endpoint - serve main application with environment variables injected
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  const fs = require('fs');
+  let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  
+  // Inject environment variables into the HTML
+  const envScript = `
+    <script>
+      window.ENV = {
+        VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
+      };
+    </script>
+  `;
+  
+  // Insert the script before the closing </head> tag
+  html = html.replace('</head>', `${envScript}</head>`);
+  
+  res.send(html);
 });
 
 // Dashboard endpoint
