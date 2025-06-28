@@ -242,7 +242,7 @@ function analyzePatterns(url) {
  */
 async function analyzeWithAI(url) {
     const apiKey = elements.apiKeyInput.value.trim() || 
-                  import.meta.env.VITE_OPENAI_API_KEY || 
+                  getEnvVar('VITE_OPENAI_API_KEY') || 
                   process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
@@ -508,13 +508,9 @@ function hideResults() {
  * Utility function to get environment variables in different contexts
  */
 function getEnvVar(name, defaultValue = '') {
-    // Try Vite environment variables
-    try {
-        if (import.meta && import.meta.env) {
-            return import.meta.env[`VITE_${name}`] || defaultValue;
-        }
-    } catch (e) {
-        // import.meta not available in this context
+    // Check for environment variables in different contexts
+    if (typeof window !== 'undefined' && window.ENV && window.ENV[`VITE_${name}`]) {
+        return window.ENV[`VITE_${name}`];
     }
     
     // Try Node.js environment variables

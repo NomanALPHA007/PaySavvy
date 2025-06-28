@@ -2,8 +2,21 @@
 export class AIDetector {
   constructor() {
     // Support both environment configurations
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY;
+    this.apiKey = this.getEnvVar('VITE_OPENAI_API_KEY') || this.getEnvVar('OPENAI_API_KEY');
     this.baseUrl = 'https://api.openai.com/v1/chat/completions';
+  }
+
+  getEnvVar(name, defaultValue = '') {
+    if (typeof window !== 'undefined' && window.ENV && window.ENV[name]) {
+      return window.ENV[name];
+    }
+    if (typeof process !== 'undefined' && process.env && process.env[name]) {
+      return process.env[name];
+    }
+    if (typeof window !== 'undefined' && window[name]) {
+      return window[name];
+    }
+    return defaultValue;
   }
 
   async analyzeWithAI(url) {

@@ -5,6 +5,19 @@ export class FallbackDetector {
     this.setupOfflineDetection();
   }
 
+  getEnvVar(name, defaultValue = '') {
+    if (typeof window !== 'undefined' && window.ENV && window.ENV[name]) {
+      return window.ENV[name];
+    }
+    if (typeof process !== 'undefined' && process.env && process.env[name]) {
+      return process.env[name];
+    }
+    if (typeof window !== 'undefined' && window[name]) {
+      return window[name];
+    }
+    return defaultValue;
+  }
+
   setupOfflineDetection() {
     window.addEventListener('online', () => {
       this.isOnline = true;
@@ -107,7 +120,7 @@ export class FallbackDetector {
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${this.getEnvVar('VITE_OPENAI_API_KEY')}`,
         },
         timeout: 5000
       });

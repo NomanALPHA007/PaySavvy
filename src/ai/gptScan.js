@@ -2,10 +2,23 @@
 export class GPTScanner {
   constructor() {
     // Support both environment configurations
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY;
+    this.apiKey = this.getEnvVar('VITE_OPENAI_API_KEY') || this.getEnvVar('OPENAI_API_KEY');
     this.baseUrl = 'https://api.openai.com/v1/chat/completions';
     this.model = 'gpt-4o'; // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     this.cache = new Map();
+  }
+
+  getEnvVar(name, defaultValue = '') {
+    if (typeof window !== 'undefined' && window.ENV && window.ENV[name]) {
+      return window.ENV[name];
+    }
+    if (typeof process !== 'undefined' && process.env && process.env[name]) {
+      return process.env[name];
+    }
+    if (typeof window !== 'undefined' && window[name]) {
+      return window[name];
+    }
+    return defaultValue;
   }
 
   async analyzeURL(url, context = {}) {

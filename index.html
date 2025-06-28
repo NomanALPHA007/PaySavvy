@@ -828,7 +828,7 @@
 
         class PaySavvyCore {
             constructor() {
-                this.apiKey = import.meta?.env?.VITE_OPENAI_API_KEY || 'demo-mode';
+                this.apiKey = this.getEnvVar('VITE_OPENAI_API_KEY') || 'demo-mode';
                 this.isScanning = false;
                 this.pasteShieldEnabled = true;
                 this.fingerprintCache = new Map();
@@ -841,6 +841,21 @@
                 this.setupEventListeners();
                 this.setupAdvancedFeatures();
                 console.log('PaySavvy Pro ready with 6 advanced features!');
+            }
+
+            getEnvVar(name, defaultValue = '') {
+                // Check for environment variables in different contexts
+                if (typeof window !== 'undefined' && window.ENV && window.ENV[name]) {
+                    return window.ENV[name];
+                }
+                if (typeof process !== 'undefined' && process.env && process.env[name]) {
+                    return process.env[name];
+                }
+                // For client-side, check for inline script variables
+                if (typeof window !== 'undefined' && window[name]) {
+                    return window[name];
+                }
+                return defaultValue;
             }
 
             setupAdvancedFeatures() {
@@ -2309,11 +2324,16 @@ Keep responses concise, practical, and focused on actionable advice. Use simple 
             }
 
             getEnvVar(name, defaultValue = '') {
-                if (typeof import !== 'undefined' && import.meta && import.meta.env) {
-                    return import.meta.env[name] || defaultValue;
+                // Check for environment variables in different contexts
+                if (typeof window !== 'undefined' && window.ENV && window.ENV[name]) {
+                    return window.ENV[name];
                 }
-                if (typeof process !== 'undefined' && process.env) {
-                    return process.env[name] || defaultValue;
+                if (typeof process !== 'undefined' && process.env && process.env[name]) {
+                    return process.env[name];
+                }
+                // For client-side, check for inline script variables
+                if (typeof window !== 'undefined' && window[name]) {
+                    return window[name];
                 }
                 return defaultValue;
             }
