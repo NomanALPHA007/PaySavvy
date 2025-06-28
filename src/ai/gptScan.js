@@ -1,7 +1,8 @@
 // Enhanced AI-powered scam detection using OpenAI GPT-4o
 export class GPTScanner {
   constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    // Support both environment configurations
+    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY;
     this.baseUrl = 'https://api.openai.com/v1/chat/completions';
     this.model = 'gpt-4o'; // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     this.cache = new Map();

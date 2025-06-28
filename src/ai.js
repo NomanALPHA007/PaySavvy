@@ -1,7 +1,8 @@
 // AI-powered scam detection using OpenAI GPT-4o
 export class AIDetector {
   constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    // Support both environment configurations
+    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY;
     this.baseUrl = 'https://api.openai.com/v1/chat/completions';
   }
 
