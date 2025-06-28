@@ -1,0 +1,101 @@
+{
+  "languages": {
+    "bm": {
+      "name": "Bahasa Malaysia",
+      "urgencyWords": ["segera", "sekarang", "hari ini", "tamat tempoh", "terakhir", "terhad"],
+      "accountWords": ["akaun", "disekat", "digantung", "ditutup", "dilucutkan", "dikunci"],
+      "actionWords": ["klik", "tekan", "tebus", "tuntut", "sahkan", "kemaskini"],
+      "moneyWords": ["ringgit", "rm", "wang", "duit", "bayaran", "transfer"],
+      "verificationWords": ["pengesahan", "sahkan", "verify", "konfirm", "periksa"],
+      "prizeWords": ["hadiah", "menang", "pemenang", "untung", "bonus", "percuma"],
+      "bankWords": ["bank", "perbankan", "maybank", "cimb", "public", "rhb"],
+      "ewalletWords": ["grab", "boost", "tng", "touchngo", "bigpay", "shopee"]
+    },
+    "id": {
+      "name": "Bahasa Indonesia", 
+      "urgencyWords": ["segera", "sekarang", "hari ini", "berakhir", "terbatas", "cepat"],
+      "accountWords": ["akun", "diblokir", "ditutup", "disuspend", "terkunci"],
+      "actionWords": ["klik disini", "tekan", "klaim", "ambil", "konfirmasi"],
+      "moneyWords": ["rupiah", "rp", "uang", "pembayaran", "transfer"],
+      "verificationWords": ["verifikasi", "konfirmasi", "periksa", "validasi"],
+      "prizeWords": ["hadiah", "menang", "pemenang", "bonus", "gratis"],
+      "bankWords": ["bank", "bca", "mandiri", "bri", "bni"],
+      "ewalletWords": ["gopay", "ovo", "dana", "linkaja", "shopeepay"]
+    },
+    "ph": {
+      "name": "Filipino/Tagalog",
+      "urgencyWords": ["agad", "ngayon", "mabilis", "limitado", "huling", "tapos na"],
+      "accountWords": ["account", "na-block", "na-suspend", "na-lock"],
+      "actionWords": ["i-click", "pindutin", "i-claim", "kunin", "i-verify"],
+      "moneyWords": ["piso", "php", "pera", "bayad", "padala", "transfer"],
+      "verificationWords": ["verify", "confirm", "check", "validate"],
+      "prizeWords": ["premyo", "nanalo", "winner", "libre", "bonus"],
+      "bankWords": ["bangko", "bpi", "bdo", "metrobank", "unionbank"],
+      "ewalletWords": ["gcash", "paymaya", "coins", "grabpay"]
+    },
+    "th": {
+      "name": "Thai",
+      "urgencyWords": ["ด่วน", "เร่งด่วน", "วันนี้", "หมดเวลา", "จำกัด"],
+      "accountWords": ["บัญชี", "ถูกปิด", "ถูกระงับ", "ถูกล็อค"],
+      "actionWords": ["คลิก", "กด", "รับ", "ยืนยัน", "อัพเดท"],
+      "moneyWords": ["บาท", "เงิน", "โอน", "ชำระ"],
+      "verificationWords": ["ยืนยัน", "ตรวจสอบ", "เช็ค"],
+      "prizeWords": ["รางวัล", "ชนะ", "ฟรี", "โบนัส"],
+      "bankWords": ["ธนาคาร", "กสิกร", "กรุงเทพ", "ไทยพาณิชย์"],
+      "ewalletWords": ["truemoney", "promptpay", "rabbit"]
+    },
+    "vi": {
+      "name": "Vietnamese",
+      "urgencyWords": ["khẩn cấp", "ngay lập tức", "hôm nay", "hết hạn", "giới hạn"],
+      "accountWords": ["tài khoản", "bị khóa", "bị đình chỉ", "bị đóng"],
+      "actionWords": ["nhấp", "bấm", "nhận", "xác nhận", "cập nhật"],
+      "moneyWords": ["đồng", "vnd", "tiền", "chuyển khoản", "thanh toán"],
+      "verificationWords": ["xác minh", "xác nhận", "kiểm tra"],
+      "prizeWords": ["giải thưởng", "thắng", "miễn phí", "thưởng"],
+      "bankWords": ["ngân hàng", "vietcombank", "techcombank", "bidv"],
+      "ewalletWords": ["momo", "zalopay", "vnpay"]
+    },
+    "en": {
+      "name": "English",
+      "urgencyWords": ["urgent", "immediate", "now", "expires", "limited", "hurry"],
+      "accountWords": ["account", "blocked", "suspended", "closed", "locked"],
+      "actionWords": ["click here", "tap", "claim", "verify", "update"],
+      "moneyWords": ["money", "payment", "transfer", "cash", "fund"],
+      "verificationWords": ["verify", "confirm", "validate", "check"],
+      "prizeWords": ["prize", "winner", "won", "free", "bonus"],
+      "bankWords": ["bank", "banking", "maybank", "cimb", "dbs"],
+      "ewalletWords": ["grab", "boost", "pay", "wallet", "digital"]
+    }
+  },
+  "commonScamPhrases": {
+    "bm": [
+      "akaun anda telah disekat",
+      "klik untuk menuntut hadiah",
+      "wang percuma menanti anda",
+      "sahkan identiti anda segera",
+      "bayaran tertunggak",
+      "kemaskini maklumat akaun"
+    ],
+    "id": [
+      "akun anda diblokir",
+      "klik untuk klaim hadiah",
+      "uang gratis menanti",
+      "verifikasi identitas segera",
+      "pembayaran tertunggak"
+    ],
+    "ph": [
+      "account mo na-block",
+      "i-claim ang premyo",
+      "libre na pera",
+      "i-verify ang identity"
+    ],
+    "en": [
+      "your account has been blocked",
+      "click to claim prize",
+      "free money waiting",
+      "verify your identity now",
+      "payment overdue",
+      "update account information"
+    ]
+  }
+}

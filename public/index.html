@@ -38,12 +38,18 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i data-feather="shield"></i>
-                            <span data-i18n="title">Link Scanner</span>
+                            <span data-i18n="title">PaySavvy Pro Scanner</span>
                         </h5>
-                        <button type="button" class="btn btn-outline-light btn-sm" id="preferencesToggle">
-                            <i data-feather="settings"></i>
-                            <span data-i18n="preferences">Preferences</span>
-                        </button>
+                        <div class="header-controls">
+                            <button type="button" class="btn btn-outline-light btn-sm me-2" id="qrScannerToggle">
+                                <i data-feather="camera"></i>
+                                QR Scanner
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm" id="preferencesToggle">
+                                <i data-feather="settings"></i>
+                                <span data-i18n="preferences">Settings</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -125,6 +131,81 @@
                         </div>
 
                         <div id="analysisDetails" class="analysis-details"></div>
+                    </div>
+
+                    <!-- QR Code Scanner Section -->
+                    <div class="advanced-section d-none" id="qrScannerSection">
+                        <div class="section-header">
+                            <h6>
+                                <i data-feather="camera"></i>
+                                QR Code Scanner
+                            </h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('qrScannerSection').classList.add('d-none')">
+                                <i data-feather="x"></i>
+                            </button>
+                        </div>
+                        <div id="qr-scanner-container"></div>
+                    </div>
+
+                    <!-- Regional Risk Heatmap Section -->
+                    <div class="advanced-section">
+                        <button type="button" class="btn section-toggle" data-bs-toggle="collapse" data-bs-target="#heatmapContent">
+                            <i data-feather="map"></i>
+                            <span>Regional Risk Heatmap</span>
+                            <i data-feather="chevron-down" class="ms-auto"></i>
+                        </button>
+                        
+                        <div class="collapse" id="heatmapContent">
+                            <div class="heatmap-content">
+                                <div id="regional-heatmap"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Analytics Section -->
+                    <div class="advanced-section">
+                        <button type="button" class="btn section-toggle" data-bs-toggle="collapse" data-bs-target="#analyticsContent">
+                            <i data-feather="bar-chart-2"></i>
+                            <span>Security Analytics</span>
+                            <i data-feather="chevron-down" class="ms-auto"></i>
+                        </button>
+                        
+                        <div class="collapse" id="analyticsContent">
+                            <div class="analytics-content">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <h6>Fingerprint Database</h6>
+                                            <div id="fingerprint-stats">
+                                                <div class="stat-item">
+                                                    <span class="stat-label">Total Patterns:</span>
+                                                    <span class="stat-value" id="total-fingerprints">0</span>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <span class="stat-label">High Risk:</span>
+                                                    <span class="stat-value text-danger" id="high-risk-fingerprints">0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <h6>Scan Summary</h6>
+                                            <div id="scan-stats">
+                                                <div class="stat-item">
+                                                    <span class="stat-label">Total Scans:</span>
+                                                    <span class="stat-value" id="total-scans">0</span>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <span class="stat-label">Threats Blocked:</span>
+                                                    <span class="stat-value text-danger" id="threats-blocked">0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Scan History Section -->

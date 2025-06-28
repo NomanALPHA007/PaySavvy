@@ -11,8 +11,10 @@
   "description": "",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
+    "chart.js": "^4.5.0",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.2",
+    "html5-qrcode": "^2.3.8",
     "openai": "^5.8.2",
     "terser": "^5.43.1",
     "vite": "^6.3.5",
