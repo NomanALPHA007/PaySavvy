@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PaySavvy - AI-powered fake payment link detector for Malaysian users">
+    <meta name="keywords" content="scam detection, payment security, phishing, Malaysia">
+    <meta name="author" content="PaySavvy">
+    <title>PaySavvy - Smart Scam Link Detector</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-gradient">
+        <div class="main-container">
+            <!-- Header -->
+            <header class="text-center mb-4">
+                <div class="logo-container mb-3">
+                    <i data-feather="shield" class="logo-icon"></i>
+                </div>
+                <h1 class="display-4 fw-bold text-primary mb-2">PaySavvy</h1>
+                <p class="lead text-muted">Smart Scam Link Detector</p>
+                <p class="text-secondary">Protect yourself from fake payment links and phishing scams</p>
+            </header>
+
+            <!-- Main Form -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <form id="scanForm" class="mb-4">
+                        <div class="mb-3">
+                            <label for="urlInput" class="form-label fw-semibold">
+                                <i data-feather="link" class="me-2"></i>
+                                Paste suspicious payment URL here:
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i data-feather="globe"></i>
+                                </span>
+                                <input 
+                                    type="url" 
+                                    class="form-control form-control-lg" 
+                                    id="urlInput" 
+                                    placeholder="https://example.com/payment-link"
+                                    required
+                                    aria-describedby="urlHelp"
+                                >
+                            </div>
+                            <div id="urlHelp" class="form-text">
+                                Enter any suspicious payment or banking link you've received
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="scanButton">
+                                <span class="button-text">
+                                    <i data-feather="search" class="me-2"></i>
+                                    Scan Link
+                                </span>
+                                <div class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></div>
+                                <span class="loading-text d-none">Analyzing...</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- OpenAI API Key Input (for development/testing) -->
+                    <div class="mb-3">
+                        <details class="api-key-section">
+                            <summary class="text-muted small">
+                                <i data-feather="key" class="me-1"></i>
+                                OpenAI API Configuration (Optional)
+                            </summary>
+                            <div class="mt-2">
+                                <input 
+                                    type="password" 
+                                    class="form-control form-control-sm" 
+                                    id="apiKeyInput" 
+                                    placeholder="Enter OpenAI API key (optional)"
+                                    aria-label="OpenAI API Key"
+                                >
+                                <div class="form-text">
+                                    Leave empty to use environment variables
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="resultsSection" class="d-none">
+                        <hr class="my-4">
+                        <h3 class="h5 mb-3">
+                            <i data-feather="clipboard" class="me-2"></i>
+                            Analysis Results
+                        </h3>
+                        
+                        <!-- Risk Level Display -->
+                        <div id="riskDisplay" class="alert mb-3" role="alert">
+                            <div class="d-flex align-items-center mb-2">
+                                <i id="riskIcon" data-feather="alert-triangle" class="me-2"></i>
+                                <strong id="riskLevel">Risk Level</strong>
+                            </div>
+                            <div id="riskExplanation" class="mb-2"></div>
+                            <div id="riskSuggestions" class="small"></div>
+                        </div>
+
+                        <!-- Pattern Analysis -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i data-feather="search" class="me-2"></i>
+                                    Pattern Analysis
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="patternResults">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Pattern Score:</span>
+                                        <span id="patternScore" class="badge">0/10</span>
+                                    </div>
+                                    <div id="detectedPatterns" class="small text-muted"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Analysis -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i data-feather="cpu" class="me-2"></i>
+                                    AI Analysis
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="aiResults">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>AI Risk Assessment:</span>
+                                        <span id="aiRiskLevel" class="badge">-</span>
+                                    </div>
+                                    <div id="aiExplanation" class="small text-muted"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Display -->
+                    <div id="errorSection" class="d-none">
+                        <div class="alert alert-danger" role="alert">
+                            <i data-feather="alert-circle" class="me-2"></i>
+                            <strong>Error:</strong>
+                            <span id="errorMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center mt-4">
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="text-muted small mb-2">
+                            <i data-feather="info" class="me-1"></i>
+                            Always verify suspicious links with your bank or payment provider
+                        </p>
+                        <p class="text-muted small">
+                            Built with ❤️ for Malaysian cybersecurity
+                        </p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Main Application Script -->
+    <script type="module" src="main.js"></script>
+    
+    <!-- Initialize Feather Icons -->
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
