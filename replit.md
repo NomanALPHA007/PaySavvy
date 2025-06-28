@@ -73,7 +73,7 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
 - **Node.js**: Runtime for build process (16+ required)
 
 ### Environment Variables
-- `OPENAI_API_KEY`: Required for AI-powered analysis functionality
+- `VITE_OPENAI_API_KEY`: Required for AI-powered analysis functionality (Vite frontend requires VITE_ prefix)
 
 ## Deployment Strategy
 
