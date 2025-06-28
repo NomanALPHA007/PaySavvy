@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaySavvy Dashboard - Scam Analytics</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/src/styles/style.css">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <style>
+        .dashboard-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .threat-level {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .threat-high { background: #fef2f2; color: #dc2626; }
+        .threat-medium { background: #fffbeb; color: #d97706; }
+        .threat-low { background: #f0fdf4; color: #16a34a; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="container">
+            <!-- Header -->
+            <div class="app-header">
+                <h1 class="app-title">PaySavvy Dashboard</h1>
+                <p class="app-subtitle">Scam Detection Analytics & Insights</p>
+                <a href="/public/index.html" class="btn btn-outline-light">
+                    <i data-feather="arrow-left"></i> Back to Scanner
+                </a>
+            </div>
+
+            <!-- Statistics Overview -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <div class="stat-number text-primary" id="totalScans">847</div>
+                            <div class="stat-label">Total Scans Today</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <div class="stat-number text-danger" id="threatsDetected">23</div>
+                            <div class="stat-label">Threats Detected</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <div class="stat-number text-success" id="safeLinks">824</div>
+                            <div class="stat-label">Safe Links</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <div class="stat-number text-info" id="activeUsers">156</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Threats -->
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card dashboard-card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i data-feather="alert-triangle"></i>
+                                Recent Threat Detection
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Threat Type</th>
+                                            <th>Domain</th>
+                                            <th>Risk Level</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="threatTable">
+                                        <tr>
+                                            <td>14:32</td>
+                                            <td>Bank Typosquatting</td>
+                                            <td>mayb4nk-login.tk</td>
+                                            <td><span class="threat-level threat-high">HIGH</span></td>
+                                            <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>14:28</td>
+                                            <td>Suspicious TLD</td>
+                                            <td>payment-verify.ml</td>
+                                            <td><span class="threat-level threat-high">HIGH</span></td>
+                                            <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>14:15</td>
+                                            <td>URL Shortener</td>
+                                            <td>bit.ly/pay-now-123</td>
+                                            <td><span class="threat-level threat-medium">MEDIUM</span></td>
+                                            <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>13:58</td>
+                                            <td>Phishing Keywords</td>
+                                            <td>secure-cimb-update.com</td>
+                                            <td><span class="threat-level threat-high">HIGH</span></td>
+                                            <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>13:45</td>
+                                            <td>IP Address</td>
+                                            <td>192.168.1.100/login</td>
+                                            <td><span class="threat-level threat-medium">MEDIUM</span></td>
+                                            <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <div class="card dashboard-card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i data-feather="trending-up"></i>
+                                Threat Trends
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small">Bank Typosquatting</span>
+                                    <span class="small text-danger">+15%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-danger" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small">Suspicious TLDs</span>
+                                    <span class="small text-warning">+8%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-warning" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small">URL Shorteners</span>
+                                    <span class="small text-info">+3%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-info" style="width: 30%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small">Phishing Keywords</span>
+                                    <span class="small text-success">-2%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" style="width: 25%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card dashboard-card mt-3">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i data-feather="map-pin"></i>
+                                Top Targeted Banks
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Maybank</span>
+                                <span class="badge bg-danger">45%</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>CIMB Bank</span>
+                                <span class="badge bg-warning">23%</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Public Bank</span>
+                                <span class="badge bg-info">18%</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>RHB Bank</span>
+                                <span class="badge bg-secondary">14%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-4">
+                <p class="text-white-50 small">
+                    PaySavvy Dashboard | Real-time Scam Monitoring | 
+                    <a href="#" class="text-white-50">Export Data</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Initialize Feather Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            
+            // Simulate real-time updates
+            setInterval(updateStats, 5000);
+        });
+        
+        function updateStats() {
+            // Simulate random stat updates
+            const totalScans = document.getElementById('totalScans');
+            const threatsDetected = document.getElementById('threatsDetected');
+            const safeLinks = document.getElementById('safeLinks');
+            const activeUsers = document.getElementById('activeUsers');
+            
+            if (Math.random() > 0.7) {
+                const current = parseInt(totalScans.textContent);
+                totalScans.textContent = current + Math.floor(Math.random() * 3) + 1;
+                
+                if (Math.random() > 0.8) {
+                    const threats = parseInt(threatsDetected.textContent);
+                    threatsDetected.textContent = threats + 1;
+                } else {
+                    const safe = parseInt(safeLinks.textContent);
+                    safeLinks.textContent = safe + Math.floor(Math.random() * 2) + 1;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

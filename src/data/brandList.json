@@ -1,0 +1,83 @@
+{
+  "malaysianBanks": {
+    "maybank": {
+      "official": ["maybank2u.com.my", "maybank.com.my"],
+      "name": "Maybank",
+      "type": "bank"
+    },
+    "cimb": {
+      "official": ["cimbclicks.com.my", "cimb.com.my"],
+      "name": "CIMB Bank",
+      "type": "bank"
+    },
+    "publicbank": {
+      "official": ["pbebank.com", "publicbank.com.my"],
+      "name": "Public Bank",
+      "type": "bank"
+    },
+    "rhb": {
+      "official": ["rhbbank.com.my", "rhbnow.com.my"],
+      "name": "RHB Bank",
+      "type": "bank"
+    },
+    "hongleong": {
+      "official": ["hlb.com.my", "hongleongbank.com.my"],
+      "name": "Hong Leong Bank",
+      "type": "bank"
+    },
+    "ambank": {
+      "official": ["ambank.com.my", "ambankgroup.com"],
+      "name": "AmBank",
+      "type": "bank"
+    },
+    "uob": {
+      "official": ["uob.com.my"],
+      "name": "UOB Malaysia",
+      "type": "bank"
+    },
+    "standardchartered": {
+      "official": ["standardchartered.com.my"],
+      "name": "Standard Chartered",
+      "type": "bank"
+    }
+  },
+  "ewallets": {
+    "grabpay": {
+      "official": ["grab.com", "grabpay.com"],
+      "name": "GrabPay",
+      "type": "ewallet"
+    },
+    "boost": {
+      "official": ["myboost.com.my", "boostbank.com"],
+      "name": "Boost",
+      "type": "ewallet"
+    },
+    "touchngo": {
+      "official": ["touchngo.com.my", "tngdigital.com.my"],
+      "name": "Touch 'n Go eWallet",
+      "type": "ewallet"
+    },
+    "bigpay": {
+      "official": ["bigpay.my"],
+      "name": "BigPay",
+      "type": "ewallet"
+    },
+    "shopeepay": {
+      "official": ["shopee.com.my"],
+      "name": "ShopeePay",
+      "type": "ewallet"
+    }
+  },
+  "government": {
+    "bnm": {
+      "official": ["bnm.gov.my"],
+      "name": "Bank Negara Malaysia",
+      "type": "regulator"
+    },
+    "sc": {
+      "official": ["sc.com.my"],
+      "name": "Securities Commission Malaysia",
+      "type": "regulator"
+    }
+  }
+}

@@ -1,6 +1,10 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  // Root directory and public assets
+  root: '.',
+  publicDir: 'public',
+  
   // Server configuration
   server: {
     host: '0.0.0.0',
@@ -16,6 +20,9 @@ export default defineConfig({
     sourcemap: true,
     minify: 'terser',
     rollupOptions: {
+      input: {
+        main: './public/index.html'
+      },
       output: {
         manualChunks: undefined,
       }
@@ -29,6 +36,16 @@ export default defineConfig({
   
   // Base URL for deployment
   base: './',
+  
+  // Module resolution
+  resolve: {
+    alias: {
+      '@': '/src',
+      '@data': '/src/data',
+      '@utils': '/src/utils',
+      '@styles': '/src/styles'
+    }
+  },
   
   // Plugins (add any needed plugins here)
   plugins: [],

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">PaySavvy - AI Scam Link Detector</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/src/styles/style.css">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Meta tags for PWA -->
+    <meta name="description" content="AI-powered scam link detector for Malaysian users. Protect yourself from fake payment links and phishing scams.">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/></svg>">
+</head>
+<body>
+    <div class="main-container">
+        <div class="container">
+            <!-- Header -->
+            <div class="app-header">
+                <h1 class="app-title" data-i18n="title">PaySavvy - AI Scam Link Detector</h1>
+                <p class="app-subtitle" data-i18n="subtitle">Protect yourself from fake payment links</p>
+                <button type="button" class="btn language-toggle" id="languageToggle">BM</button>
+            </div>
+
+            <!-- Main Card -->
+            <div class="card main-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i data-feather="shield"></i>
+                            <span data-i18n="title">Link Scanner</span>
+                        </h5>
+                        <button type="button" class="btn btn-outline-light btn-sm" id="preferencesToggle">
+                            <i data-feather="settings"></i>
+                            <span data-i18n="preferences">Preferences</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Offline Banner (hidden by default) -->
+                    <div id="offlineBanner" class="offline-banner" style="display: none;">
+                        <i data-feather="wifi-off"></i>
+                        <span data-i18n="offline">You're offline - using basic detection only</span>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="alert alert-danger d-none error-message" role="alert"></div>
+
+                    <!-- Preferences Panel (hidden by default) -->
+                    <div id="preferencesPanel" class="preferences-panel d-none">
+                        <h6 data-i18n="preferences">Preferences</h6>
+                        
+                        <div class="preferences-section">
+                            <label class="form-label" data-i18n="banks">Preferred Banks:</label>
+                            <div class="bank-preferences">
+                                <div class="bank-option">
+                                    <input type="checkbox" class="form-check-input bank-checkbox" value="maybank" id="bank-maybank">
+                                    <label class="form-check-label" for="bank-maybank">Maybank</label>
+                                </div>
+                                <div class="bank-option">
+                                    <input type="checkbox" class="form-check-input bank-checkbox" value="cimb" id="bank-cimb">
+                                    <label class="form-check-label" for="bank-cimb">CIMB Bank</label>
+                                </div>
+                                <div class="bank-option">
+                                    <input type="checkbox" class="form-check-input bank-checkbox" value="publicbank" id="bank-publicbank">
+                                    <label class="form-check-label" for="bank-publicbank">Public Bank</label>
+                                </div>
+                                <div class="bank-option">
+                                    <input type="checkbox" class="form-check-input bank-checkbox" value="rhb" id="bank-rhb">
+                                    <label class="form-check-label" for="bank-rhb">RHB Bank</label>
+                                </div>
+                                <div class="bank-option">
+                                    <input type="checkbox" class="form-check-input bank-checkbox" value="boost" id="bank-boost">
+                                    <label class="form-check-label" for="bank-boost">Boost</label>
+                                </div>
+                                <div class="bank-option">
+                                    <input type="checkbox" class="form-check-input bank-checkbox" value="grabpay" id="bank-grabpay">
+                                    <label class="form-check-label" for="bank-grabpay">GrabPay</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- URL Input Form -->
+                    <form id="scanForm">
+                        <div class="url-input-group">
+                            <input 
+                                type="url" 
+                                class="form-control url-input" 
+                                id="urlInput" 
+                                data-i18n="urlPlaceholder"
+                                placeholder="Paste suspicious link here..."
+                                required
+                            >
+                            <div id="urlFeedback" class="invalid-feedback"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn scan-btn" id="scanButton">
+                            <i data-feather="shield"></i>
+                            <span data-i18n="scanButton">Scan Link</span>
+                        </button>
+                    </form>
+
+                    <!-- Results Section -->
+                    <div id="results" class="results-section d-none">
+                        <div class="risk-display">
+                            <div id="riskBadge" class="badge risk-badge">Safe</div>
+                            <p id="riskExplanation" class="risk-explanation"></p>
+                        </div>
+
+                        <div class="suggestions-section">
+                            <h6>Recommendations:</h6>
+                            <ul id="suggestionsList" class="suggestions-list"></ul>
+                        </div>
+
+                        <div id="analysisDetails" class="analysis-details"></div>
+                    </div>
+
+                    <!-- Scan History Section -->
+                    <div class="history-section">
+                        <button type="button" class="btn history-toggle" id="historyToggle" data-bs-toggle="collapse" data-bs-target="#historyContent">
+                            <i data-feather="clock"></i>
+                            <span data-i18n="history">Scan History</span>
+                            <i data-feather="chevron-down" class="ms-auto"></i>
+                        </button>
+                        
+                        <div class="collapse" id="historyContent">
+                            <div class="history-content">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0" data-i18n="history">Recent Scans</h6>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="clearHistory">
+                                        <i data-feather="trash-2"></i>
+                                        <span data-i18n="clearHistory">Clear</span>
+                                    </button>
+                                </div>
+                                <div id="historyItems"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-4">
+                <p class="text-white-50 small">
+                    Made with ❤️ for Malaysia | 
+                    <a href="#" class="text-white-50">Report Issues</a> | 
+                    <a href="#" class="text-white-50">Privacy Policy</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Main Application -->
+    <script type="module" src="/src/main.js"></script>
+    
+    <!-- Initialize Feather Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+    </script>
+</body>
+</html>
