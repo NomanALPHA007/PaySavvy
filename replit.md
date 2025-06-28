@@ -121,6 +121,17 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - QR Code Scanner supporting both camera and file upload methods
   - Production-ready deployment configuration for GitHub and Vercel
   - Comprehensive documentation and testing scenarios included
+- June 28, 2025: Added GPT-powered AI chatbot for risk management guidance
+  - Intelligent chatbot provides real-time cybersecurity advice and support
+  - Specialized in Malaysian online scam detection and risk management
+  - Quick-access buttons for common security questions
+  - Professional chat interface with typing indicators and message history
+  - Direct OpenAI GPT-4o integration for accurate, contextual responses
+- June 28, 2025: Fixed Vercel deployment configuration issues
+  - Identified and resolved styling and functionality problems in deployed version
+  - Simplified vercel.json for static site deployment without build process
+  - Updated deployment documentation with corrected steps and troubleshooting
+  - Created fixed deployment package (paysavvy-pro-vercel-fixed.tar.gz)
 
 ## User Preferences
 

@@ -21,7 +21,7 @@ export default defineConfig({
     minify: 'terser',
     rollupOptions: {
       input: {
-        main: './public/index.html'
+        main: './index.html'
       },
       output: {
         manualChunks: undefined,
