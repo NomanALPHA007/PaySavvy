@@ -51,14 +51,16 @@ app.get('/', (req, res) => {
   const fs = require('fs');
   let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
   
-  // Inject environment variables into the HTML
+  // Inject environment variables and cache buster into the HTML
+  const timestamp = Date.now();
   const envScript = `
     <script>
       window.ENV = {
         VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
       };
       window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';
-      console.log('Simplified PaySavvy loaded - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
+      window.APP_VERSION = '${timestamp}';
+      console.log('Clean PaySavvy v${timestamp} loaded - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
     </script>
   `;
   
