@@ -1,4 +1,27 @@
 {
+  "functions": {
+    "api/server.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/server.js"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/server.js"
+    },
+    {
+      "source": "/healthz",
+      "destination": "/api/server.js"
+    },
+    {
+      "source": "/ping",
+      "destination": "/api/server.js"
+    }
+  ],
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [

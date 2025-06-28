@@ -156,6 +156,12 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Implemented comprehensive error handling with custom error classes and toast notifications
   - Added cache-busting headers and environment variable injection through server.js
   - All three critical production issues resolved: module errors, icon compatibility, API configuration
+- June 28, 2025: Added dual-platform deployment support (Replit + Vercel)
+  - Created Vercel serverless configuration with api/server.js for health checks
+  - Updated vercel.json with proper routing and serverless function support
+  - Added comprehensive deployment documentation (README-DEPLOYMENT.md)
+  - Configured both static hosting (Vercel) and full server functionality (Replit)
+  - Ensured cross-platform compatibility for all core scam detection features
 
 ## User Preferences
 
