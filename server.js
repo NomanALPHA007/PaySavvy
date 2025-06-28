@@ -42,7 +42,7 @@ app.get('/ping', (req, res) => {
 // Root endpoint - serve main application with environment variables injected
 app.get('/', (req, res) => {
   const fs = require('fs');
-  let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
   
   // Inject environment variables into the HTML
   const envScript = `
@@ -50,11 +50,15 @@ app.get('/', (req, res) => {
       window.ENV = {
         VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
       };
+      window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';
+      console.log('Environment variables loaded:', window.ENV);
     </script>
   `;
   
   // Insert the script before the closing </head> tag
   html = html.replace('</head>', `${envScript}</head>`);
+  
+  console.log('Injecting API key:', process.env.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
   
   res.send(html);
 });
