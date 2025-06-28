@@ -1,0 +1,97 @@
+You are a senior full-stack engineer and AI cybersecurity architect. I want you to build a fully functional MVP project called **PaySavvy – AI-powered Fake Payment Link Detector**, focused on **risk management for digital payment scams** (very common in Malaysia).
+
+This app should work fully in the browser (HTML/CSS/JavaScript using **Vite**), be deployable via **Replit** or **Vercel**, and integrate **OpenAI's GPT API** for advanced scam link detection.
+
+---
+
+## 🔧 Functional Requirements (MUST be implemented):
+
+### 1. Project Setup:
+- Use Vite as the build system
+- Organize files as:
+  - `index.html` (Main structure)
+  - `style.css` (Responsive styling)
+  - `main.js` (Detection + OpenAI logic)
+- Should run live on Replit and be easily exported to Vercel
+
+---
+
+### 2. UI (Frontend):
+- Clean and modern UI with centered layout
+- Include the following:
+  - Title: “PaySavvy – Smart Scam Link Detector”
+  - Input field: for users to paste suspicious payment URLs
+  - Button: “Scan Link”
+  - Result Box: colored based on risk (green = safe, yellow = suspicious, red = dangerous)
+  - Optional: loading spinner during analysis
+
+---
+
+### 3. Detection Engine (Core Logic):
+- When user submits a link:
+  - ✅ Validate if it's a well-formed URL
+  - ✅ Check using custom **Regex rules**:
+    - Scam TLDs like `.tk`, `.ml`, `.ru`, `.biz`, `.cc`
+    - Domains with typosquatting (`mayb4nk`, `du1tn0w`, etc.)
+    - Phrases like `verify account`, `free gift`, `claim now`, `urgent`, `RM50`
+  - Score the link based on pattern flags:
+    - 0–2: Safe
+    - 3–4: Suspicious
+    - 5+: Dangerous
+  - Output explanation of the detected patterns
+
+---
+
+### 4. OpenAI Integration (AI Risk Intelligence):
+- Use OpenAI's GPT-3.5 or GPT-4 API
+- Prompt structure:
+  > “Assess the following URL for fraud, phishing, or scams. Respond with: Risk Level (‘Safe’, ‘Suspicious’, or ‘Dangerous’), and a short explanation. URL: ${userLink}”
+- Parse and display GPT’s output along with pattern-based score
+- Allow use of `.env` or secret key input for OpenAI key
+
+---
+
+### 5. Risk Result Display:
+- Color-coded box with:
+  - Final Risk Level: Merged result of Regex score + GPT risk level
+  - GPT Explanation
+  - Suggestions (e.g., “Do not click this link”, “Verify with your bank”)
+
+---
+
+### 6. Responsive Design:
+- Use Bootstrap or CSS Grid/Flexbox
+- Ensure clean layout on desktop and mobile
+- Add accessible labels and semantic tags
+
+---
+
+### 7. Optional Bonus (Stretch Goals):
+- [ ] Button: “Report Scam” (saves to Firebase or dummy list)
+- [ ] Link history saved in `localStorage`
+- [ ] Language switcher (EN + BM)
+- [ ] User login via Firebase Auth (Google Sign-In)
+
+---
+
+### 8. Deployment Instructions:
+- Include deploy steps for:
+  - Replit (with OpenAI key support)
+  - Vercel (static export-ready build)
+- Include meta tags and favicon
+
+---
+
+### 9. Code Quality:
+- Cleanly commented code
+- Use ES6+ best practices
+- Async/await and error handling
+- Reusable functions and modular logic
+
+---
+
+🚀 Output:
+- Fully working web app
+- Code for all 3 files (`index.html`, `style.css`, `main.js`)
+- Instructions on deploying to Replit or Vercel
+- Optional: GitHub README content
