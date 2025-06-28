@@ -41,6 +41,13 @@ app.get('/ping', (req, res) => {
 
 // Root endpoint - serve main application with environment variables injected
 app.get('/', (req, res) => {
+  // Add cache-busting headers
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  
   const fs = require('fs');
   let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
   
@@ -51,14 +58,14 @@ app.get('/', (req, res) => {
         VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
       };
       window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';
-      console.log('Environment variables loaded:', window.ENV);
+      console.log('Simplified PaySavvy loaded - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
     </script>
   `;
   
   // Insert the script before the closing </head> tag
   html = html.replace('</head>', `${envScript}</head>`);
   
-  console.log('Injecting API key:', process.env.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
+  console.log('Serving simplified app - API key:', process.env.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
   
   res.send(html);
 });
@@ -95,7 +102,13 @@ app.use((req, res, next) => {
     return res.status(404).json({ error: 'API route not found' });
   }
   
-  // For all other routes, serve the simplified main app
+  // For all other routes, serve the simplified main app with cache-busting
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  
   const fs = require('fs');
   let html = fs.readFileSync(path.join(__dirname, 'app-simple.html'), 'utf8');
   
@@ -106,6 +119,7 @@ app.use((req, res, next) => {
         VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || ''}'
       };
       window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || ''}';
+      console.log('Simplified PaySavvy loaded - fallback route');
     </script>
   `;
   
