@@ -1,0 +1,7 @@
+[deployment]
+run = "node server.js"
+deploymentTarget = "cloudrun"
+publicDir = "/"
+
+[env]
+NODE_ENV = "production"

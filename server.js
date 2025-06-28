@@ -26,36 +26,68 @@ app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
 
-// Block legacy files that cause import.meta errors
+// Block ALL JavaScript files except server files to prevent import.meta errors
 app.get('/main.js', (req, res) => {
-  res.status(404).send('Legacy files disabled');
+  res.status(404).send('Module files disabled - production version active');
 });
 
 app.get('/style.css', (req, res) => {
-  res.status(404).send('Legacy files disabled');
+  res.status(404).send('Legacy CSS disabled - styles included in HTML');
+});
+
+// Block any remaining JavaScript module files
+app.get('/database.js', (req, res) => {
+  res.status(404).send('Module files disabled - production version active');
+});
+
+// Comprehensive module blocking
+app.use((req, res, next) => {
+  const path = req.path;
+  if (path.endsWith('.js') && (path.includes('/src/') || path === '/main.js' || path === '/database.js')) {
+    return res.status(404).send('Module files disabled - production version active');
+  }
+  next();
 });
 
 // Root endpoint - serve production app
 app.get('/', (req, res) => {
-  // Cache-busting headers
+  // Aggressive cache-busting headers
   res.set({
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
     'Pragma': 'no-cache',
-    'Expires': '0'
+    'Expires': '0',
+    'Last-Modified': new Date().toUTCString(),
+    'ETag': `"${Date.now()}"`,
+    'Vary': '*'
   });
   
   try {
     let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
     
-    // Inject environment variables
+    // Inject environment variables with cache-busting
+    const timestamp = Date.now();
     const envScript = `
       <script>
+        // Force complete cache clear
+        if ('caches' in window) {
+          caches.keys().then(names => names.forEach(name => caches.delete(name)));
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(registration => registration.unregister());
+          });
+        }
+        
+        // Environment configuration
         window.ENV = {
           VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}'
         };
         window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}';
         window.OPENAI_API_KEY = '${process.env.OPENAI_API_KEY || ''}';
-        console.log('PaySavvy Production - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
+        window.PAYSAVVY_VERSION = '${timestamp}';
+        
+        console.log('PaySavvy Production v${timestamp} - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
+        console.log('Cache cleared, production version active');
       </script>
     `;
     
