@@ -18,8 +18,8 @@
     <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- HTML5 QR Code Scanner -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+    <!-- QR Code Scanner - Alternative library -->
+    <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
     
     <style>
         :root {
@@ -453,7 +453,7 @@
                     <button id="fileMode" class="btn btn-outline-primary btn-sm">Upload File</button>
                 </div>
                 <div id="qr-reader-container">
-                    <div id="qr-reader"></div>
+                    <video id="qr-reader" style="width: 100%; max-width: 400px; border-radius: 8px;"></video>
                     <input type="file" id="qr-file-input" accept="image/*" style="display: none;" />
                     <button id="qr-file-button" class="btn btn-secondary w-100 mt-2" style="display: none;">
                         <i data-feather="upload" class="me-2"></i>Choose QR Image
@@ -1113,56 +1113,26 @@ Respond with JSON:
                 });
             }
 
-            // QR Scanner Implementation
+            // QR Scanner Implementation - Alternative approach
             initializeQRScanner() {
-                // Wait for DOM to be fully loaded
-                if (document.readyState !== 'complete') {
-                    window.addEventListener('load', () => this.initializeQRScanner());
-                    return;
-                }
-
-                try {
-                    // Check if HTML5 QR Code library is available
-                    if (typeof Html5Qrcode !== 'undefined') {
-                        // Verify qr-reader element exists
-                        const qrReaderElement = document.getElementById("qr-reader");
-                        if (qrReaderElement) {
-                            this.qrScanner = new Html5Qrcode("qr-reader");
-                            console.log('QR Scanner initialized successfully');
-                            return;
-                        } else {
-                            console.error('QR reader element not found');
-                        }
-                    } else {
-                        console.warn('Html5Qrcode library not loaded, retrying...');
+                console.log('Initializing QR Scanner with alternative library...');
+                
+                // Check if QrScanner library is available
+                if (typeof QrScanner !== 'undefined') {
+                    try {
+                        // Set up QR Scanner with the new library
+                        QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
+                        this.qrScannerReady = true;
+                        console.log('QR Scanner library loaded successfully');
+                        this.showToast('Success', 'QR Scanner ready for camera and file upload', 'success');
+                    } catch (error) {
+                        console.error('QR Scanner initialization error:', error);
+                        this.qrScannerReady = false;
                     }
-                } catch (error) {
-                    console.error('QR Scanner initialization failed:', error);
-                }
-                
-                // Fallback initialization
-                this.loadQRLibrary();
-            }
-
-            loadQRLibrary() {
-                // Simplified QR library loading with direct initialization
-                console.log('Attempting to initialize QR Scanner...');
-                
-                // Force reload the QR library if needed
-                if (typeof Html5Qrcode === 'undefined') {
-                    console.log('Html5Qrcode not found, QR scanner will use file upload only');
-                    this.showToast('Info', 'QR Scanner initialized in file-upload mode only', 'info');
-                    return;
-                }
-                
-                try {
-                    // Direct initialization without complex retry logic
-                    this.qrScanner = new Html5Qrcode("qr-reader");
-                    console.log('QR Scanner initialized successfully');
-                    this.showToast('Success', 'QR Scanner ready for camera and file upload', 'success');
-                } catch (error) {
-                    console.error('QR Scanner initialization error:', error);
-                    this.showToast('Warning', 'QR Scanner initialized in file-upload mode only', 'warning');
+                } else {
+                    console.log('QrScanner library not found, initializing file-only mode');
+                    this.qrScannerReady = false;
+                    this.showToast('Info', 'QR Scanner initialized in file-upload mode', 'info');
                 }
             }
 
@@ -1188,53 +1158,47 @@ Respond with JSON:
             }
 
             async startQRCamera() {
-                if (!this.qrScanner) {
-                    this.initializeQRScanner();
-                    if (!this.qrScanner) {
-                        this.showToast('Error', 'QR Scanner not available. Please use file upload mode.', 'error');
-                        return;
-                    }
+                if (!this.qrScannerReady) {
+                    this.showToast('Error', 'QR Scanner not available. Please use file upload mode.', 'error');
+                    this.switchQRMode('file');
+                    return;
                 }
 
                 try {
-                    // Stop any existing scanner first
-                    if (this.qrScanner.isScanning) {
-                        await this.qrScanner.stop();
+                    const videoElement = document.getElementById('qr-reader');
+                    if (!videoElement) {
+                        throw new Error('Video element not found');
                     }
 
-                    // Get available cameras
-                    const cameras = await Html5Qrcode.getCameras();
-                    if (cameras && cameras.length > 0) {
-                        // Try to use back camera first, then any available camera
-                        const backCamera = cameras.find(camera => 
-                            camera.label.toLowerCase().includes('back') || 
-                            camera.label.toLowerCase().includes('rear')
-                        );
-                        const cameraId = backCamera ? backCamera.id : cameras[0].id;
+                    // Stop any existing scanner
+                    if (this.activeQrScanner) {
+                        this.activeQrScanner.destroy();
+                    }
 
-                        await this.qrScanner.start(
-                            cameraId,
-                            { 
-                                fps: 10, 
-                                qrbox: { width: 250, height: 250 },
-                                aspectRatio: 1.0
-                            },
-                            (decodedText) => {
-                                console.log('QR Code detected:', decodedText);
-                                this.handleQRResult(decodedText);
-                            },
-                            (errorMessage) => {
+                    // Create new QR scanner instance
+                    this.activeQrScanner = new QrScanner(
+                        videoElement,
+                        (result) => {
+                            console.log('QR Code detected:', result.data);
+                            this.handleQRResult(result.data);
+                        },
+                        {
+                            onDecodeError: (error) => {
                                 // Ignore frequent scanning errors
-                                if (!errorMessage.includes('No QR code found')) {
-                                    console.log('QR Scanner error:', errorMessage);
+                                if (!error.message.includes('No QR code found')) {
+                                    console.log('QR Scanner decode error:', error.message);
                                 }
-                            }
-                        );
+                            },
+                            preferredCamera: 'environment',
+                            highlightScanRegion: true,
+                            highlightCodeOutline: true,
+                            maxScansPerSecond: 5
+                        }
+                    );
 
-                        this.showToast('Success', 'Camera started successfully. Point at a QR code to scan.', 'success');
-                    } else {
-                        throw new Error('No cameras found');
-                    }
+                    await this.activeQrScanner.start();
+                    this.showToast('Success', 'Camera started successfully. Point at a QR code to scan.', 'success');
+
                 } catch (error) {
                     console.error('Camera access failed:', error);
                     let errorMessage = 'Camera access failed. Please use file upload mode.';
@@ -1248,16 +1212,16 @@ Respond with JSON:
                     }
                     
                     this.showToast('Warning', errorMessage, 'warning');
-                    
-                    // Switch to file mode automatically
                     this.switchQRMode('file');
                 }
             }
 
             async stopQRCamera() {
-                if (this.qrScanner && this.qrScanner.isScanning) {
+                if (this.activeQrScanner) {
                     try {
-                        await this.qrScanner.stop();
+                        this.activeQrScanner.stop();
+                        this.activeQrScanner.destroy();
+                        this.activeQrScanner = null;
                     } catch (error) {
                         console.warn('Failed to stop camera:', error);
                     }
@@ -1279,35 +1243,22 @@ Respond with JSON:
                 feather.replace();
 
                 try {
-                    // Try with QR scanner library first
-                    if (this.qrScanner) {
-                        try {
-                            const result = await this.qrScanner.scanFile(file, true);
-                            this.handleQRResult(result);
-                            return;
-                        } catch (scanError) {
-                            console.warn('QR library scan failed, trying alternative method:', scanError);
-                        }
+                    // Use the new QR scanner library for file scanning
+                    if (this.qrScannerReady && typeof QrScanner !== 'undefined') {
+                        const result = await QrScanner.scanImage(file);
+                        console.log('QR Code detected from file:', result);
+                        this.handleQRResult(result);
+                        return;
                     }
 
-                    // Alternative approach using canvas and image processing
-                    await this.processQRImageAlternative(file);
+                    // Fallback: manual input if scanning fails
+                    this.showManualQRInput();
 
                 } catch (error) {
                     console.error('QR scan error:', error);
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-warning">
-                            <h6><i data-feather="alert-triangle" class="me-2"></i>Scan Failed</h6>
-                            <p class="small mb-2">Could not detect QR code in the uploaded image.</p>
-                            <p class="small mb-0">Please ensure:</p>
-                            <ul class="small">
-                                <li>The image contains a clear QR code</li>
-                                <li>The QR code is not blurry or damaged</li>
-                                <li>The image format is JPG, PNG, or similar</li>
-                            </ul>
-                        </div>
-                    `;
-                    feather.replace();
+                    
+                    // Show manual input option if automatic scanning fails
+                    this.showManualQRInput();
                 }
             }
 
