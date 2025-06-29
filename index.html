@@ -2750,6 +2750,130 @@
                 }
             }
 
+            // Analyze redirects for URL-based QR codes
+            async analyzeRedirects(url) {
+                console.log('Analyzing redirects for:', url);
+                
+                try {
+                    // Simulate redirect analysis - in production this would make actual HTTP requests
+                    const redirectChain = [url];
+                    
+                    // Basic redirect detection patterns
+                    const suspiciousRedirectPatterns = [
+                        'bit.ly', 'tinyurl.com', 'short.link', 't.co',
+                        'rb.gy', 'cutt.ly', 'is.gd', 'ow.ly'
+                    ];
+                    
+                    const hasSuspiciousRedirect = suspiciousRedirectPatterns.some(pattern => 
+                        url.toLowerCase().includes(pattern)
+                    );
+                    
+                    return {
+                        redirectChain,
+                        finalUrl: url,
+                        redirectCount: 0,
+                        hasSuspiciousRedirect,
+                        isLegitimate: !hasSuspiciousRedirect
+                    };
+                } catch (error) {
+                    console.warn('Redirect analysis failed:', error);
+                    return {
+                        redirectChain: [url],
+                        finalUrl: url,
+                        redirectCount: 0,
+                        hasSuspiciousRedirect: false,
+                        isLegitimate: true,
+                        error: error.message
+                    };
+                }
+            }
+
+            // Get AI assessment for URL analysis
+            async getAIAssessment(url) {
+                console.log('Getting AI assessment for:', url);
+                
+                try {
+                    const apiKey = this.getApiKey();
+                    if (!apiKey) {
+                        console.warn('No API key available for AI assessment');
+                        return {
+                            riskLevel: 'unknown',
+                            confidence: 0.5,
+                            reasoning: 'AI analysis unavailable - no API key configured',
+                            factors: ['API key missing']
+                        };
+                    }
+
+                    // Enhanced prompt with verified brands context
+                    const verifiedBrandsContext = this.getVerifiedBrandsForAI(20);
+                    
+                    const prompt = `Analyze this URL for potential scam/phishing risks: ${url}
+
+Context: This URL was detected from a QR code scan. Please assess if this is a legitimate website or a potential scam.
+
+Verified Malaysian Financial Institutions (for reference):
+${verifiedBrandsContext}
+
+Please analyze and respond with JSON in this exact format:
+{
+    "riskLevel": "safe|suspicious|dangerous",
+    "confidence": 0.95,
+    "reasoning": "Brief explanation of your assessment",
+    "factors": ["factor1", "factor2", "factor3"]
+}
+
+Consider:
+1. Domain authenticity and typosquatting patterns
+2. URL structure and suspicious elements
+3. Known legitimate vs suspicious domains
+4. Phishing indicators and social engineering tactics
+5. Malaysian banking/financial institution patterns`;
+
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o",
+                            messages: [
+                                {
+                                    role: "system",
+                                    content: "You are a cybersecurity expert specializing in Malaysian financial scam detection. Respond only with valid JSON."
+                                },
+                                {
+                                    role: "user",
+                                    content: prompt
+                                }
+                            ],
+                            response_format: { type: "json_object" },
+                            max_tokens: 500,
+                            temperature: 0.3
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`AI API request failed: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const aiResponse = JSON.parse(data.choices[0].message.content);
+                    
+                    console.log('AI Assessment received:', aiResponse);
+                    return aiResponse;
+
+                } catch (error) {
+                    console.warn('AI assessment failed:', error);
+                    return {
+                        riskLevel: 'unknown',
+                        confidence: 0.5,
+                        reasoning: `AI analysis failed: ${error.message}`,
+                        factors: ['AI assessment unavailable']
+                    };
+                }
+            }
+
             // Japanese anime-style loading animation
             showAnimeLoading(container, fileName = 'QR Code') {
                 container.innerHTML = `
