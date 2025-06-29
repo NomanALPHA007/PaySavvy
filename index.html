@@ -3638,14 +3638,15 @@ Consider:
                     lastModified: new Date(file.lastModified)
                 });
                 
-                // Prevent multiple simultaneous processing
-                if (this.qrProcessing) {
-                    console.log('🔄 QR processing already in progress, ignoring duplicate request');
+                // Prevent multiple simultaneous processing with global flag
+                if (this.qrProcessing || window.fileProcessingInProgress) {
+                    console.log('QR processing already in progress, ignoring duplicate request');
                     return;
                 }
                 
                 this.qrProcessing = true;
-                console.log('🔒 QR processing lock acquired');
+                window.fileProcessingInProgress = true;
+                console.log('QR processing lock acquired');
                 const resultsDiv = document.getElementById('qr-results');
                 console.log('📍 Results div found:', !!resultsDiv);
                 
@@ -3682,11 +3683,17 @@ Consider:
                     feather.replace();
                     this.showToast('Upload Failed', 'Unable to process QR image', 'error');
                 } finally {
-                    // Always reset processing flag
-                    this.qrProcessing = false;
-                    console.log('🔓 QR processing completed and lock released');
-                    // Reset file input
-                    event.target.value = '';
+                    // Reset processing flags with delay to ensure completion
+                    setTimeout(() => {
+                        this.qrProcessing = false;
+                        window.fileProcessingInProgress = false;
+                        console.log('QR processing flags reset');
+                        
+                        // Clear file input to allow re-upload of same file
+                        if (event.target) {
+                            event.target.value = '';
+                        }
+                    }, 1000);
                 }
             }
 
@@ -7203,57 +7210,7 @@ Respond with JSON:
                 await this.analyzeQRContent(qrData);
             }
 
-            async handleQRFile(event) {
-                console.log('📱 Mobile QR file upload started');
-                const file = event.target.files[0];
-                if (!file) {
-                    console.log('❌ No file selected on mobile');
-                    return;
-                }
-
-                console.log('📂 Mobile file details:', {
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    lastModified: file.lastModified
-                });
-
-                // Show loading state
-                const resultsDiv = document.getElementById('qr-results');
-                resultsDiv.innerHTML = `
-                    <div class="alert alert-info">
-                        <i data-feather="loader" class="me-2"></i>
-                        <strong>Processing QR Image on Mobile...</strong>
-                        <p class="mb-0">Analyzing ${file.name} (${(file.size/1024).toFixed(1)}KB)</p>
-                    </div>
-                `;
-                feather.replace();
-
-                // Validate file type with mobile compatibility
-                if (!file.type.startsWith('image/')) {
-                    console.error('❌ Invalid file type on mobile:', file.type);
-                    this.showToast('Invalid File', 'Please select an image file (PNG, JPG, etc.)', 'error');
-                    return;
-                }
-
-                try {
-                    // Enhanced mobile file upload QR scanning with multiple detection attempts
-                    console.log('🔍 Starting mobile QR processing...');
-                    await this.processQRImageFile(file, resultsDiv);
-                    console.log('✅ Mobile QR processing completed');
-                } catch (error) {
-                    console.error('❌ Mobile QR processing failed:', error);
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i data-feather="x-circle" class="me-2"></i>
-                            <strong>Mobile Processing Error</strong>
-                            <p class="mb-0">Failed to process QR image: ${error.message}</p>
-                        </div>
-                    `;
-                    feather.replace();
-                    this.showToast('Processing Error', 'QR image processing failed on mobile', 'error');
-                }
-            }
+            // REMOVED: Duplicate handleQRFile function that was causing double-processing issues
 
             async scanImageFile(file) {
                 console.log('📱 Mobile scanImageFile called with:', file.name);
@@ -9444,19 +9401,33 @@ Respond with JSON:
             }
             
             if (qrFileInput) {
-                qrFileInput.onchange = function(e) {
-                    console.log('File input changed - direct handler');
+                // Remove any existing handlers to prevent duplicates
+                qrFileInput.onchange = null;
+                
+                qrFileInput.addEventListener('change', function(e) {
+                    console.log('File input changed - single unified handler');
                     console.log('Files selected:', e.target.files.length);
+                    
+                    // Prevent multiple simultaneous processing
+                    if (window.fileProcessingInProgress) {
+                        console.log('File processing already in progress, ignoring');
+                        return;
+                    }
+                    window.fileProcessingInProgress = true;
+                    
                     if (window.app && window.app.handleQRFile) {
                         console.log('Calling app.handleQRFile');
-                        window.app.handleQRFile(e);
+                        window.app.handleQRFile(e).finally(() => {
+                            window.fileProcessingInProgress = false;
+                        });
                     } else {
-                        console.error('Window.app or handleQRFile not available');
-                        // Fallback direct processing
-                        handleQRFileDirectly(e);
+                        console.error('Window.app or handleQRFile not available, using fallback');
+                        handleQRFileDirectly(e).finally(() => {
+                            window.fileProcessingInProgress = false;
+                        });
                     }
-                };
-                console.log('QR file input onchange handler set');
+                }, { once: false });
+                console.log('QR file input unified onchange handler set');
             }
         }
 
