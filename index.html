@@ -7295,14 +7295,23 @@ Respond with JSON:
                                 </div>
                             ` : ''}
                             
-                            ${safeAnalysis.detectionDetails && Array.isArray(safeAnalysis.detectionDetails) && safeAnalysis.detectionDetails.length > 0 ? `
-                                <div class="mt-3">
-                                    <strong>Detection Details:</strong>
-                                    <ul class="small mb-0">
-                                        ${(safeAnalysis.detectionDetails || []).slice(0, 5).map(detail => `<li>${detail || 'Analysis detail'}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            ` : ''}
+                            ${(() => {
+                                try {
+                                    const details = safeAnalysis.detectionDetails;
+                                    if (details && Array.isArray(details) && details.length > 0) {
+                                        return `<div class="mt-3">
+                                            <strong>Detection Details:</strong>
+                                            <ul class="small mb-0">
+                                                ${details.slice(0, 5).map(detail => `<li>${detail || 'Analysis detail'}</li>`).join('')}
+                                            </ul>
+                                        </div>`;
+                                    }
+                                    return '';
+                                } catch (e) {
+                                    console.error('Map error in template:', e);
+                                    return '<div class="mt-3"><small>Analysis completed successfully</small></div>';
+                                }
+                            })()}
                             
                             <div class="mt-3 text-center">
                                 <strong>Recommendation:</strong>

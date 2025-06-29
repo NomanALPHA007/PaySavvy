@@ -1,0 +1,95 @@
+PaySavvy Production v1751188604510 - API key: Present
+(index):1987 Cache cleared, production version active
+(index):5346 Initializing QR Scanner with alternative library...
+(index):5361 QrScanner library not found, initializing file-only mode
+(index):2767 PaySavvy Pro initialized successfully
+(index):2776 QR Buttons Debug:
+(index):2777 - Camera button found: true
+(index):2778 - File button found: true
+(index):2781 - Camera button classes: btn btn-outline-primary btn-sm active
+(index):2782 - File button classes: btn btn-outline-primary btn-sm
+(index):451 jsQR library loaded: true
+(index):2560 Verified brands loaded: 100 international financial institutions
+(index):2790 File button pressed
+(index):8529 Initializing QR buttons directly...
+(index):8545 Camera button onclick set
+(index):8557 File button onclick set
+(index):8581 QR file input onchange handler set
+(index):3827 File mode clicked
+(index):8550 File button clicked directly
+(index):3834 QR file button clicked
+(index):8562 QR file button clicked
+(index):3842 File input changed
+(index):5565 🧪 Starting QR image processing pipeline...
+(index):5566 📁 Detected file: photo_2025-06-29_16-24-03.jpg (image/jpeg, 77.5KB)
+(index):8570 File input changed - direct handler
+(index):8571 Files selected: 1
+(index):8573 Calling app.handleQRFile
+(index):5565 🧪 Starting QR image processing pipeline...
+(index):5566 📁 Detected file: photo_2025-06-29_16-24-03.jpg (image/jpeg, 77.5KB)
+(index):5581 📐 Image loaded: 960x1280 pixels
+(index):5619 🔬 Running comprehensive QR detection pipeline...
+(index):6131 📋 Step 3: Visual Image Analysis
+(index):6132 🖼️ Image Resolution: 960x1280
+(index):6133 📐 Image Analysis:
+(index):6134 - Is Large Image (>1200px): true
+(index):6135 - Requires Scaling: true
+(index):6136 - Aspect Ratio: 0.75
+(index):6147 💡 Processing Recommendations: Array(0)
+(index):5725 📋 Step 2: QR Detection Preprocessing Pipeline
+(index):5728 🔄 Executing attempt 1...
+(index):5623 🧪 Attempt: Original Image → ✅ DETECTED
+(index):5733 📊 Attempt 1 result: Object
+(index):6067 === PaySavvy QR Detection Debugging Framework ===
+(index):6068 📦 Step 1: QR Source Type Analysis
+(index):6069 📦 Detected QR Content: https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do
+(index):6070 📦 Content Length: 64
+(index):6534 QR Type Check: Object
+(index):6076 🔍 QR Type Analysis:
+(index):6077 - Is URL (http/https): true
+(index):6078 - Is DuitNow EMV: false
+(index):6079 - Starts with 000201: false
+(index):6080 - Contains PayNet AID: false
+(index):6083 🔗 Proceeding with URL scam detection pipeline
+(index):5746 🎯 SUCCESS on attempt 1 (URL): https://maybank2u.com.my/mbb_info/m2u/public/perso...
+(index):5587 ✅ QR Detection Pipeline: SUCCESS
+(index):6493 Analyzing QR content: https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do
+(index):6511 QR analysis error: TypeError: Cannot read properties of undefined (reading 'map')
+    at PaySavvyPro.displayQRScanResults ((index):7675:48)
+    at PaySavvyPro.analyzeURLQR ((index):6613:22)
+    at PaySavvyPro.analyzeQRContent ((index):6502:36)
+    at img.onload ((index):5588:44)
+analyzeQRContent @ (index):6511Understand this error
+(index):5581 📐 Image loaded: 960x1280 pixels
+(index):5619 🔬 Running comprehensive QR detection pipeline...
+(index):6131 📋 Step 3: Visual Image Analysis
+(index):6132 🖼️ Image Resolution: 960x1280
+(index):6133 📐 Image Analysis:
+(index):6134 - Is Large Image (>1200px): true
+(index):6135 - Requires Scaling: true
+(index):6136 - Aspect Ratio: 0.75
+(index):6147 💡 Processing Recommendations: Array(0)
+(index):5725 📋 Step 2: QR Detection Preprocessing Pipeline
+(index):5728 🔄 Executing attempt 1...
+(index):5623 🧪 Attempt: Original Image → ✅ DETECTED
+(index):5733 📊 Attempt 1 result: Object
+(index):6067 === PaySavvy QR Detection Debugging Framework ===
+(index):6068 📦 Step 1: QR Source Type Analysis
+(index):6069 📦 Detected QR Content: https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do
+(index):6070 📦 Content Length: 64
+(index):6534 QR Type Check: Object
+(index):6076 🔍 QR Type Analysis:
+(index):6077 - Is URL (http/https): true
+(index):6078 - Is DuitNow EMV: false
+(index):6079 - Starts with 000201: false
+(index):6080 - Contains PayNet AID: false
+(index):6083 🔗 Proceeding with URL scam detection pipeline
+(index):5746 🎯 SUCCESS on attempt 1 (URL): https://maybank2u.com.my/mbb_info/m2u/public/perso...
+(index):5587 ✅ QR Detection Pipeline: SUCCESS
+(index):6493 Analyzing QR content: https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do
+(index):6511 QR analysis error: TypeError: Cannot read properties of undefined (reading 'map')
+    at PaySavvyPro.displayQRScanResults ((index):7675:48)
+    at PaySavvyPro.analyzeURLQR ((index):6613:22)
+    at PaySavvyPro.analyzeQRContent ((index):6502:36)
+    at img.onload ((index):5588:44)
+analyzeQRContent @ (index):6511Understand this error
