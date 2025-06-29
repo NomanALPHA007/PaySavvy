@@ -822,6 +822,42 @@
                 }
             }
 
+            // Brand Analysis - combines verification and scam mimic detection
+            performBrandAnalysis(url) {
+                const brandVerification = this.detectVerifiedBrand(url);
+                
+                if (brandVerification.match) {
+                    return {
+                        score: -5, // Negative score for verified brands (safety bonus)
+                        flags: [`✓ Verified ${brandVerification.region} Institution: ${brandVerification.brand}`],
+                        status: 'verified',
+                        brandData: brandVerification,
+                        confidence: 0.95
+                    };
+                }
+                
+                if (brandVerification.scamMimic) {
+                    return {
+                        score: 8, // High penalty for scam mimics
+                        flags: [`Scam mimic impersonating ${brandVerification.brand}`],
+                        status: 'scam_mimic',
+                        scamMimic: true,
+                        targetBrand: brandVerification.brand,
+                        mimicPattern: brandVerification.mimicPattern,
+                        confidence: 0.9
+                    };
+                }
+
+                // Check legacy brand whitelist for additional coverage
+                const legacyCheck = this.checkBrandWhitelist(url);
+                return legacyCheck || {
+                    score: 0,
+                    flags: ['No brand match found'],
+                    status: 'unknown',
+                    confidence: 0.5
+                };
+            }
+
             initializeQRScanner() {
                 // QR scanner disabled to prevent import.meta errors - file upload only
                 this.qrScannerReady = false;
@@ -1791,6 +1827,9 @@ Respond with JSON:
                 if (results.redirectAnalysis?.flags) allFlags.push(...results.redirectAnalysis.flags);
                 if (results.fingerprintAnalysis?.flags) allFlags.push(...results.fingerprintAnalysis.flags);
                 
+                // Check for verified brand information
+                const brandInfo = results.fingerprintAnalysis?.isVerifiedBrand ? results.fingerprintAnalysis.brandData : null;
+                
                 resultsDiv.innerHTML = `
                     <div class="alert alert-${riskClass}">
                         <div class="d-flex align-items-center mb-2">
@@ -1800,6 +1839,32 @@ Respond with JSON:
                             <span class="badge bg-info ms-2">${Math.round(results.confidence * 100)}% Confidence</span>
                         </div>
                         <p class="mb-2">${results.explanation}</p>
+                        
+                        ${brandInfo ? `
+                            <div class="card border-success mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="${brandInfo.logo}" alt="${brandInfo.brand} logo" height="32" class="me-3" onerror="this.style.display='none'"/>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 text-success">${brandInfo.brand}</h6>
+                                            <small class="text-muted">${brandInfo.institution}</small>
+                                        </div>
+                                        <span class="badge bg-success">✓ Verified</span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small><strong>License:</strong> ${brandInfo.regulatoryLicense || 'Government Authorized'}</small><br>
+                                            <small><strong>Established:</strong> ${brandInfo.establishedYear || 'N/A'}</small><br>
+                                            <small><strong>Region:</strong> ${brandInfo.region}</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small><strong>Services:</strong> ${brandInfo.services ? brandInfo.services.slice(0, 3).join(', ') : 'Payment Services'}</small><br>
+                                            <small><strong>Headquarters:</strong> ${brandInfo.headquarters || 'N/A'}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
                         
                         <div class="mt-2">
                             <small><strong>4-Layer Analysis Results:</strong></small>
@@ -1826,6 +1891,18 @@ Respond with JSON:
                         ${results.fingerprintAnalysis?.isKnownScam ? `
                             <div class="mt-3 p-2 bg-danger text-white rounded">
                                 <small><strong>⚠️ SCAM DNA MATCH:</strong> This URL matches a known scam fingerprint!</small>
+                            </div>
+                        ` : ''}
+                        
+                        ${results.brandAnalysis?.scamMimic ? `
+                            <div class="alert alert-danger mt-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i data-feather="alert-triangle" class="me-2"></i>
+                                    <strong>SCAM MIMIC DETECTED</strong>
+                                </div>
+                                <p class="mb-2">This URL appears to impersonate <strong>${results.brandAnalysis.targetBrand}</strong></p>
+                                <small><strong>Suspicious Pattern:</strong> <code>${results.brandAnalysis.mimicPattern}</code></small><br>
+                                <small class="text-muted">This is likely a fraudulent website designed to steal your login credentials or payment information.</small>
                             </div>
                         ` : ''}
                         
