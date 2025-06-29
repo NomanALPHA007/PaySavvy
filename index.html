@@ -7231,11 +7231,22 @@ Respond with JSON:
                         trustLevel: analysis?.trustLevel || 'UNKNOWN',
                         riskScore: analysis?.riskScore || analysis?.score || 3,
                         explanation: analysis?.explanation || 'QR code analysis completed',
-                        detectionDetails: Array.isArray(analysis?.detectionDetails) ? analysis.detectionDetails : (analysis?.reason && Array.isArray(analysis.reason) ? analysis.reason : []),
+                        detectionDetails: [],
                         verifiedBrand: analysis?.verifiedBrand || null,
                         isScamMimic: analysis?.isScamMimic || false,
                         targetBrand: analysis?.targetBrand || null
                     };
+                    
+                    // Safely populate detectionDetails
+                    if (Array.isArray(analysis?.detectionDetails)) {
+                        safeAnalysis.detectionDetails = analysis.detectionDetails;
+                    } else if (Array.isArray(analysis?.reason)) {
+                        safeAnalysis.detectionDetails = analysis.reason;
+                    } else if (analysis?.detectionDetails && typeof analysis.detectionDetails === 'string') {
+                        safeAnalysis.detectionDetails = [analysis.detectionDetails];
+                    } else if (analysis?.reason && typeof analysis.reason === 'string') {
+                        safeAnalysis.detectionDetails = [analysis.reason];
+                    }
 
                     const riskClass = this.getRiskClass(safeAnalysis.trustLevel);
                     const riskIcon = this.getRiskIcon(safeAnalysis.trustLevel);
@@ -7275,7 +7286,7 @@ Respond with JSON:
                                 </div>
                             ` : ''}
                             
-                            ${safeAnalysis.detectionDetails.length > 0 ? `
+                            ${safeAnalysis.detectionDetails && safeAnalysis.detectionDetails.length > 0 ? `
                                 <div class="mt-3">
                                     <strong>Detection Details:</strong>
                                     <ul class="small mb-0">
