@@ -3736,6 +3736,10 @@ Consider:
 
                     console.log('✅ Camera access granted, stream tracks:', this.videoStream.getTracks().length);
                     
+                    // Force camera mode display - hide file button, show video
+                    const fileButton = document.getElementById('qr-file-input-button');
+                    if (fileButton) fileButton.style.display = 'none';
+                    
                     // Set video source and attributes before play
                     videoElement.srcObject = this.videoStream;
                     videoElement.setAttribute('playsinline', true);
@@ -3744,6 +3748,7 @@ Consider:
                     videoElement.style.display = 'block';
                     videoElement.style.width = '100%';
                     videoElement.style.height = 'auto';
+                    videoElement.style.visibility = 'visible';
                     
                     // Force video to play with error handling
                     try {
@@ -3775,9 +3780,11 @@ Consider:
                             console.log(`📺 Video ready: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
                             this.startQRScanLoop(videoElement);
                             
-                            // Ensure video is visible
+                                    // Ensure video is visible and file button is hidden
                             videoElement.style.display = 'block';
                             videoElement.style.visibility = 'visible';
+                            const fileButton = document.getElementById('qr-file-input-button');
+                            if (fileButton) fileButton.style.display = 'none';
                         } else {
                             console.log('⏳ Waiting for video to be ready...');
                             setTimeout(startScanningWhenReady, 200);
@@ -3801,6 +3808,16 @@ Consider:
 
                     // Update status based on video state
                     const updateCameraStatus = () => {
+                        // Ensure UI is in correct camera mode state
+                        const fileButton = document.getElementById('qr-file-input-button');
+                        const cameraBtn = document.getElementById('qr-camera-btn');
+                        const fileBtn = document.getElementById('qr-file-btn');
+                        
+                        if (fileButton) fileButton.style.display = 'none';
+                        if (cameraBtn) cameraBtn.classList.add('active');
+                        if (fileBtn) fileBtn.classList.remove('active');
+                        videoElement.style.display = 'block';
+                        
                         if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
                             resultsDiv.innerHTML = `
                                 <div class="alert alert-success">
