@@ -2429,8 +2429,10 @@
                 this.qrContext = null;
                 console.log('QR Scanner initialized in dual-mode (camera + file upload)');
                 
-                // Start with camera mode by default
-                this.switchQRMode('camera');
+                // Delay switching to camera mode to ensure DOM is ready
+                setTimeout(() => {
+                    this.switchQRMode('camera');
+                }, 100);
             }
 
             // Switch between camera and file upload modes
@@ -2735,6 +2737,144 @@
                 }
                 
                 context.putImageData(imageData, 0, 0);
+            }
+
+            // Initialize camera scanning
+            async initCameraScanning() {
+                const videoElement = document.getElementById('qr-reader');
+                const resultsDiv = document.getElementById('qr-results');
+                
+                try {
+                    // Stop any existing streams
+                    this.stopQRScanning();
+                    
+                    // Request camera access
+                    this.videoStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'environment', // Use back camera if available
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        }
+                    });
+
+                    videoElement.srcObject = this.videoStream;
+                    await videoElement.play();
+
+                    // Enhanced video initialization for mobile compatibility
+                    videoElement.setAttribute('playsinline', true);
+                    videoElement.setAttribute('muted', true);
+                    
+                    // Wait for video to be ready, then start scanning
+                    videoElement.addEventListener('loadedmetadata', () => {
+                        console.log('Video metadata loaded, starting QR scanning');
+                        setTimeout(() => this.startQRScanLoop(videoElement), 100);
+                    });
+
+                    // Additional event listener for mobile devices
+                    videoElement.addEventListener('canplay', () => {
+                        if (!this.qrScanningActive && videoElement.videoWidth > 0) {
+                            console.log('Video can play, ensuring scan loop is active');
+                            this.startQRScanLoop(videoElement);
+                        }
+                    });
+
+                    // Show scanning status
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i data-feather="camera" class="me-2"></i>
+                            <strong>QR Scanner Active</strong>
+                            <p class="mb-0">Point your camera at a QR code. It will be automatically detected and analyzed.</p>
+                        </div>
+                    `;
+                    feather.replace();
+                    
+                    this.showToast('QR Scanner Active', 'Point camera at QR code for automatic detection', 'success');
+
+                } catch (error) {
+                    console.error('Camera access failed:', error);
+                    let errorMessage = 'Camera access failed. Please use file upload mode.';
+                    
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage = 'Camera permission denied. Please allow camera access and try again.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage = 'No camera found on this device. Please use file upload mode.';
+                    } else if (error.name === 'NotSupportedError') {
+                        errorMessage = 'Camera not supported on this device. Please use file upload mode.';
+                    }
+                    
+                    this.showToast('Warning', errorMessage, 'warning');
+                    this.switchQRMode('file');
+                }
+            }
+
+            // Start QR scanning loop
+            startQRScanLoop(videoElement) {
+                this.qrScanningActive = true;
+                this.scanAttempts = 0;
+                
+                // Create persistent canvas for better performance
+                if (!this.qrCanvas) {
+                    this.qrCanvas = document.createElement('canvas');
+                    this.qrContext = this.qrCanvas.getContext('2d');
+                }
+                
+                const scanFrame = () => {
+                    if (!this.qrScanningActive) return;
+                    
+                    this.scanAttempts++;
+                    
+                    // Ensure video is ready with valid dimensions
+                    if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && 
+                        videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                        
+                        try {
+                            // Auto-resize canvas to match video resolution
+                            this.qrCanvas.width = videoElement.videoWidth;
+                            this.qrCanvas.height = videoElement.videoHeight;
+                            
+                            // Draw current video frame to canvas
+                            this.qrContext.drawImage(videoElement, 0, 0, this.qrCanvas.width, this.qrCanvas.height);
+                            const imageData = this.qrContext.getImageData(0, 0, this.qrCanvas.width, this.qrCanvas.height);
+                            
+                            // Debug logging every 20 attempts
+                            if (this.scanAttempts % 20 === 1) {
+                                console.log(`QR Scan Frame ${this.scanAttempts}: ${this.qrCanvas.width}x${this.qrCanvas.height}, jsQR: ${typeof jsQR !== 'undefined'}`);
+                            }
+                            
+                            // Detect QR codes using jsQR with enhanced options
+                            if (typeof jsQR !== 'undefined') {
+                                const qrResult = jsQR(imageData.data, this.qrCanvas.width, this.qrCanvas.height, {
+                                    inversionAttempts: "attemptBoth"
+                                });
+                                
+                                if (qrResult && qrResult.data && qrResult.data.trim()) {
+                                    const qrContent = qrResult.data.trim();
+                                    console.log('QR Code detected from camera:', qrContent.substring(0, 50) + (qrContent.length > 50 ? '...' : ''));
+                                    
+                                    // Stop scanning and analyze with dual-mode system
+                                    this.qrScanningActive = false;
+                                    this.analyzeQRContent(qrContent, document.getElementById('qr-results'));
+                                    return;
+                                }
+                            } else {
+                                console.warn('jsQR library not loaded - camera scanning disabled');
+                                this.qrScanningActive = false;
+                                return;
+                            }
+                            
+                        } catch (error) {
+                            console.warn('QR scan frame error:', error);
+                        }
+                    }
+                    
+                    // Continue scanning at 2 FPS (500ms intervals) for optimal performance
+                    if (this.qrScanningActive) {
+                        setTimeout(() => requestAnimationFrame(scanFrame), 500);
+                    }
+                };
+                
+                // Start the scanning loop
+                requestAnimationFrame(scanFrame);
             }
 
             // Show QR format help
@@ -7301,7 +7441,8 @@ Respond with JSON:
 
         // Initialize PaySavvy Pro
         document.addEventListener('DOMContentLoaded', () => {
-            window.paysar = new PaySavvyPro();
+            window.app = new PaySavvyPro();
+            window.paysar = window.app; // Keep backward compatibility
         });
     </script>
 </body>
