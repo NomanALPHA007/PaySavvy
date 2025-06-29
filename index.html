@@ -5183,30 +5183,647 @@ Respond with JSON:
                 this.setLoadingState(false);
             }
 
-            // Analyze DuitNow EMV QR codes
+            // Analyze DuitNow EMV QR codes with comprehensive business owner extraction
             async analyzeDuitNowQR(content, resultsDiv) {
                 console.log('Analyzing DuitNow EMV QR code...');
-                this.showToast('Analyzing DuitNow QR', 'Parsing EMV payment data...', 'info');
+                this.showToast('Analyzing DuitNow QR', 'Parsing EMV payment data and validating merchant...', 'info');
                 
                 const emvFields = this.parseEMVQR(content);
                 console.log('Parsed EMV fields:', emvFields);
                 
-                // Extract key information
+                // Extract comprehensive business information
                 const merchantName = emvFields['59'] || 'Unknown Merchant';
                 const merchantCity = emvFields['60'] || 'Unknown City';
                 const payloadFormatIndicator = emvFields['00'] || '';
                 const merchantAccountInfo = emvFields['26'] || emvFields['02'] || '';
                 const countryCode = emvFields['58'] || 'MY';
                 const transactionAmount = emvFields['54'] || 'Not specified';
+                const merchantCategoryCode = emvFields['52'] || 'Unknown';
+                const merchantIdentifier = emvFields['27'] || emvFields['28'] || '';
+                const additionalInfo = emvFields['62'] || '';
+                const transactionCurrency = emvFields['53'] || '458'; // 458 = MYR
                 
-                // Validate against verified brands
-                const brandValidation = this.validateDuitNowMerchant(merchantName, merchantAccountInfo);
+                // Validate against verified Malaysian financial institutions
+                const validation = this.validateDuitNowMerchant(merchantName, merchantAccountInfo, merchantIdentifier);
                 
-                this.displayDuitNowResults(emvFields, brandValidation, content, resultsDiv);
+                // Determine if QR is legitimate or suspicious
+                const riskAssessment = this.assessDuitNowRisk(emvFields, validation);
+                
+                // Extract business type and ownership information
+                const businessInfo = this.extractBusinessInformation(merchantName, merchantCity, merchantCategoryCode, validation);
+                
+                console.log('DuitNow Analysis Results:', {
+                    merchant: merchantName,
+                    validation: validation.isVerified,
+                    riskLevel: riskAssessment.riskLevel,
+                    businessType: businessInfo.businessType
+                });
+                
+                this.displayDuitNowResults({
+                    qrContent: content,
+                    merchantInfo: {
+                        name: merchantName,
+                        city: merchantCity,
+                        categoryCode: merchantCategoryCode,
+                        accountInfo: merchantAccountInfo,
+                        identifier: merchantIdentifier,
+                        amount: transactionAmount,
+                        currency: transactionCurrency === '458' ? 'MYR' : 'Unknown'
+                    },
+                    validation,
+                    riskAssessment,
+                    businessInfo,
+                    emvFields
+                });
+                
+                this.showToast('DuitNow Analysis Complete', 
+                    validation.isVerified ? 'Verified merchant detected' : 'Merchant validation completed', 
+                    validation.isVerified ? 'success' : 'warning');
             }
 
-            // Validate DuitNow merchant against verified brands
-            validateDuitNowMerchant(merchantName, accountInfo) {
+            // Validate DuitNow merchant against verified Malaysian financial institutions
+            validateDuitNowMerchant(merchantName, accountInfo, identifier) {
+                console.log('Validating DuitNow merchant:', merchantName);
+                
+                if (!this.verifiedBrands) {
+                    return {
+                        isVerified: false,
+                        risk: 'unknown',
+                        reason: 'Verified brands database not loaded'
+                    };
+                }
+
+                // Search through Malaysian verified financial institutions
+                const malaysia = this.verifiedBrands.Malaysia || {};
+                for (const [brandName, brandData] of Object.entries(malaysia)) {
+                    // Check if merchant name matches verified institution
+                    const nameMatches = this.checkMerchantNameMatch(merchantName, brandName, brandData);
+                    if (nameMatches.isMatch) {
+                        return {
+                            isVerified: true,
+                            risk: 'safe',
+                            brand: {
+                                name: brandName,
+                                institution: brandData.institution,
+                                regulatoryBody: brandData.regulatoryLicense,
+                                logo: brandData.logo
+                            },
+                            matchType: nameMatches.matchType,
+                            confidence: nameMatches.confidence
+                        };
+                    }
+                }
+
+                // Check for potential scam indicators
+                const scamIndicators = this.checkDuitNowScamIndicators(merchantName, accountInfo);
+                
+                return {
+                    isVerified: false,
+                    risk: scamIndicators.length > 0 ? 'suspicious' : 'unknown',
+                    scamIndicators,
+                    reason: 'Not found in verified financial institutions database'
+                };
+            }
+
+            // Check if merchant name matches verified institution
+            checkMerchantNameMatch(merchantName, brandName, brandData) {
+                const merchant = merchantName.toLowerCase().trim();
+                const brand = brandName.toLowerCase();
+                const institution = (brandData.institution || '').toLowerCase();
+                
+                // Direct name match
+                if (merchant.includes(brand) || brand.includes(merchant)) {
+                    return { isMatch: true, matchType: 'direct', confidence: 0.95 };
+                }
+                
+                // Institution name match
+                if (institution && (merchant.includes(institution) || institution.includes(merchant))) {
+                    return { isMatch: true, matchType: 'institution', confidence: 0.85 };
+                }
+                
+                // Common abbreviations for Malaysian banks
+                const abbreviations = {
+                    'maybank': ['mbb', 'malayan banking'],
+                    'cimb': ['cimb bank', 'commerce international'],
+                    'public bank': ['pbb', 'public berhad'],
+                    'rhb': ['rhb bank', 'rashid hussain'],
+                    'hong leong': ['hlb', 'hong leong bank'],
+                    'ambank': ['ambank group', 'ammb']
+                };
+                
+                const brandAbbr = abbreviations[brand] || [];
+                for (const abbr of brandAbbr) {
+                    if (merchant.includes(abbr)) {
+                        return { isMatch: true, matchType: 'abbreviation', confidence: 0.75 };
+                    }
+                }
+                
+                return { isMatch: false, matchType: 'none', confidence: 0 };
+            }
+
+            // Check for DuitNow QR scam indicators
+            checkDuitNowScamIndicators(merchantName, accountInfo) {
+                const indicators = [];
+                const merchant = merchantName.toLowerCase();
+                
+                // Suspicious merchant names
+                if (merchant.includes('urgent') || merchant.includes('verify') || merchant.includes('update')) {
+                    indicators.push('Suspicious urgency keywords in merchant name');
+                }
+                
+                if (merchant.includes('bank') && !this.isVerifiedBank(merchant)) {
+                    indicators.push('Unverified entity claiming to be a bank');
+                }
+                
+                if (merchant.includes('duitnow') || merchant.includes('paynet')) {
+                    indicators.push('Suspicious use of payment system names');
+                }
+                
+                // Check for generic/suspicious names
+                if (merchant.match(/^(test|demo|sample|admin|user\d+)$/)) {
+                    indicators.push('Generic or test merchant name');
+                }
+                
+                return indicators;
+            }
+
+            // Check if merchant name corresponds to a verified bank
+            isVerifiedBank(merchantName) {
+                if (!this.verifiedBrands || !this.verifiedBrands.Malaysia) {
+                    return false;
+                }
+                
+                const merchant = merchantName.toLowerCase();
+                const malaysia = this.verifiedBrands.Malaysia;
+                
+                for (const [brandName, brandData] of Object.entries(malaysia)) {
+                    const brand = brandName.toLowerCase();
+                    const institution = (brandData.institution || '').toLowerCase();
+                    
+                    if (merchant.includes(brand) || merchant.includes(institution)) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+
+            // Assess DuitNow QR risk level
+            assessDuitNowRisk(emvFields, validation) {
+                let riskScore = 0;
+                const riskFactors = [];
+                
+                // Validation-based risk
+                if (validation.isVerified) {
+                    riskScore -= 3;
+                    riskFactors.push('✓ Verified financial institution');
+                } else if (validation.scamIndicators && validation.scamIndicators.length > 0) {
+                    riskScore += validation.scamIndicators.length * 2;
+                    riskFactors.push(...validation.scamIndicators);
+                }
+                
+                // EMV format validation
+                if (!emvFields['00'] || emvFields['00'] !== '01') {
+                    riskScore += 2;
+                    riskFactors.push('Invalid EMV format version');
+                }
+                
+                if (!emvFields['59']) {
+                    riskScore += 3;
+                    riskFactors.push('Missing merchant name');
+                }
+                
+                if (!emvFields['58'] || emvFields['58'] !== 'MY') {
+                    riskScore += 2;
+                    riskFactors.push('Non-Malaysian country code');
+                }
+                
+                // Amount validation
+                if (emvFields['54']) {
+                    const amount = parseFloat(emvFields['54']);
+                    if (amount > 10000) {
+                        riskScore += 2;
+                        riskFactors.push('Very high transaction amount');
+                    } else if (amount > 1000) {
+                        riskScore += 1;
+                        riskFactors.push('High transaction amount');
+                    }
+                }
+                
+                const riskLevel = riskScore >= 4 ? 'dangerous' : riskScore >= 2 ? 'suspicious' : 'safe';
+                
+                return {
+                    riskLevel,
+                    riskScore,
+                    riskFactors,
+                    confidence: Math.max(0.1, Math.min(0.95, (10 - Math.abs(riskScore)) / 10))
+                };
+            }
+
+            // Extract business information from merchant data
+            extractBusinessInformation(merchantName, merchantCity, categoryCode, validation) {
+                const businessInfo = {
+                    ownerName: this.extractOwnerName(merchantName),
+                    businessName: merchantName,
+                    businessType: this.determineBusinessType(merchantName, categoryCode),
+                    location: merchantCity,
+                    isPersonal: this.isPersonalAccount(merchantName),
+                    isBusiness: this.isBusinessAccount(merchantName),
+                    category: this.interpretMerchantCategory(categoryCode),
+                    registrationStatus: validation.isVerified ? 'Government Verified' : 'Unverified'
+                };
+                
+                return businessInfo;
+            }
+
+            // Extract potential owner name from merchant name
+            extractOwnerName(merchantName) {
+                const merchant = merchantName.trim();
+                
+                // Common patterns for personal names in merchant strings
+                const personalPatterns = [
+                    /^([A-Z][a-z]+ [A-Z][a-z]+)/, // "John Doe Store"
+                    /([A-Z][a-z]+ [A-Z][a-z]+)$/, // "Store John Doe"
+                    /^([A-Z]{2,}\s+[A-Z]{2,})/, // "JOHN DOE"
+                ];
+                
+                for (const pattern of personalPatterns) {
+                    const match = merchant.match(pattern);
+                    if (match) {
+                        return match[1];
+                    }
+                }
+                
+                // If no clear personal name pattern, return the merchant name
+                return merchant.length > 30 ? merchant.substring(0, 30) + '...' : merchant;
+            }
+
+            // Determine if account appears to be personal vs business
+            isPersonalAccount(merchantName) {
+                const personalKeywords = ['personal', 'individual', 'mr ', 'ms ', 'mrs ', 'dr '];
+                const merchant = merchantName.toLowerCase();
+                return personalKeywords.some(keyword => merchant.includes(keyword));
+            }
+
+            isBusinessAccount(merchantName) {
+                const businessKeywords = ['sdn bhd', 'bhd', 'sdn', 'enterprise', 'company', 'corp', 'ltd', 'pte', 'trading'];
+                const merchant = merchantName.toLowerCase();
+                return businessKeywords.some(keyword => merchant.includes(keyword));
+            }
+
+            // Determine business type from merchant name and category
+            determineBusinessType(merchantName, categoryCode) {
+                const merchant = merchantName.toLowerCase();
+                
+                // Business type patterns
+                const businessTypes = {
+                    'Restaurant/Food': ['restaurant', 'cafe', 'food', 'kitchen', 'dining', 'mamak', 'kopitiam'],
+                    'Retail/Shopping': ['shop', 'store', 'mart', 'trading', 'boutique', 'fashion'],
+                    'Services': ['service', 'repair', 'salon', 'clinic', 'workshop'],
+                    'Financial': ['bank', 'finance', 'loan', 'investment', 'insurance'],
+                    'Transportation': ['taxi', 'grab', 'transport', 'logistics', 'delivery'],
+                    'Technology': ['tech', 'it', 'software', 'computer', 'digital'],
+                    'Healthcare': ['clinic', 'hospital', 'medical', 'pharmacy', 'dental'],
+                    'Education': ['school', 'education', 'tuition', 'training', 'academy']
+                };
+                
+                for (const [type, keywords] of Object.entries(businessTypes)) {
+                    if (keywords.some(keyword => merchant.includes(keyword))) {
+                        return type;
+                    }
+                }
+                
+                // Fallback to category code interpretation
+                return this.interpretMerchantCategory(categoryCode);
+            }
+
+            // Interpret EMV merchant category code
+            interpretMerchantCategory(categoryCode) {
+                const categories = {
+                    '5411': 'Grocery Store',
+                    '5812': 'Eating Places/Restaurants',
+                    '5814': 'Fast Food Restaurants',
+                    '5912': 'Drug Store/Pharmacy',
+                    '5541': 'Service Stations',
+                    '5732': 'Electronics Stores',
+                    '5999': 'Miscellaneous Retail',
+                    '7011': 'Hotels/Motels',
+                    '4111': 'Transportation',
+                    '6011': 'Financial Institution'
+                };
+                
+                return categories[categoryCode] || 'General Business';
+            }
+
+            // Display comprehensive DuitNow QR analysis results
+            displayDuitNowResults(analysis) {
+                const resultsDiv = document.getElementById('qr-results');
+                const { merchantInfo, validation, riskAssessment, businessInfo } = analysis;
+                
+                const riskClass = riskAssessment.riskLevel === 'safe' ? 'success' : 
+                                 riskAssessment.riskLevel === 'suspicious' ? 'warning' : 'danger';
+                
+                const riskIcon = riskAssessment.riskLevel === 'safe' ? 'shield-check' : 
+                                riskAssessment.riskLevel === 'suspicious' ? 'alert-triangle' : 'alert-circle';
+                
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-${riskClass}">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-feather="${riskIcon}" class="me-2"></i>
+                            <strong>DuitNow QR Analysis: ${riskAssessment.riskLevel.toUpperCase()}</strong>
+                            <span class="badge bg-secondary ms-auto">Risk Score: ${riskAssessment.riskScore}</span>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i data-feather="user" class="me-2"></i>Business Owner Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Business Name:</strong><br>
+                                        <span class="text-primary">${businessInfo.businessName}</span><br><br>
+                                        
+                                        <strong>Owner/Contact:</strong><br>
+                                        ${businessInfo.ownerName}<br><br>
+                                        
+                                        <strong>Business Type:</strong><br>
+                                        ${businessInfo.businessType}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Location:</strong><br>
+                                        ${businessInfo.location}<br><br>
+                                        
+                                        <strong>Account Type:</strong><br>
+                                        ${businessInfo.isPersonal ? 'Personal Account' : 
+                                          businessInfo.isBusiness ? 'Business Account' : 'Unknown'}<br><br>
+                                        
+                                        <strong>Registration Status:</strong><br>
+                                        <span class="badge bg-${validation.isVerified ? 'success' : 'warning'}">
+                                            ${businessInfo.registrationStatus}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${validation.isVerified ? `
+                            <div class="alert alert-success">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i data-feather="shield-check" class="me-2"></i>
+                                    <strong>✓ VERIFIED FINANCIAL INSTITUTION</strong>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <strong>Institution:</strong> ${validation.brand.institution}<br>
+                                        <strong>Regulatory License:</strong> ${validation.brand.regulatoryBody}<br>
+                                        <strong>Match Type:</strong> ${validation.matchType} (${Math.round(validation.confidence * 100)}% confidence)
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        ${validation.brand.logo ? `<img src="${validation.brand.logo}" alt="Logo" height="40" class="rounded"/>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i data-feather="credit-card" class="me-2"></i>Payment Details</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Amount:</strong> ${merchantInfo.amount !== 'Not specified' ? 'RM ' + merchantInfo.amount : 'Not specified'}<br>
+                                        <strong>Currency:</strong> ${merchantInfo.currency}<br>
+                                        <strong>Category:</strong> ${businessInfo.category}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Merchant ID:</strong> ${merchantInfo.identifier || 'Not available'}<br>
+                                        <strong>Account Info:</strong> ${merchantInfo.accountInfo.substring(0, 20)}${merchantInfo.accountInfo.length > 20 ? '...' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${riskAssessment.riskFactors.length > 0 ? `
+                            <div class="mt-3">
+                                <strong>Analysis Factors:</strong>
+                                <ul class="small mb-0">
+                                    ${riskAssessment.riskFactors.map(factor => `<li>${factor}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        ${validation.scamIndicators && validation.scamIndicators.length > 0 ? `
+                            <div class="alert alert-warning mt-3">
+                                <strong>⚠️ Scam Indicators Detected:</strong>
+                                <ul class="small mb-0">
+                                    ${validation.scamIndicators.map(indicator => `<li>${indicator}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-3 text-center">
+                            <strong>Safety Recommendation:</strong>
+                            ${riskAssessment.riskLevel === 'safe' ? 
+                                validation.isVerified ? 
+                                    'This appears to be a legitimate payment QR from a verified financial institution.' :
+                                    'This QR appears safe but merchant is not verified. Proceed with normal caution.' :
+                                riskAssessment.riskLevel === 'suspicious' ?
+                                    'Exercise caution. Verify merchant details before proceeding with payment.' :
+                                    'HIGH RISK: Do not proceed with payment. This QR shows multiple scam indicators.'
+                            }
+                        </div>
+                    </div>
+                `;
+                
+                feather.replace();
+            }
+
+            // Handle unknown QR format
+            handleUnknownQRFormat(content, resultsDiv) {
+                console.log('Unknown QR format detected:', content.substring(0, 50));
+                
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-feather="help-circle" class="me-2"></i>
+                            <strong>Unknown QR Code Format</strong>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>QR Content Analysis:</strong>
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <small><strong>Content:</strong> <code>${content.substring(0, 100)}${content.length > 100 ? '...' : ''}</code></small><br>
+                                <small><strong>Length:</strong> ${content.length} characters</small><br>
+                                <small><strong>Type:</strong> ${this.detectQRContentType(content)}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Safety Assessment:</strong>
+                            <div class="mt-2">
+                                ${this.assessUnknownQRSafety(content)}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Recommendations:</strong>
+                            <ul class="small mt-2">
+                                <li>If this is a payment QR, verify the merchant directly before proceeding</li>
+                                <li>Check if the QR contains any URL or payment information</li>
+                                <li>Be cautious of QR codes from unknown sources</li>
+                                <li>Consider using only verified payment QR codes from official channels</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button class="btn btn-primary me-2" onclick="app.analyzeAsURL('${content.replace(/'/g, "\\'")}')">
+                                <i data-feather="link" class="me-1"></i>Analyze as URL
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="app.showQRFormatHelp()">
+                                <i data-feather="info" class="me-1"></i>QR Format Help
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                feather.replace();
+                this.showToast('Unknown QR Format', 'Manual analysis recommended', 'warning');
+            }
+
+            // Detect QR content type
+            detectQRContentType(content) {
+                if (content.startsWith('http')) return 'URL/Web Link';
+                if (content.startsWith('000201')) return 'EMV Payment QR (Possible DuitNow)';
+                if (content.includes('@')) return 'Email Address';
+                if (content.startsWith('tel:')) return 'Phone Number';
+                if (content.startsWith('wifi:')) return 'WiFi Configuration';
+                if (content.startsWith('geo:')) return 'Geographic Location';
+                if (/^[A-Z0-9]{4,}$/.test(content)) return 'Alphanumeric Code';
+                if (/^\d+$/.test(content)) return 'Numeric Code';
+                return 'Text/Other';
+            }
+
+            // Assess safety of unknown QR content
+            assessUnknownQRSafety(content) {
+                const warnings = [];
+                const safeIndicators = [];
+                
+                // Check for suspicious patterns
+                if (content.toLowerCase().includes('urgent') || content.toLowerCase().includes('verify')) {
+                    warnings.push('Contains urgency keywords');
+                }
+                
+                if (content.includes('bit.ly') || content.includes('tinyurl')) {
+                    warnings.push('Contains URL shortener');
+                }
+                
+                if (/\d{16,}/.test(content)) {
+                    warnings.push('Contains long numeric sequences (possible account/card numbers)');
+                }
+                
+                // Check for safe patterns
+                if (content.includes('wifi:')) {
+                    safeIndicators.push('WiFi configuration QR');
+                }
+                
+                if (content.includes('geo:')) {
+                    safeIndicators.push('Location sharing QR');
+                }
+                
+                if (warnings.length > 0) {
+                    return `<div class="alert alert-danger p-2">
+                        <small><strong>⚠️ Potential Risks:</strong></small>
+                        <ul class="small mb-0">${warnings.map(w => `<li>${w}</li>`).join('')}</ul>
+                    </div>`;
+                }
+                
+                if (safeIndicators.length > 0) {
+                    return `<div class="alert alert-success p-2">
+                        <small><strong>✓ Safe Indicators:</strong></small>
+                        <ul class="small mb-0">${safeIndicators.map(s => `<li>${s}</li>`).join('')}</ul>
+                    </div>`;
+                }
+                
+                return `<div class="alert alert-info p-2">
+                    <small><strong>ℹ️ Assessment:</strong> Unknown format - exercise normal caution</small>
+                </div>`;
+            }
+
+            // Analyze content as URL (fallback for unknown formats)
+            async analyzeAsURL(content) {
+                if (this.isValidUrl(content)) {
+                    await this.analyzeURLQR(content, document.getElementById('qr-results'));
+                } else {
+                    this.showToast('Invalid URL', 'Content does not appear to be a valid URL', 'error');
+                }
+            }
+
+            // Enhanced QR results display for URL scanning
+            displayQRScanResults(analysis, qrContent) {
+                const resultsDiv = document.getElementById('qr-results');
+                const riskClass = this.getRiskClass(analysis.trustLevel);
+                const riskIcon = this.getRiskIcon(analysis.trustLevel);
+                
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-${riskClass}">
+                        <div class="d-flex align-items-center mb-2">
+                            <i data-feather="${riskIcon}" class="me-2"></i>
+                            <strong>QR URL Analysis: ${analysis.trustLevel.toUpperCase()}</strong>
+                            <span class="badge bg-secondary ms-auto">Score: ${analysis.riskScore}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Scanned URL:</strong><br>
+                            <code class="small">${qrContent}</code>
+                        </div>
+                        
+                        <p class="mb-2">${analysis.explanation}</p>
+                        
+                        ${analysis.verifiedBrand ? `
+                            <div class="alert alert-success mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i data-feather="shield-check" class="me-2"></i>
+                                    <strong>✓ VERIFIED: ${analysis.verifiedBrand.brand}</strong>
+                                </div>
+                                <small>${analysis.verifiedBrand.institution}</small>
+                            </div>
+                        ` : ''}
+                        
+                        ${analysis.isScamMimic ? `
+                            <div class="alert alert-danger mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i data-feather="alert-triangle" class="me-2"></i>
+                                    <strong>⚠️ SCAM MIMIC DETECTED</strong>
+                                </div>
+                                <small>This URL appears to impersonate ${analysis.targetBrand}</small>
+                            </div>
+                        ` : ''}
+                        
+                        ${analysis.detectionDetails && analysis.detectionDetails.length > 0 ? `
+                            <div class="mt-3">
+                                <strong>Detection Details:</strong>
+                                <ul class="small mb-0">
+                                    ${analysis.detectionDetails.slice(0, 5).map(detail => `<li>${detail}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-3 text-center">
+                            <strong>Recommendation:</strong>
+                            ${analysis.trustLevel === 'SAFE' ? 
+                                'This QR code appears to be legitimate and safe to use.' :
+                                analysis.trustLevel === 'SUSPICIOUS' ?
+                                'Exercise caution. Verify the source before proceeding.' :
+                                'HIGH RISK: Do not use this QR code. It shows multiple scam indicators.'
+                            }
+                        </div>
+                    </div>
+                `;
+                
+                feather.replace();
+            }
                 if (!this.verifiedBrands) return { isVerified: false, risk: 'unknown' };
                 
                 const merchantLower = merchantName.toLowerCase();
