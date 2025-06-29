@@ -1434,12 +1434,29 @@ Focus on:
                     </div>
                 `;
 
-                // Display advanced analysis sections with safe fallbacks
+                // Display advanced analysis sections with complete data structure
                 try {
                     this.displayAdvancedResults({
-                        fingerprintAnalysis: { flags: [], isKnownScam: false },
-                        multilingualAnalysis: { flags: [], threats: [] },
-                        regionalRisk: { flags: [], riskLevel: 'low' }
+                        fingerprintAnalysis: { 
+                            flags: [], 
+                            isKnownScam: false,
+                            fingerprint: null,
+                            matchCount: 0
+                        },
+                        multilingualAnalysis: { 
+                            flags: [], 
+                            threats: [],
+                            detectedLanguages: ['en'],
+                            riskScore: 0
+                        },
+                        regionalRisk: { 
+                            flags: [], 
+                            riskLevel: 'low',
+                            bankingRisk: 'low',
+                            ewalletRisk: 'low',
+                            localThreats: [],
+                            heatmapData: []
+                        }
                     });
                 } catch (error) {
                     console.warn('Advanced results display skipped:', error);
