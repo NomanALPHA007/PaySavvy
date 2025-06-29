@@ -2477,6 +2477,28 @@
             return { score, flags };
         }
 
+        // Dedicated sanitizer function to prevent map errors
+        function sanitizeAnalysisObject(result) {
+            if (!result || typeof result !== 'object') result = {};
+
+            return {
+                trustLevel: result.trustLevel || result.riskLevel || 'UNKNOWN',
+                riskScore: result.riskScore || result.score || 3,
+                explanation: result.explanation || 'QR code analysis completed',
+                detectionDetails: Array.isArray(result.detectionDetails) 
+                    ? result.detectionDetails 
+                    : Array.isArray(result.reason) 
+                        ? result.reason 
+                        : ['Analysis completed successfully'],
+                verifiedBrand: result.verifiedBrand || null,
+                isScamMimic: result.isScamMimic || false,
+                targetBrand: result.targetBrand || null,
+                merchantInfo: result.merchantInfo || null,
+                url: result.url || '',
+                verified: !!result.verified
+            };
+        }
+
         // PaySavvy Pro - Refactored with Centralized Risk Scoring
         class PaySavvyPro {
             constructor() {
@@ -6576,18 +6598,9 @@ Respond with JSON:
                     };
                 }
                 
-                // Add bulletproof analysis formatting before display
-                const safeAnalysis = {
-                    trustLevel: analysis?.trustLevel || 'UNKNOWN',
-                    riskScore: analysis?.riskScore || 3,
-                    explanation: analysis?.explanation || 'QR code analysis completed',
-                    detectionDetails: Array.isArray(analysis?.detectionDetails) ? analysis.detectionDetails : ['Analysis completed successfully'],
-                    verifiedBrand: analysis?.verifiedBrand || null,
-                    isScamMimic: analysis?.isScamMimic || false,
-                    targetBrand: analysis?.targetBrand || null
-                };
-                
-                console.log('🔍 Final analysis object before display:', safeAnalysis);
+                // Use sanitizer function to prevent map errors
+                const safeAnalysis = sanitizeAnalysisObject(analysis);
+                console.log('✅ Safe Result Object for Display:', safeAnalysis);
                 
                 // Display results in QR section
                 this.displayQRScanResults(safeAnalysis, content);
@@ -6667,18 +6680,9 @@ Respond with JSON:
                     };
                 }
                 
-                // Add bulletproof analysis formatting before display
-                const safeAnalysis = {
-                    trustLevel: analysis?.trustLevel || 'UNKNOWN',
-                    riskScore: analysis?.riskScore || 3,
-                    explanation: analysis?.explanation || 'DuitNow QR code analysis completed',
-                    detectionDetails: Array.isArray(analysis?.detectionDetails) ? analysis.detectionDetails : ['Merchant information extracted'],
-                    verifiedBrand: analysis?.verifiedBrand || null,
-                    isScamMimic: analysis?.isScamMimic || false,
-                    merchantInfo: analysis?.merchantInfo || null
-                };
-                
-                console.log('🔍 Final DuitNow analysis object before display:', safeAnalysis);
+                // Use sanitizer function to prevent map errors
+                const safeAnalysis = sanitizeAnalysisObject(analysis);
+                console.log('✅ Safe DuitNow Result Object for Display:', safeAnalysis);
                 
                 // Display results
                 this.displayQRScanResults(safeAnalysis, content);
@@ -7247,7 +7251,7 @@ Respond with JSON:
             // Enhanced QR results display for URL scanning
             displayQRScanResults(analysis, qrContent) {
                 try {
-                    console.log('💻 displayQRScanResults called with:', analysis);
+                    console.log('💻 displayQRScanResults called with sanitized analysis:', analysis);
                     
                     const resultsDiv = document.getElementById('qr-results');
                     if (!resultsDiv) {
@@ -7255,34 +7259,8 @@ Respond with JSON:
                         return;
                     }
 
-                    // Ensure analysis object has required properties with bulletproof initialization
-                    const safeAnalysis = {
-                        trustLevel: analysis?.trustLevel || 'UNKNOWN',
-                        riskScore: analysis?.riskScore || analysis?.score || 3,
-                        explanation: analysis?.explanation || 'QR code analysis completed',
-                        detectionDetails: [],
-                        verifiedBrand: analysis?.verifiedBrand || null,
-                        isScamMimic: analysis?.isScamMimic || false,
-                        targetBrand: analysis?.targetBrand || null
-                    };
-                    
-                    // Bulletproof detectionDetails initialization
-                    try {
-                        if (Array.isArray(analysis?.detectionDetails)) {
-                            safeAnalysis.detectionDetails = [...analysis.detectionDetails];
-                        } else if (Array.isArray(analysis?.reason)) {
-                            safeAnalysis.detectionDetails = [...analysis.reason];
-                        } else if (analysis?.detectionDetails && typeof analysis.detectionDetails === 'string') {
-                            safeAnalysis.detectionDetails = [analysis.detectionDetails];
-                        } else if (analysis?.reason && typeof analysis.reason === 'string') {
-                            safeAnalysis.detectionDetails = [analysis.reason];
-                        }
-                    } catch (detailsError) {
-                        console.error('Error processing detectionDetails:', detailsError);
-                        safeAnalysis.detectionDetails = ['Analysis completed successfully'];
-                    }
-                    
-                    console.log('✅ Safe analysis object created:', safeAnalysis);
+                    // Analysis object is already sanitized, use directly
+                    const safeAnalysis = analysis;
 
                     const riskClass = this.getRiskClass(safeAnalysis.trustLevel);
                     const riskIcon = this.getRiskIcon(safeAnalysis.trustLevel);

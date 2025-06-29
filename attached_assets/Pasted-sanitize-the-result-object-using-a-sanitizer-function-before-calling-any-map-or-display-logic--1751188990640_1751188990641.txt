@@ -1,0 +1,98 @@
+sanitize the result object using a sanitizer function before calling any .map() or display logic.
+
+🛠 1. Create a Dedicated sanitizeAnalysisObject() Function
+At the top of your index.html or main.js, add:
+
+js
+Copy
+Edit
+function sanitizeAnalysisObject(result) {
+  if (!result || typeof result !== 'object') result = {};
+
+  return {
+    url: result.url || '',
+    riskLevel: result.riskLevel || 'Unknown',
+    verified: !!result.verified,
+    detectionDetails: Array.isArray(result.detectionDetails)
+      ? result.detectionDetails
+      : [],
+    meta: result.meta || {},
+  };
+}
+🛠 2. Use it Before displayQRScanResults
+Wherever you're calling:
+
+js
+Copy
+Edit
+displayQRScanResults(result);
+Change it to:
+
+js
+Copy
+Edit
+const safeResult = sanitizeAnalysisObject(result);
+console.log("✅ Safe Result Object for Display:", safeResult);
+displayQRScanResults(safeResult);
+🧪 3. Test With Known Edge Case
+Use the QR content:
+
+js
+Copy
+Edit
+https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do
+And run this simulated test:
+
+js
+Copy
+Edit
+const testResult = {
+  url: "https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do",
+  riskLevel: "Safe",
+  verified: true
+  // ❌ No detectionDetails
+};
+
+displayQRScanResults(sanitizeAnalysisObject(testResult));
+✅ Should render without error and show empty or safe indicators.
+
+✅ Optional: Log & Toast Fallback
+In your displayQRScanResults():
+
+js
+Copy
+Edit
+if (!Array.isArray(result.detectionDetails)) {
+  console.warn("⚠️ detectionDetails is not an array:", result.detectionDetails);
+  toast("⚠️ Analysis incomplete. No detection details available.");
+}
+✅ What This Fix Does
+Fix	Benefit
+Safe result object	Prevents .map() on undefined
+Logs exact failure point	Faster debugging
+Guarantees valid display structure	No more runtime crashes
+Works for both URL + EMV modes	Unified solution
+
+🔁 Optional: Build-Time Assertion Tool
+You can include a validator function to use before every result is passed forward:
+
+js
+Copy
+Edit
+function assertValidAnalysis(result) {
+  if (!result.detectionDetails)
+    throw new Error("🚨 detectionDetails missing from result");
+}
+Use it like:
+
+js
+Copy
+Edit
+assertValidAnalysis(result); // catches dev bugs before users do
+✅ Final Tip for Replit Debugging
+If you're unsure what’s undefined, add this:
+
+js
+Copy
+Edit
+console.log("📊 Dumping detectionDetails safely:", JSON.stringify(result?.detectionDetails || []));
