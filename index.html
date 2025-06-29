@@ -3679,17 +3679,19 @@ Consider:
 
             // Initialize camera scanning
             async initCameraScanning() {
-                console.log('Initializing camera QR scanning...');
+                console.log('🔁 Camera button pressed - initializing camera QR scanning...');
                 const videoElement = document.getElementById('qr-reader');
                 const resultsDiv = document.getElementById('qr-results');
+                const fileButton = document.getElementById('qr-file-input-button');
                 
                 if (!videoElement) {
-                    console.error('Video element not found');
+                    console.error('❌ Video element not found');
                     return;
                 }
 
                 // Check for camera support
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    console.error('❌ Camera not supported by browser');
                     resultsDiv.innerHTML = `
                         <div class="alert alert-danger">
                             <i data-feather="camera-off" class="me-2"></i>
@@ -3703,17 +3705,27 @@ Consider:
                     feather.replace();
                     return;
                 }
+
+                // Step 1: Force UI into camera mode immediately
+                console.log('🎮 Setting UI to camera mode...');
+                if (fileButton) {
+                    fileButton.style.display = 'none';
+                    console.log('📁 File button hidden');
+                }
+                videoElement.style.display = 'block';
+                videoElement.style.visibility = 'visible';
+                console.log('📺 Video element made visible');
                 
                 try {
                     // Stop any existing streams
                     this.stopQRScanning();
                     console.log('🛑 Stopped existing camera streams');
                     
-                    // Request camera access with fallback constraints
-                    console.log('📷 Requesting camera access...');
+                    // Step 2: Request camera access with proper mobile constraints
+                    console.log('📷 Requesting camera permission...');
                     let cameraConstraints = {
                         video: {
-                            facingMode: 'environment',
+                            facingMode: { ideal: 'environment' },
                             width: { ideal: 1280, min: 640 },
                             height: { ideal: 720, min: 480 }
                         }
@@ -3721,70 +3733,86 @@ Consider:
                     
                     try {
                         this.videoStream = await navigator.mediaDevices.getUserMedia(cameraConstraints);
+                        console.log('✅ Camera permission granted with environment camera');
                     } catch (firstError) {
-                        console.warn('Environment camera failed, trying front camera:', firstError);
+                        console.warn('🔄 Environment camera failed, trying front camera:', firstError);
                         // Fallback to front camera
-                        cameraConstraints.video.facingMode = 'user';
+                        cameraConstraints.video.facingMode = { ideal: 'user' };
                         try {
                             this.videoStream = await navigator.mediaDevices.getUserMedia(cameraConstraints);
+                            console.log('✅ Camera permission granted with front camera');
                         } catch (secondError) {
-                            console.warn('Front camera failed, using basic constraints:', secondError);
+                            console.warn('🔄 Front camera failed, using basic constraints:', secondError);
                             // Final fallback - basic video only
                             this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                            console.log('✅ Camera permission granted with basic video');
                         }
                     }
 
-                    console.log('✅ Camera access granted, stream tracks:', this.videoStream.getTracks().length);
+                    console.log('🎥 Video stream connected - tracks:', this.videoStream.getTracks().length);
                     
-                    // Force camera mode display - hide file button, show video
-                    const fileButton = document.getElementById('qr-file-input-button');
-                    if (fileButton) fileButton.style.display = 'none';
-                    
-                    // Set video source and attributes before play
+                    // Step 3: Configure video element for mobile compatibility
                     videoElement.srcObject = this.videoStream;
-                    videoElement.setAttribute('playsinline', true);
-                    videoElement.setAttribute('muted', true);
-                    videoElement.setAttribute('autoplay', true);
+                    videoElement.setAttribute('playsinline', true);  // Critical for iOS
+                    videoElement.setAttribute('muted', true);        // Required for autoplay
+                    videoElement.setAttribute('autoplay', true);     // Auto-start video
                     videoElement.style.display = 'block';
                     videoElement.style.width = '100%';
                     videoElement.style.height = 'auto';
                     videoElement.style.visibility = 'visible';
+                    console.log('📺 Video element configured for mobile');
                     
-                    // Force video to play with error handling
+                    // Step 4: Start video playback with robust error handling
+                    let playbackSuccess = false;
                     try {
                         await videoElement.play();
+                        playbackSuccess = true;
                         console.log('▶️ Video playback started successfully');
                     } catch (playError) {
-                        console.warn('Video play failed, retrying:', playError);
-                        // Retry play after a brief delay
+                        console.warn('🔄 Video play failed, retrying:', playError);
+                        // Retry play after a brief delay for mobile browsers
                         setTimeout(async () => {
                             try {
                                 await videoElement.play();
+                                playbackSuccess = true;
                                 console.log('▶️ Video playback started on retry');
                             } catch (retryError) {
-                                console.error('Video play failed on retry:', retryError);
+                                console.error('❌ Video play failed on retry:', retryError);
+                                this.handleCameraFailure('Video playback failed. Try switching to file upload mode.');
                             }
                         }, 500);
                     }
+
+                    // Step 5: Add timeout fail-safe (3 seconds)
+                    setTimeout(() => {
+                        if (!videoElement.srcObject || videoElement.videoWidth === 0) {
+                            console.error('⏰ Camera timeout - stream not ready after 3 seconds');
+                            this.handleCameraFailure('Camera initialization timeout. Please try again or use file upload.');
+                        }
+                    }, 3000);
                     
-                    // Wait for video to be ready, then start scanning
+                    // Step 6: Wait for video to be ready, then start scanning
                     const startScanningWhenReady = () => {
-                        console.log('Video readiness check:', {
+                        console.log('🔍 Video readiness check:', {
                             readyState: videoElement.readyState,
                             videoWidth: videoElement.videoWidth,
                             videoHeight: videoElement.videoHeight,
                             srcObject: !!videoElement.srcObject
                         });
                         
-                        if (videoElement.readyState >= 2 && videoElement.videoWidth > 0) {
-                            console.log(`📺 Video ready: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
-                            this.startQRScanLoop(videoElement);
+                        // Use readyState === 4 (HAVE_ENOUGH_DATA) for better reliability
+                        if (videoElement.readyState >= 4 && videoElement.videoWidth > 0) {
+                            console.log(`📡 Video ready for scanning: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
                             
-                                    // Ensure video is visible and file button is hidden
+                            // Final UI enforcement before starting scan
                             videoElement.style.display = 'block';
                             videoElement.style.visibility = 'visible';
                             const fileButton = document.getElementById('qr-file-input-button');
                             if (fileButton) fileButton.style.display = 'none';
+                            
+                            // Start the QR scanning loop
+                            this.startQRScanLoop(videoElement);
+                            console.log('📡 Scan loop started');
                         } else {
                             console.log('⏳ Waiting for video to be ready...');
                             setTimeout(startScanningWhenReady, 200);
@@ -3878,6 +3906,39 @@ Consider:
                     feather.replace();
                     this.showToast('Camera Error', 'Grant camera permission and try again', 'error');
                 }
+            }
+
+            // Handle camera initialization failures
+            handleCameraFailure(message) {
+                console.error('❌ Camera failure:', message);
+                const resultsDiv = document.getElementById('qr-results');
+                const fileButton = document.getElementById('qr-file-input-button');
+                const videoElement = document.getElementById('qr-reader');
+                
+                // Stop any existing streams
+                this.stopQRScanning();
+                
+                // Show fallback UI
+                if (fileButton) fileButton.style.display = 'block';
+                if (videoElement) videoElement.style.display = 'none';
+                
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i data-feather="camera-off" class="me-2"></i>
+                        <strong>Camera Not Available</strong>
+                        <p class="mb-2">${message}</p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="window.app.initCameraScanning()">
+                                <i data-feather="refresh-cw" class="me-1"></i>Try Again
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="window.app.switchQRMode('file')">
+                                <i data-feather="upload" class="me-1"></i>Use File Upload
+                            </button>
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+                this.showToast('Camera Error', message, 'error');
             }
 
             // Start QR scanning loop
