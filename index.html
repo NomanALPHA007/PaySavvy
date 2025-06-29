@@ -1355,6 +1355,14 @@ Focus on:
                 const resultsDiv = document.getElementById('results');
                 const riskClass = this.getRiskClass(analysis.trustLevel);
                 const riskIcon = this.getRiskIcon(analysis.trustLevel);
+                
+                // Debug logging to trace the color mapping issue
+                console.log('Risk Assessment Debug:', {
+                    trustLevel: analysis.trustLevel,
+                    riskClass: riskClass,
+                    riskIcon: riskIcon,
+                    score: analysis.score
+                });
 
                 resultsDiv.innerHTML = `
                     <div class="alert alert-${riskClass}">
