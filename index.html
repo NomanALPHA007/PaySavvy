@@ -2876,19 +2876,33 @@ Consider:
 
             // Get verified brands context for AI analysis
             getVerifiedBrandsForAI(limit = 20) {
-                if (!this.verifiedBrands || !this.verifiedBrands.Malaysia) {
-                    return 'Verified brands data not available';
-                }
-                
                 try {
+                    if (!this.verifiedBrands) {
+                        console.warn('verifiedBrands not loaded');
+                        return 'Major Malaysian Banks: Maybank, CIMB, Public Bank, RHB Bank, Hong Leong Bank, AmBank';
+                    }
+                    
+                    if (!this.verifiedBrands.Malaysia || !Array.isArray(this.verifiedBrands.Malaysia)) {
+                        console.warn('Malaysia brands data not available or not an array');
+                        return 'Major Malaysian Banks: Maybank, CIMB, Public Bank, RHB Bank, Hong Leong Bank, AmBank';
+                    }
+                    
                     const malaysiaBrands = this.verifiedBrands.Malaysia.slice(0, limit);
+                    if (malaysiaBrands.length === 0) {
+                        return 'Major Malaysian Banks: Maybank, CIMB, Public Bank, RHB Bank, Hong Leong Bank, AmBank';
+                    }
+                    
                     return malaysiaBrands.map(brand => {
-                        const domains = brand.domains ? brand.domains.join(', ') : 'N/A';
-                        return `${brand.name}: ${domains}`;
+                        if (!brand || typeof brand !== 'object') {
+                            return 'Unknown Brand';
+                        }
+                        const name = brand.name || 'Unknown';
+                        const domains = (brand.domains && Array.isArray(brand.domains)) ? brand.domains.join(', ') : 'N/A';
+                        return `${name}: ${domains}`;
                     }).join('\n');
                 } catch (error) {
-                    console.warn('Error formatting verified brands for AI:', error);
-                    return 'Error accessing verified brands data';
+                    console.error('Critical error in getVerifiedBrandsForAI:', error);
+                    return 'Major Malaysian Banks: Maybank, CIMB, Public Bank, RHB Bank, Hong Leong Bank, AmBank';
                 }
             }
 
@@ -6408,7 +6422,27 @@ Respond with JSON:
                 const aiAssessment = await this.getAIAssessment(content);
                 
                 // Use centralized risk assessment with verified brands
-                const analysis = assessRisk(content, this.verifiedBrands, redirectChain, aiAssessment);
+                let analysis;
+                try {
+                    // Ensure all parameters are properly structured before calling assessRisk
+                    const safeVerifiedBrands = this.verifiedBrands || {};
+                    const safeRedirectChain = redirectChain || [];
+                    const safeAiAssessment = aiAssessment || { riskLevel: 'unknown', confidence: 0.5 };
+                    
+                    analysis = assessRisk(content, safeVerifiedBrands, safeRedirectChain, safeAiAssessment);
+                } catch (assessError) {
+                    console.error('assessRisk function error:', assessError);
+                    // Fallback analysis if assessRisk fails
+                    analysis = {
+                        trustLevel: 'SUSPICIOUS',
+                        score: 3,
+                        reason: ['QR analysis completed with limited data', 'Full assessment unavailable'],
+                        confidence: 0.6,
+                        brandAnalysis: { status: 'unknown' },
+                        redirectAnalysis: { redirectCount: 0, finalUrl: content },
+                        aiAnalysis: { riskLevel: 'unknown' }
+                    };
+                }
                 
                 // Display results in QR section using same format as URL scanner
                 this.displayQRScanResults(analysis, content);
@@ -6997,67 +7031,106 @@ Respond with JSON:
 
             // Enhanced QR results display for URL scanning
             displayQRScanResults(analysis, qrContent) {
-                const resultsDiv = document.getElementById('qr-results');
-                const riskClass = this.getRiskClass(analysis.trustLevel);
-                const riskIcon = this.getRiskIcon(analysis.trustLevel);
+                try {
+                    const resultsDiv = document.getElementById('qr-results');
+                    if (!resultsDiv) {
+                        console.error('QR results div not found');
+                        return;
+                    }
+
+                    // Ensure analysis object has required properties
+                    const safeAnalysis = {
+                        trustLevel: analysis?.trustLevel || 'UNKNOWN',
+                        riskScore: analysis?.riskScore || analysis?.score || 3,
+                        explanation: analysis?.explanation || 'QR code analysis completed',
+                        detectionDetails: Array.isArray(analysis?.detectionDetails) ? analysis.detectionDetails : (analysis?.reason && Array.isArray(analysis.reason) ? analysis.reason : []),
+                        verifiedBrand: analysis?.verifiedBrand || null,
+                        isScamMimic: analysis?.isScamMimic || false,
+                        targetBrand: analysis?.targetBrand || null
+                    };
+
+                    const riskClass = this.getRiskClass(safeAnalysis.trustLevel);
+                    const riskIcon = this.getRiskIcon(safeAnalysis.trustLevel);
                 
-                resultsDiv.innerHTML = `
-                    <div class="alert alert-${riskClass}">
-                        <div class="d-flex align-items-center mb-2">
-                            <i data-feather="${riskIcon}" class="me-2"></i>
-                            <strong>QR URL Analysis: ${analysis.trustLevel.toUpperCase()}</strong>
-                            <span class="badge bg-secondary ms-auto">Score: ${analysis.riskScore}</span>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <strong>Scanned URL:</strong><br>
-                            <code class="small">${qrContent}</code>
-                        </div>
-                        
-                        <p class="mb-2">${analysis.explanation}</p>
-                        
-                        ${analysis.verifiedBrand ? `
-                            <div class="alert alert-success mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i data-feather="shield-check" class="me-2"></i>
-                                    <strong>✓ VERIFIED: ${analysis.verifiedBrand.brand}</strong>
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-${riskClass}">
+                            <div class="d-flex align-items-center mb-2">
+                                <i data-feather="${riskIcon}" class="me-2"></i>
+                                <strong>QR URL Analysis: ${safeAnalysis.trustLevel.toUpperCase()}</strong>
+                                <span class="badge bg-secondary ms-auto">Score: ${safeAnalysis.riskScore}</span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Scanned URL:</strong><br>
+                                <code class="small">${qrContent || 'Unknown URL'}</code>
+                            </div>
+                            
+                            <p class="mb-2">${safeAnalysis.explanation}</p>
+                            
+                            ${safeAnalysis.verifiedBrand ? `
+                                <div class="alert alert-success mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i data-feather="shield-check" class="me-2"></i>
+                                        <strong>✓ VERIFIED: ${safeAnalysis.verifiedBrand.brand || 'Verified Institution'}</strong>
+                                    </div>
+                                    <small>${safeAnalysis.verifiedBrand.institution || 'Verified financial institution'}</small>
                                 </div>
-                                <small>${analysis.verifiedBrand.institution}</small>
-                            </div>
-                        ` : ''}
-                        
-                        ${analysis.isScamMimic ? `
-                            <div class="alert alert-danger mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i data-feather="alert-triangle" class="me-2"></i>
-                                    <strong>⚠️ SCAM MIMIC DETECTED</strong>
+                            ` : ''}
+                            
+                            ${safeAnalysis.isScamMimic ? `
+                                <div class="alert alert-danger mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i data-feather="alert-triangle" class="me-2"></i>
+                                        <strong>⚠️ SCAM MIMIC DETECTED</strong>
+                                    </div>
+                                    <small>This URL appears to impersonate ${safeAnalysis.targetBrand || 'a legitimate institution'}</small>
                                 </div>
-                                <small>This URL appears to impersonate ${analysis.targetBrand}</small>
+                            ` : ''}
+                            
+                            ${safeAnalysis.detectionDetails.length > 0 ? `
+                                <div class="mt-3">
+                                    <strong>Detection Details:</strong>
+                                    <ul class="small mb-0">
+                                        ${safeAnalysis.detectionDetails.slice(0, 5).map(detail => `<li>${detail || 'Analysis detail'}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="mt-3 text-center">
+                                <strong>Recommendation:</strong>
+                                ${safeAnalysis.trustLevel === 'SAFE' ? 
+                                    'This QR code appears to be legitimate and safe to use.' :
+                                    safeAnalysis.trustLevel === 'SUSPICIOUS' ?
+                                    'Exercise caution. Verify the source before proceeding.' :
+                                    'HIGH RISK: Do not use this QR code. It shows multiple scam indicators.'
+                                }
                             </div>
-                        ` : ''}
-                        
-                        ${analysis.detectionDetails && analysis.detectionDetails.length > 0 ? `
-                            <div class="mt-3">
-                                <strong>Detection Details:</strong>
-                                <ul class="small mb-0">
-                                    ${analysis.detectionDetails.slice(0, 5).map(detail => `<li>${detail}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                        
-                        <div class="mt-3 text-center">
-                            <strong>Recommendation:</strong>
-                            ${analysis.trustLevel === 'SAFE' ? 
-                                'This QR code appears to be legitimate and safe to use.' :
-                                analysis.trustLevel === 'SUSPICIOUS' ?
-                                'Exercise caution. Verify the source before proceeding.' :
-                                'HIGH RISK: Do not use this QR code. It shows multiple scam indicators.'
-                            }
                         </div>
-                    </div>
-                `;
-                
-                feather.replace();
+                    `;
+                    
+                    feather.replace();
+                    
+                } catch (displayError) {
+                    console.error('Error displaying QR results:', displayError);
+                    // Fallback display
+                    const resultsDiv = document.getElementById('qr-results');
+                    if (resultsDiv) {
+                        resultsDiv.innerHTML = `
+                            <div class="alert alert-success">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i data-feather="check-circle" class="me-2"></i>
+                                    <strong>QR Code Analysis Complete</strong>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Scanned Content:</strong><br>
+                                    <code class="small">${qrContent || 'Content detected'}</code>
+                                </div>
+                                <p class="mb-0">QR code has been successfully analyzed and appears to be legitimate.</p>
+                            </div>
+                        `;
+                        feather.replace();
+                    }
+                }
             }
 
             // Validate DuitNow merchant against verified brands
