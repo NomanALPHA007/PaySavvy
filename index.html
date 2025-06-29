@@ -15,11 +15,11 @@
     <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
     
-    <!-- Chart.js for analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js removed to fix import.meta errors -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
     
-    <!-- QR Code Scanner - Browser-compatible version -->
-    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- QR Code Scanner - Removed to fix import.meta errors -->
+    <!-- <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script> -->
     
     <style>
         :root {
@@ -634,14 +634,9 @@
             }
 
             initializeQRScanner() {
-                // Check if jsQR library is available
-                if (typeof jsQR !== 'undefined') {
-                    this.qrScannerReady = true;
-                    console.log('jsQR Scanner library loaded successfully');
-                } else {
-                    console.warn('jsQR Scanner library not available');
-                    this.qrScannerReady = false;
-                }
+                // QR scanner disabled to prevent import.meta errors - file upload only
+                this.qrScannerReady = false;
+                console.log('QR Scanner initialized in file-only mode');
             }
 
             setupEventListeners() {
@@ -1597,17 +1592,18 @@ Respond with JSON:
 
             displayAdvancedResults(results) {
                 // Fingerprint Analysis
+                const fingerprintData = results.fingerprintAnalysis || {};
                 document.getElementById('fingerprintResults').innerHTML = `
                     <div class="row">
                         <div class="col-md-6">
                             <h6>DNA Signature</h6>
-                            <p><code>${results.fingerprint.hash}</code></p>
-                            <p><strong>Risk Score:</strong> ${results.fingerprint.riskScore}/10</p>
+                            <p><code>${fingerprintData.fingerprint || 'Computing...'}</code></p>
+                            <p><strong>Status:</strong> ${fingerprintData.isKnownScam ? 'Known Scam' : 'Clean'}</p>
                         </div>
                         <div class="col-md-6">
-                            <h6>Pattern Analysis</h6>
-                            <small>Length: ${results.fingerprint.patterns[0]}, Subdomains: ${results.fingerprint.patterns[1]}</small><br>
-                            <small>Hyphens: ${results.fingerprint.patterns[2]}, Numbers: ${results.fingerprint.patterns[3]}</small>
+                            <h6>Analysis Result</h6>
+                            <p><strong>Score:</strong> ${fingerprintData.score || 0} points</p>
+                            <p><strong>Confidence:</strong> ${Math.round((fingerprintData.confidence || 0) * 100)}%</p>
                         </div>
                     </div>
                 `;
