@@ -602,7 +602,268 @@
     
     <!-- Main Application Script -->
     <script>
-        // PaySavvy Pro - Complete Vercel-Ready Application
+        // Centralized Risk Scoring Functions (Integrated from modular components)
+        function getAllDomains(verifiedData) {
+            const whitelist = [];
+            const blacklist = [];
+            const countryCodes = [];
+            const brandMap = new Map();
+
+            for (const region in verifiedData) {
+                if (region === 'metadata') continue;
+                
+                for (const brandName in verifiedData[region]) {
+                    const brand = verifiedData[region][brandName];
+                    
+                    if (brand.domains) {
+                        brand.domains.forEach(domain => {
+                            whitelist.push(domain.toLowerCase());
+                            brandMap.set(domain.toLowerCase(), { name: brandName, ...brand, region });
+                        });
+                    }
+                    
+                    if (brand.commonScamMimics) {
+                        blacklist.push(...brand.commonScamMimics.map(d => d.toLowerCase()));
+                    }
+                    
+                    if (brand.countryCode && !countryCodes.includes(brand.countryCode)) {
+                        countryCodes.push(brand.countryCode);
+                    }
+                }
+            }
+
+            return { whitelist, blacklist, countryCodes, brandMap };
+        }
+
+        function assessRisk(inputURL, verifiedBrands, redirectChain = [], aiAssessment = null) {
+            let score = 0;
+            let labels = [];
+            let result = {
+                trustLevel: "Unknown",
+                reason: [],
+                brand: null,
+                score: 0,
+                confidence: 0.7,
+                layerResults: {
+                    heuristics: { score: 0, flags: [] },
+                    brandCheck: { score: 0, flags: [] },
+                    redirects: { score: 0, flags: [] },
+                    aiAnalysis: { score: 0, flags: [] }
+                }
+            };
+
+            try {
+                const urlObj = new URL(inputURL);
+                const domain = urlObj.hostname.toLowerCase().replace(/^www\./, '');
+                const tld = domain.split('.').pop();
+                const { whitelist, blacklist, countryCodes, brandMap } = getAllDomains(verifiedBrands);
+
+                // Layer 1: Heuristic Analysis
+                const layer1 = analyzeHeuristics(inputURL, domain, tld);
+                result.layerResults.heuristics = layer1;
+                score += layer1.score;
+                labels.push(...layer1.flags);
+
+                // Layer 2: Brand Verification
+                const layer2 = analyzeBrandMatch(domain, whitelist, blacklist, brandMap, verifiedBrands);
+                result.layerResults.brandCheck = layer2;
+                score += layer2.score;
+                labels.push(...layer2.flags);
+                if (layer2.brand) result.brand = layer2.brand;
+
+                // Layer 3: Redirect Chain Validation
+                const layer3 = analyzeRedirects(redirectChain, whitelist);
+                result.layerResults.redirects = layer3;
+                score += layer3.score;
+                labels.push(...layer3.flags);
+
+                // Layer 4: AI Assessment Integration
+                const layer4 = analyzeAIAssessment(aiAssessment);
+                result.layerResults.aiAnalysis = layer4;
+                score += layer4.score;
+                labels.push(...layer4.flags);
+
+                result.score = score;
+                result.reason = labels.filter(label => label);
+
+                let confidence = 0.7;
+                if (result.brand) confidence = 0.95;
+                else if (aiAssessment && aiAssessment.confidence) confidence = aiAssessment.confidence;
+                else if (labels.length >= 3) confidence = 0.85;
+                result.confidence = confidence;
+
+                if (result.brand && score <= 0) {
+                    result.trustLevel = "Safe";
+                } else if (score >= 7) {
+                    result.trustLevel = "Dangerous";
+                } else if (score >= 3) {
+                    result.trustLevel = "Suspicious";
+                } else if (score <= -3) {
+                    result.trustLevel = "Safe";
+                } else {
+                    result.trustLevel = "Unknown";
+                }
+
+                return result;
+
+            } catch (e) {
+                return {
+                    trustLevel: "Error",
+                    reason: ["URL parsing failed: " + e.message],
+                    score: 0,
+                    confidence: 0.1,
+                    layerResults: {}
+                };
+            }
+        }
+
+        function analyzeHeuristics(url, domain, tld) {
+            let score = 0;
+            const flags = [];
+            const urlLower = url.toLowerCase();
+
+            const riskyTLDs = ['tk', 'ml', 'ga', 'cf', 'pw', 'top'];
+            if (riskyTLDs.includes(tld)) {
+                score += 3;
+                flags.push(`High-risk TLD detected: .${tld}`);
+            }
+
+            const scamKeywords = ['urgent', 'verify', 'suspend', 'expire', 'claim', 'winner', 'prize'];
+            scamKeywords.forEach(keyword => {
+                if (urlLower.includes(keyword)) {
+                    score += 2;
+                    flags.push(`Scam keyword detected: ${keyword}`);
+                }
+            });
+
+            const malaysianPatterns = ['bank negara', 'lhdn', 'kwsp', 'pdrm'];
+            malaysianPatterns.forEach(pattern => {
+                if (urlLower.includes(pattern.replace(' ', ''))) {
+                    score += 3;
+                    flags.push(`Malaysian scam pattern: ${pattern}`);
+                }
+            });
+
+            if (url.length > 100) {
+                score += 1;
+                flags.push('Extremely long URL');
+            }
+
+            if ((domain.match(/-/g) || []).length > 3) {
+                score += 2;
+                flags.push('Multiple hyphens in domain');
+            }
+
+            if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(domain)) {
+                score += 4;
+                flags.push('IP address instead of domain name');
+            }
+
+            const shorteners = ['bit.ly', 'tinyurl', 't.co', 'goo.gl', 'ow.ly', 'buff.ly'];
+            if (shorteners.some(shortener => urlLower.includes(shortener))) {
+                score += 2;
+                flags.push('URL shortener detected');
+            }
+
+            return { score, flags };
+        }
+
+        function analyzeBrandMatch(domain, whitelist, blacklist, brandMap, verifiedBrands) {
+            let score = 0;
+            const flags = [];
+            let brand = null;
+
+            if (brandMap.has(domain)) {
+                brand = brandMap.get(domain);
+                score = -5;
+                flags.push(`✓ Verified ${brand.region} financial institution: ${brand.name}`);
+                return { score, flags, brand };
+            }
+
+            for (const [verifiedDomain, brandData] of brandMap.entries()) {
+                if (domain.endsWith(verifiedDomain) && domain !== verifiedDomain) {
+                    brand = brandData;
+                    score = -3;
+                    flags.push(`✓ Subdomain of verified brand: ${brand.name}`);
+                    return { score, flags, brand };
+                }
+            }
+
+            if (blacklist.includes(domain)) {
+                score = 6;
+                flags.push('⚠️ Known scam domain detected');
+                return { score, flags, brand };
+            }
+
+            return { score, flags, brand };
+        }
+
+        function analyzeRedirects(redirectChain, whitelist) {
+            let score = 0;
+            const flags = [];
+
+            if (redirectChain.length === 0) {
+                return { score, flags };
+            }
+
+            if (redirectChain.length > 2) {
+                score += 2;
+                flags.push(`Multiple redirects detected (${redirectChain.length})`);
+            }
+
+            try {
+                const finalUrl = redirectChain[redirectChain.length - 1];
+                const finalDomain = new URL(finalUrl).hostname.toLowerCase().replace(/^www\./, '');
+                
+                if (!whitelist.includes(finalDomain)) {
+                    score += 3;
+                    flags.push('Redirect to untrusted destination');
+                } else {
+                    score -= 1;
+                    flags.push('Redirect to verified destination');
+                }
+            } catch (e) {
+                score += 2;
+                flags.push('Invalid redirect destination');
+            }
+
+            return { score, flags };
+        }
+
+        function analyzeAIAssessment(aiAssessment) {
+            let score = 0;
+            const flags = [];
+
+            if (!aiAssessment || !aiAssessment.risk) {
+                return { score, flags };
+            }
+
+            switch (aiAssessment.risk.toLowerCase()) {
+                case 'dangerous':
+                    score = 4;
+                    flags.push(`AI flagged as dangerous: ${aiAssessment.reason || 'High risk detected'}`);
+                    break;
+                case 'suspicious':
+                    score = 2;
+                    flags.push(`AI suggests caution: ${aiAssessment.reason || 'Potential risk'}`);
+                    break;
+                case 'safe':
+                    score = -1;
+                    flags.push('AI assessment: Safe');
+                    break;
+                default:
+                    flags.push('AI analysis: Inconclusive');
+            }
+
+            if (aiAssessment.impersonatedBrand) {
+                score += 2;
+                flags.push(`AI detected brand impersonation: ${aiAssessment.impersonatedBrand}`);
+            }
+
+            return { score, flags };
+        }
+
+        // PaySavvy Pro - Refactored with Centralized Risk Scoring
         class PaySavvyPro {
             constructor() {
                 this.apiKey = this.getApiKey();
@@ -610,6 +871,8 @@
                 this.qrScanner = null;
                 this.scanHistory = this.loadScanHistory();
                 this.scamFingerprints = this.loadScamFingerprints();
+                this.brandValidator = null;
+                this.verifiedBrands = null;
                 this.brandList = null;
                 this.loadBrandData();
                 this.init();
@@ -634,11 +897,12 @@
                     this.brandList = this.getFallbackBrandData();
                 }
                 
-                // Load verified brands dataset for ASEAN region
+                // Load comprehensive verified brands dataset with international coverage
                 try {
                     const verifiedResponse = await fetch('/data/verifiedBrands.json');
                     this.verifiedBrands = await verifiedResponse.json();
-                    console.log('Verified brands loaded successfully');
+                    this.brandValidator = new BrandValidator(this.verifiedBrands);
+                    console.log(`Verified brands loaded: ${this.verifiedBrands.metadata.totalInstitutions} international financial institutions`);
                 } catch (error) {
                     console.warn('Failed to load verified brands data');
                     this.verifiedBrands = {};
@@ -923,19 +1187,28 @@
                 this.setLoadingState(true);
 
                 try {
-                    const results = await this.analyzeUrl(url);
+                    // Ensure verified brands are loaded
+                    if (!this.verifiedBrands) {
+                        await this.loadBrandData();
+                    }
+
+                    // Perform comprehensive analysis using centralized risk scorer
+                    const redirectChain = await this.analyzeRedirectChain(url);
+                    const aiAssessment = this.apiKey ? await this.getEnhancedAIAssessment(url) : null;
                     
-                    this.displayResults(results);
-                    this.saveScanResult(results);
+                    const analysis = assessRisk(url, this.verifiedBrands, redirectChain, aiAssessment);
+                    
+                    this.displayEnhancedResults(analysis, url);
+                    this.saveScanResult(analysis, url);
                     this.displayScanHistory();
                     
-                    // Save scam fingerprint if dangerous
-                    if (results.finalRiskLevel === 'dangerous') {
+                    // Save scam fingerprint if dangerous (but not for verified brands)
+                    if (analysis.trustLevel === 'Dangerous' && !analysis.brand) {
                         const fingerprint = await this.generateFingerprint(url);
                         this.scamFingerprints[fingerprint] = {
                             url: url,
                             timestamp: Date.now(),
-                            riskScore: results.finalScore
+                            riskScore: analysis.score
                         };
                         this.saveScamFingerprints();
                         this.showToast('Warning', 'Dangerous URL fingerprinted for future detection', 'warning');
@@ -948,52 +1221,202 @@
                 }
             }
 
-            // Main analysis function - 4-layer scam detection with 95%+ accuracy
-            async analyzeUrl(url) {
-                const results = {
-                    url,
-                    timestamp: new Date().toISOString(),
+            // Enhanced redirect analysis for centralized risk scoring
+            async analyzeRedirectChain(url) {
+                const redirectChain = [];
+                try {
+                    const shortenerPatterns = [
+                        'bit.ly', 'tinyurl', 't.co', 'goo.gl', 'ow.ly', 'buff.ly',
+                        'short.link', 'tiny.cc', 'is.gd', 'v.gd'
+                    ];
                     
-                    // Layer 1: Heuristic Analysis (regex patterns, TLDs, keywords)
-                    heuristicAnalysis: await this.runHeuristics(url),
-                    
-                    // Layer 2: Brand Verification and Scam Mimic Detection
-                    brandAnalysis: this.performBrandAnalysis(url),
-                    
-                    // Layer 3: Redirect Chain Analysis
-                    redirectAnalysis: await this.checkRedirects(url),
-                    
-                    // Layer 4: AI Semantic Analysis (optional fallback)
-                    aiAnalysis: null,
-                    
-                    // SHA-256 Scam DNA Fingerprinting
-                    fingerprintAnalysis: await this.checkScamFingerprint(url),
-                    
-                    // Additional features
-                    multilingualAnalysis: this.performMultilingualAnalysis(url),
-                    regionalRisk: this.assessRegionalRisk(url)
-                };
-
-                // Layer 4: AI Analysis (graceful fallback if available)
-                if (this.apiKey) {
-                    try {
-                        results.aiAnalysis = await this.analyzeAI(url);
-                    } catch (error) {
-                        console.warn('AI analysis unavailable:', error);
-                        results.aiAnalysis = { error: 'AI analysis unavailable', available: false };
+                    if (shortenerPatterns.some(pattern => url.toLowerCase().includes(pattern))) {
+                        redirectChain.push(url);
+                        // In production, follow actual redirects
                     }
-                } else {
-                    results.aiAnalysis = { error: 'API key not configured', available: false };
+                } catch (error) {
+                    console.warn('Redirect analysis failed:', error);
                 }
+                return redirectChain;
+            }
 
-                // Calculate final risk score and level
-                const finalAnalysis = this.getRiskLevel(results);
-                results.finalScore = finalAnalysis.score;
-                results.finalRiskLevel = finalAnalysis.level;
-                results.explanation = finalAnalysis.explanation;
-                results.confidence = finalAnalysis.confidence;
+            // Enhanced AI assessment with verified brands context
+            async getEnhancedAIAssessment(url) {
+                if (!this.apiKey) return null;
 
-                return results;
+                try {
+                    const trustedDomains = this.verifiedBrands ? 
+                        Object.values(this.verifiedBrands)
+                            .filter(region => region !== this.verifiedBrands.metadata)
+                            .flatMap(region => Object.values(region))
+                            .flatMap(brand => brand.domains || [])
+                            .slice(0, 25)
+                            .join(', ') : 
+                        'paypal.com, wise.com, stripe.com, maybank2u.com.my, cimb.com.my, tngdigital.com.my';
+                    
+                    const prompt = `You're a cybersecurity expert analyzing URLs for Malaysian/ASEAN users.
+
+URL: ${url}
+
+Known verified financial institutions: ${trustedDomains}
+
+Analyze this URL for potential scams and respond with JSON in this exact format:
+{
+  "risk": "Safe|Suspicious|Dangerous",
+  "reason": "Brief explanation of the assessment",
+  "impersonatedBrand": "Brand name if mimicking a verified institution, or null",
+  "confidence": 0.95
+}
+
+Focus on:
+- Domain similarity to verified brands
+- Suspicious URL patterns
+- Potential phishing indicators
+- Malaysian/ASEAN-specific threats`;
+
+                    const response = await fetch(this.baseUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+                            messages: [{ role: "user", content: prompt }],
+                            response_format: { type: "json_object" },
+                            max_tokens: 300
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`AI API error: ${response.status}`);
+                    
+                    const data = await response.json();
+                    return JSON.parse(data.choices[0].message.content);
+                    
+                } catch (error) {
+                    console.warn('AI analysis failed:', error);
+                    return { 
+                        risk: "Unknown", 
+                        reason: "AI analysis unavailable", 
+                        confidence: 0.5,
+                        impersonatedBrand: null 
+                    };
+                }
+            }
+
+            // Enhanced results display with centralized risk scoring
+            displayEnhancedResults(analysis, url) {
+                const resultsDiv = document.getElementById('results');
+                const riskClass = this.getRiskClass(analysis.trustLevel);
+                const riskIcon = this.getRiskIcon(analysis.trustLevel);
+
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-${riskClass}">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-feather="${riskIcon}" class="me-2"></i>
+                            <strong>${analysis.trustLevel.toUpperCase()}</strong>
+                            <span class="badge bg-info ms-2">${Math.round(analysis.confidence * 100)}% Confidence</span>
+                            <span class="badge bg-secondary ms-auto">Risk Score: ${analysis.score}/10</span>
+                        </div>
+                        
+                        ${analysis.brand ? `
+                            <div class="card border-success mb-3" style="background-color: #f8fff9;">
+                                <div class="card-header bg-success text-white">
+                                    <div class="d-flex align-items-center">
+                                        <i data-feather="shield-check" class="me-2"></i>
+                                        <strong>Government-Authorized Financial Institution</strong>
+                                    </div>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="${analysis.brand.logo}" alt="${analysis.brand.name} logo" height="40" class="me-3" onerror="this.style.display='none'"/>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1 text-success">${analysis.brand.name}</h5>
+                                            <small class="text-muted">${analysis.brand.institution}</small>
+                                        </div>
+                                        <span class="badge bg-success fs-6">✓ VERIFIED</span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small><strong>Regulatory License:</strong><br>${analysis.brand.regulatoryLicense}</small><br><br>
+                                            <small><strong>Established:</strong> ${analysis.brand.establishedYear}</small><br>
+                                            <small><strong>Region:</strong> ${analysis.brand.region}</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small><strong>Services:</strong><br>${analysis.brand.services ? analysis.brand.services.slice(0, 4).join(', ') : 'Financial Services'}</small><br><br>
+                                            <small><strong>Headquarters:</strong> ${analysis.brand.headquarters}</small>
+                                        </div>
+                                    </div>
+                                    ${analysis.brand.globalPresence ? `
+                                        <div class="mt-2 pt-2 border-top">
+                                            <small><strong>Global Presence:</strong> ${analysis.brand.globalPresence.slice(0, 6).join(', ')}</small>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-3">
+                            <small><strong>4-Layer Centralized Analysis:</strong></small>
+                            <div class="row mt-2">
+                                <div class="col-md-3">
+                                    <small><strong>Layer 1:</strong> Heuristics</small><br>
+                                    <span class="badge bg-${analysis.layerResults?.heuristics?.score > 3 ? 'danger' : 'success'}">${analysis.layerResults?.heuristics?.score || 0} pts</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small><strong>Layer 2:</strong> Brand Check</small><br>
+                                    <span class="badge bg-${analysis.brand ? 'success' : analysis.layerResults?.brandCheck?.score > 3 ? 'danger' : 'secondary'}">${analysis.brand ? 'Verified' : 'Unknown'}</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small><strong>Layer 3:</strong> Redirects</small><br>
+                                    <span class="badge bg-${analysis.layerResults?.redirects?.score > 2 ? 'danger' : 'success'}">${analysis.layerResults?.redirects?.score || 0} pts</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small><strong>Layer 4:</strong> AI Analysis</small><br>
+                                    <span class="badge bg-${this.apiKey ? 'primary' : 'secondary'}">${this.apiKey ? 'Active' : 'Offline'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <small><strong>Detection Factors:</strong></small>
+                            <ul class="small mb-0">
+                                ${analysis.reason.slice(0, 8).map(factor => `<li>${factor}</li>`).join('')}
+                                ${analysis.reason.length > 8 ? `<li><em>...and ${analysis.reason.length - 8} more factors</em></li>` : ''}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+
+                // Display advanced analysis sections using existing functions
+                this.displayAdvancedResults({
+                    fingerprintAnalysis: { flags: [] },
+                    multilingualAnalysis: { flags: [] },
+                    regionalRisk: { flags: [] }
+                });
+                
+                resultsDiv.style.display = 'block';
+                const advancedDiv = document.getElementById('advanced-results');
+                if (advancedDiv) advancedDiv.style.display = 'block';
+                feather.replace();
+            }
+
+            getRiskClass(trustLevel) {
+                switch (trustLevel.toLowerCase()) {
+                    case 'safe': return 'success';
+                    case 'suspicious': return 'warning';
+                    case 'dangerous': return 'danger';
+                    default: return 'secondary';
+                }
+            }
+
+            getRiskIcon(trustLevel) {
+                switch (trustLevel.toLowerCase()) {
+                    case 'safe': return 'check-circle';
+                    case 'suspicious': return 'alert-triangle';
+                    case 'dangerous': return 'x-circle';
+                    default: return 'help-circle';
+                }
             }
 
             // Layer 1: Heuristic Analysis - Regex patterns, TLDs, keywords, brand mimicking

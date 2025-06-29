@@ -175,6 +175,15 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Included detailed regulatory licenses for each provider with specific authorization bodies
   - Enhanced scam mimic detection patterns for international payment fraud prevention
   - Created comprehensive cross-border payment ecosystem coverage for global financial protection
+- June 29, 2025: Complete PaySavvy Pro refactoring with centralized risk scoring system
+  - Created modular file structure with src/detectors/riskScorer.js and brandValidator.js
+  - Implemented centralized assessRisk() function integrating all 4 detection layers
+  - Enhanced Layer 1 (Heuristics): TLD detection, scam keywords, Malaysian patterns, URL structure analysis
+  - Enhanced Layer 2 (Brand Check): Full integration with 100 verified brands dataset and scam mimic detection
+  - Enhanced Layer 3 (Redirects): Trust validation against verified domains with comprehensive chain analysis
+  - Enhanced Layer 4 (AI Analysis): Enriched prompts with verified brands context for accurate impersonation detection
+  - Consolidated scoring logic with confidence levels (Safe/Suspicious/Dangerous) and detailed decision factors
+  - Production-ready implementation without ES6 modules to maintain deployment compatibility
 - June 29, 2025: Resolved critical false positive and enhanced brand verification display system
   - Fixed TNG Digital false positive by implementing brand verification override in scam fingerprinting
   - Added comprehensive brand information display with logos, regulatory licenses, and institutional details

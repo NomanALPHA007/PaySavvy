@@ -1,0 +1,194 @@
+Please refactor my PaySavvy Pro app to fully integrate the verifiedBrands.json dataset across all four detection layers:
+
+Layer 1: Heuristics & TLD detection
+
+Layer 2: Brand Whitelist / Blacklist verification
+
+Layer 3: Redirect chain trust validation
+
+Layer 4: AI prompt enrichment with semantic info
+
+I want to centralize the scoring logic into a riskScorer.js file and make all results display confidence levels (Safe, Suspicious, Dangerous), show brand metadata if matched, and expose key decision factors.
+
+✅ File Structure
+Create or update this file structure in Replit:
+
+css
+Copy
+Edit
+📂 /src
+├── main.js
+├── detectors/
+│   ├── riskScorer.js ✅ (NEW)
+│   └── brandValidator.js ✅ (updated)
+├── data/
+│   └── verifiedBrands.json ✅
+✅ Step-by-Step Instructions for AI
+🧩 Step 1: Load and Parse Verified Brands Data
+In main.js or riskScorer.js, import:
+
+js
+Copy
+Edit
+import verifiedBrands from '../data/verifiedBrands.json';
+Create a helper to flatten all known verified domains and mimic domains:
+
+js
+Copy
+Edit
+export const getAllDomains = (verifiedData) => {
+  const whitelist = [];
+  const blacklist = [];
+  const countryCodes = [];
+
+  for (const region in verifiedData) {
+    for (const brandName in verifiedData[region]) {
+      const brand = verifiedData[region][brandName];
+      whitelist.push(...brand.domains);
+      blacklist.push(...brand.commonScamMimics);
+      if (!countryCodes.includes(brand.countryCode)) {
+        countryCodes.push(brand.countryCode);
+      }
+    }
+  }
+
+  return { whitelist, blacklist, countryCodes };
+};
+🔐 Step 2: Create riskScorer.js
+🧠 Scoring Function
+js
+Copy
+Edit
+export function assessRisk(inputURL, verifiedBrands, redirectChain = [], aiAssessment = null) {
+  let score = 0;
+  let labels = [];
+  let result = {
+    trustLevel: "Unknown",
+    reason: [],
+    brand: null
+  };
+
+  try {
+    const urlObj = new URL(inputURL);
+    const domain = urlObj.hostname.toLowerCase();
+    const tld = domain.split('.').pop();
+    const { whitelist, blacklist, countryCodes } = getAllDomains(verifiedBrands);
+
+    // Layer 1: Heuristic (bad TLDs, scam keywords)
+    const riskyTLDs = ['tk', 'ml', 'ga', 'cf'];
+    if (riskyTLDs.includes(tld)) {
+      score += 2;
+      labels.push("Suspicious TLD");
+    }
+
+    if (blacklist.includes(domain)) {
+      score += 5;
+      labels.push("Known Scam Domain");
+    }
+
+    // Layer 2: Brand Match
+    for (const region in verifiedBrands) {
+      for (const name in verifiedBrands[region]) {
+        const brand = verifiedBrands[region][name];
+        if (brand.domains.includes(domain)) {
+          score -= 5;
+          result.brand = { name, ...brand };
+          labels.push("Verified Brand");
+        } else if (brand.commonScamMimics.includes(domain)) {
+          score += 5;
+          labels.push("Brand Impersonation: " + name);
+        }
+      }
+    }
+
+    // Layer 3: Redirect Validation
+    if (redirectChain.length > 0) {
+      const finalDomain = new URL(redirectChain[redirectChain.length - 1]).hostname;
+      if (!whitelist.includes(finalDomain)) {
+        score += 3;
+        labels.push("Untrusted Redirect Destination");
+      }
+    }
+
+    // Layer 4: AI Analysis
+    if (aiAssessment) {
+      if (aiAssessment.risk === "Dangerous") {
+        score += 4;
+        labels.push("AI Flagged as Dangerous");
+      } else if (aiAssessment.risk === "Suspicious") {
+        score += 2;
+        labels.push("AI Suggests Suspicion");
+      }
+    }
+
+    // Final Classification
+    if (score > 6) {
+      result.trustLevel = "Dangerous";
+    } else if (score > 3) {
+      result.trustLevel = "Suspicious";
+    } else {
+      result.trustLevel = "Safe";
+    }
+
+    result.reason = labels;
+    result.score = score;
+    return result;
+
+  } catch (e) {
+    return {
+      trustLevel: "Error",
+      reason: ["URL Parsing Failed"]
+    };
+  }
+}
+🧪 Step 3: In main.js or handleScan()
+js
+Copy
+Edit
+import { assessRisk } from './detectors/riskScorer.js';
+import verifiedBrands from './data/verifiedBrands.json';
+
+const analysis = assessRisk(urlToCheck, verifiedBrands, redirectHistoryArray, gptRiskObject);
+
+displayScanResults(analysis); // UI output
+📣 Step 4: Displaying Results
+Create a displayScanResults() function to show:
+
+Trust Level (color coded)
+
+Brand name, logo if available
+
+List of triggered flags (heuristic, AI, mimic)
+
+Risk score (e.g., 7/10 - Dangerous)
+
+js
+Copy
+Edit
+function displayScanResults(result) {
+  const container = document.getElementById("results");
+
+  container.innerHTML = `
+    <h3>Trust Level: <span class="${result.trustLevel.toLowerCase()}">${result.trustLevel}</span></h3>
+    ${result.brand ? `<img src="${result.brand.logo}" height="30" /><p><b>Institution:</b> ${result.brand.institution}</p>` : ""}
+    <ul>${result.reason.map(r => `<li>${r}</li>`).join('')}</ul>
+    <p>Composite Risk Score: ${result.score}/10</p>
+  `;
+}
+📤 Bonus: Enrich GPT Prompt in AI Layer
+js
+Copy
+Edit
+const trustedDomains = getAllDomains(verifiedBrands).whitelist.slice(0, 10).join(", ");
+const prompt = `
+You're a security assistant. Here's a user-submitted URL:
+
+URL: ${url}
+
+Known Malaysian/ASEAN banking domains: ${trustedDomains}
+
+Does this URL impersonate a trusted service? Respond with:
+- Risk: [Safe / Suspicious / Dangerous]
+- Reason
+- Possible Impersonated Brand
+`;
