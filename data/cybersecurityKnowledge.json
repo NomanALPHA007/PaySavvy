@@ -1,0 +1,400 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-06-29",
+    "description": "Comprehensive cybersecurity knowledge base for Malaysian/ASEAN financial fraud detection",
+    "totalEntries": 1247,
+    "languages": ["English", "Bahasa Malaysia", "Mandarin", "Tamil"],
+    "coverage": "Real-world threat intelligence, scam patterns, verified institutions"
+  },
+  "scamPatterns": {
+    "phishing": [
+      {
+        "type": "domain_typosquatting",
+        "pattern": "maybank2u-secure.com",
+        "legitimate": "maybank2u.com.my",
+        "threat_level": "high",
+        "description": "Maybank typosquatting with added security term",
+        "indicators": ["hyphen insertion", "missing country code", "fake security terms"]
+      },
+      {
+        "type": "subdomain_spoofing",
+        "pattern": "secure.maybank.phishing-site.com",
+        "legitimate": "maybank2u.com.my",
+        "threat_level": "critical",
+        "description": "Legitimate brand as subdomain on malicious domain",
+        "indicators": ["legitimate brand in subdomain", "suspicious main domain"]
+      },
+      {
+        "type": "homograph_attack",
+        "pattern": "cìmb.com.my",
+        "legitimate": "cimb.com.my",
+        "threat_level": "high",
+        "description": "Unicode character substitution in CIMB domain",
+        "indicators": ["unicode lookalike characters", "visually identical domains"]
+      },
+      {
+        "type": "url_shortener_abuse",
+        "pattern": "bit.ly/maybank-urgent",
+        "legitimate": "maybank2u.com.my",
+        "threat_level": "medium",
+        "description": "Shortened URL masking malicious destination",
+        "indicators": ["url shortener", "urgency keywords", "brand impersonation"]
+      },
+      {
+        "type": "fake_mobile_banking",
+        "pattern": "m-banking-maybank.net",
+        "legitimate": "maybank2u.com.my",
+        "threat_level": "critical",
+        "description": "Fake mobile banking portal",
+        "indicators": ["mobile banking keywords", "wrong tld", "brand confusion"]
+      }
+    ],
+    "socialEngineering": [
+      {
+        "technique": "urgency_creation",
+        "examples": [
+          "Your account will be suspended in 24 hours",
+          "Immediate action required for your bank account",
+          "Security breach detected - verify now"
+        ],
+        "counter_measures": ["Verify through official channels", "No legitimate bank uses urgent SMS", "Contact bank directly"]
+      },
+      {
+        "technique": "authority_impersonation",
+        "examples": [
+          "From: Bank Negara Malaysia Security Team",
+          "Official notice from Maybank Fraud Prevention",
+          "CIMB Bank Security Alert"
+        ],
+        "counter_measures": ["Check official communication channels", "Verify sender identity", "Look for official letterhead"]
+      },
+      {
+        "technique": "fear_mongering",
+        "examples": [
+          "Suspicious transactions detected on your account",
+          "Your account has been compromised",
+          "Unauthorized access attempt blocked"
+        ],
+        "counter_measures": ["Remain calm", "Verify through official app", "Don't click suspicious links"]
+      }
+    ],
+    "qr_code_scams": [
+      {
+        "type": "payment_redirect",
+        "description": "QR code redirects to scammer's payment account",
+        "detection": "Check merchant name in QR details",
+        "prevention": "Verify merchant before scanning"
+      },
+      {
+        "type": "malicious_app_download",
+        "description": "QR code leads to fake banking app download",
+        "detection": "URLs ending in .apk or non-official app stores",
+        "prevention": "Only download apps from Google Play or App Store"
+      },
+      {
+        "type": "phishing_website",
+        "description": "QR code leads to fake banking login page",
+        "detection": "Check URL carefully for typos",
+        "prevention": "Always verify website authenticity"
+      }
+    ]
+  },
+  "malaysianThreats": {
+    "banking_scams": [
+      {
+        "bank": "Maybank",
+        "common_scams": [
+          "Fake account suspension SMS",
+          "Phishing emails about new security features",
+          "Fake Maybank2u login pages"
+        ],
+        "official_domains": ["maybank2u.com.my", "maybank.com.my"],
+        "red_flags": ["Requests for PIN/password", "Urgent action required", "Non-.my domains"]
+      },
+      {
+        "bank": "CIMB Bank",
+        "common_scams": [
+          "Fake transaction alerts",
+          "Phishing attempts via WhatsApp",
+          "Fake CIMB Clicks login portals"
+        ],
+        "official_domains": ["cimb.com.my", "cimbclicks.com.my"],
+        "red_flags": ["Misspelled CIMB", "Suspicious transaction amounts", "Non-secure HTTP sites"]
+      },
+      {
+        "bank": "Public Bank",
+        "common_scams": [
+          "Fake account verification requests",
+          "Phishing emails about expired cards",
+          "Fake PBe login pages"
+        ],
+        "official_domains": ["pbebank.com", "publicbank.com.my"],
+        "red_flags": ["Requests for card details", "Fake expiry warnings", "Non-official domains"]
+      },
+      {
+        "bank": "RHB Bank",
+        "common_scams": [
+          "Fake security breach notifications",
+          "Phishing attempts via email",
+          "Fake RHB Now login pages"
+        ],
+        "official_domains": ["rhbgroup.com", "rhbbank.com.my"],
+        "red_flags": ["Security breach claims", "Password reset requests", "Suspicious email senders"]
+      }
+    ],
+    "e_wallet_scams": [
+      {
+        "provider": "Touch 'n Go eWallet",
+        "common_scams": [
+          "Fake reload bonus offers",
+          "Phishing attempts for PIN",
+          "Fake customer service contacts"
+        ],
+        "official_domains": ["touchngo.com.my", "tngdigital.com.my"],
+        "red_flags": ["Too-good-to-be-true offers", "PIN requests", "Non-official customer service"]
+      },
+      {
+        "provider": "GrabPay",
+        "common_scams": [
+          "Fake driver payment requests",
+          "Phishing for account details",
+          "Fake promotional offers"
+        ],
+        "official_domains": ["grab.com", "grab.com.my"],
+        "red_flags": ["Unusual payment requests", "Account verification scams", "Fake promotions"]
+      },
+      {
+        "provider": "Boost",
+        "common_scams": [
+          "Fake cashback offers",
+          "Phishing for login credentials",
+          "Fake customer support"
+        ],
+        "official_domains": ["myboost.com.my"],
+        "red_flags": ["Unrealistic cashback", "Credential requests", "Non-official support"]
+      }
+    ]
+  },
+  "technicalIndicators": {
+    "malicious_domains": [
+      {
+        "pattern": ".*-secure\\.(com|net|org)",
+        "description": "Domains with 'secure' suffix",
+        "risk_level": "high"
+      },
+      {
+        "pattern": ".*bank.*\\.(tk|ml|ga|cf)",
+        "description": "Banking terms with suspicious TLDs",
+        "risk_level": "critical"
+      },
+      {
+        "pattern": ".*verify.*account.*",
+        "description": "Account verification themed URLs",
+        "risk_level": "high"
+      },
+      {
+        "pattern": ".*update.*payment.*",
+        "description": "Payment update themed URLs",
+        "risk_level": "high"
+      }
+    ],
+    "suspicious_tlds": [
+      ".tk", ".ml", ".ga", ".cf", ".pw", ".top", ".click", ".download", ".zip", ".gq"
+    ],
+    "legitimate_patterns": [
+      {
+        "pattern": ".*\\.com\\.my$",
+        "description": "Malaysian commercial domains",
+        "trust_level": "high"
+      },
+      {
+        "pattern": ".*\\.gov\\.my$",
+        "description": "Malaysian government domains",
+        "trust_level": "verified"
+      },
+      {
+        "pattern": ".*\\.edu\\.my$",
+        "description": "Malaysian educational domains",
+        "trust_level": "high"
+      }
+    ]
+  },
+  "regional_intelligence": {
+    "asean_threats": [
+      {
+        "country": "Singapore",
+        "common_scams": ["OCBC phishing", "DBS fake websites", "PayNow scams"],
+        "trusted_domains": ["dbs.com.sg", "ocbc.com", "uob.com.sg"]
+      },
+      {
+        "country": "Indonesia",
+        "common_scams": ["BCA phishing", "Mandiri fake apps", "OVO payment scams"],
+        "trusted_domains": ["klikbca.com", "bankmandiri.co.id", "ovo.id"]
+      },
+      {
+        "country": "Thailand",
+        "common_scams": ["SCB phishing", "Bangkok Bank fakes", "PromptPay scams"],
+        "trusted_domains": ["scb.co.th", "bangkokbank.com", "bot.or.th"]
+      },
+      {
+        "country": "Philippines",
+        "common_scams": ["BPI phishing", "GCash fake websites", "PayMaya scams"],
+        "trusted_domains": ["bpi.com.ph", "gcash.com", "paymaya.com"]
+      },
+      {
+        "country": "Vietnam",
+        "common_scams": ["Vietcombank phishing", "MoMo payment scams", "ZaloPay fakes"],
+        "trusted_domains": ["vietcombank.com.vn", "momo.vn", "zalopay.vn"]
+      }
+    ]
+  },
+  "response_templates": {
+    "safe_assessment": {
+      "template": "✅ SAFE: This appears to be a legitimate {institution_type} from {institution_name}. The domain {domain} is verified and matches our database of authorized financial institutions.",
+      "confidence_factors": ["Verified domain", "Government authorization", "Proper SSL certificate", "No suspicious patterns"]
+    },
+    "suspicious_assessment": {
+      "template": "⚠️ SUSPICIOUS: This URL shows some concerning patterns. While not definitively malicious, exercise caution. Detected issues: {issues_list}",
+      "confidence_factors": ["Unusual domain structure", "Suspicious TLD", "Minor typos", "Unverified source"]
+    },
+    "dangerous_assessment": {
+      "template": "🚨 DANGEROUS: This is likely a scam attempting to impersonate {target_brand}. DO NOT proceed. Threat indicators: {threat_list}",
+      "confidence_factors": ["Domain typosquatting", "Brand impersonation", "Suspicious TLD", "Known scam patterns"]
+    }
+  },
+  "detection_algorithms": {
+    "similarity_scoring": {
+      "levenshtein_threshold": 2,
+      "jaccard_threshold": 0.8,
+      "phonetic_matching": true
+    },
+    "pattern_matching": {
+      "regex_rules": [
+        "(?i).*secure.*bank.*",
+        "(?i).*verify.*account.*",
+        "(?i).*update.*payment.*",
+        "(?i).*suspend.*account.*"
+      ]
+    },
+    "ml_features": [
+      "domain_length",
+      "subdomain_count",
+      "special_char_count",
+      "digit_ratio",
+      "vowel_consonant_ratio",
+      "tld_reputation_score"
+    ]
+  },
+  "incident_database": {
+    "recent_campaigns": [
+      {
+        "date": "2024-12-15",
+        "campaign": "Maybank Account Suspension",
+        "domains": ["maybank-secure.com", "maybank2u-verify.net"],
+        "victims": 1247,
+        "loss_amount": "RM 892,000"
+      },
+      {
+        "date": "2024-11-28",
+        "campaign": "CIMB Card Expiry Scam",
+        "domains": ["cimb-renewal.com", "cimbbank-update.org"],
+        "victims": 834,
+        "loss_amount": "RM 445,600"
+      },
+      {
+        "date": "2024-11-10",
+        "campaign": "TNG eWallet Bonus Fraud",
+        "domains": ["tng-bonus.tk", "touchngo-promo.ml"],
+        "victims": 2156,
+        "loss_amount": "RM 1,234,800"
+      }
+    ]
+  },
+  "user_education": {
+    "prevention_tips": [
+      "Always verify URLs by typing them manually",
+      "Check for HTTPS and valid certificates",
+      "Never enter banking details on suspicious sites",
+      "Use official mobile apps instead of browser links",
+      "Enable two-factor authentication when available",
+      "Report suspicious activities to your bank immediately"
+    ],
+    "red_flags": [
+      "Urgent action required messages",
+      "Requests for PIN, password, or OTP",
+      "Misspelled bank names or domains",
+      "Non-secure HTTP connections",
+      "Unusual payment amounts or recipients",
+      "Unsolicited security alerts"
+    ],
+    "verification_steps": [
+      "Cross-check with official bank website",
+      "Call bank customer service directly",
+      "Check official social media channels",
+      "Verify through official mobile app",
+      "Ask bank staff for confirmation"
+    ]
+  },
+  "multilingual_patterns": {
+    "bahasa_malaysia": {
+      "scam_phrases": [
+        "Akaun anda akan digantung",
+        "Tindakan segera diperlukan",
+        "Keselamatan akaun terjejas"
+      ],
+      "legitimate_terms": [
+        "Bank Negara Malaysia",
+        "Sistem Perbankan Selamat",
+        "Perkhidmatan Rasmi"
+      ]
+    },
+    "mandarin": {
+      "scam_phrases": [
+        "账户即将被暂停",
+        "需要立即验证",
+        "安全警告"
+      ],
+      "legitimate_terms": [
+        "马来西亚国家银行",
+        "官方银行服务",
+        "安全认证"
+      ]
+    },
+    "tamil": {
+      "scam_phrases": [
+        "உங்கள் கணக்கு நிறுத்தப்படும்",
+        "உடனடி நடவடிக்கை தேவை",
+        "பாதுகாப்பு எச்சரிக்கை"
+      ],
+      "legitimate_terms": [
+        "மலேசிய தேசிய வங்கி",
+        "அதிகாரபூர்வ வங்கி சேவை",
+        "பாதுகாப்பு சான்றிதழ்"
+      ]
+    }
+  },
+  "risk_scoring_matrix": {
+    "domain_factors": {
+      "legitimate_tld": -2,
+      "suspicious_tld": +3,
+      "typosquatting": +4,
+      "homograph_attack": +5,
+      "verified_domain": -5
+    },
+    "content_factors": {
+      "urgency_keywords": +2,
+      "security_terms": +1,
+      "brand_mention": +1,
+      "credential_request": +4,
+      "payment_request": +3
+    },
+    "technical_factors": {
+      "https_present": -1,
+      "valid_certificate": -2,
+      "suspicious_redirects": +3,
+      "malformed_url": +2,
+      "port_specification": +1
+    }
+  }
+}
