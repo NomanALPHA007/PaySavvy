@@ -1,0 +1,239 @@
+I need you to fully debug and production-harden my modular JavaScript Vite web application called PaySavvy Pro — a scam link and QR code detector for Malaysian digital users.
+
+📁 Project Context:
+Tech stack: Vite + JavaScript + HTML/CSS + Bootstrap 5
+
+Hosting target: Vercel and Replit
+
+Features:
+
+✅ AI-powered scam detection via OpenAI (GPT-3.5 or 4)
+
+✅ Regex-based heuristic engine
+
+✅ QR code scanning (html5-qrcode)
+
+✅ Scam fingerprint hashing (SHA-256)
+
+✅ Multilingual keyword matcher (BM, PH, ID, etc.)
+
+✅ Region-wise scam heatmap (Malaysia + ASEAN)
+
+✅ Offline fallback mode
+
+✅ Paste Shield (for WhatsApp/SMS)
+
+✅ No user accounts — anonymous browser sessions only
+
+Current version: PaySavvy Production v1751170329483
+
+🔍 Current Issues to Resolve:
+1. ❌ Content Security Policy (CSP) Eval Violation
+Browser shows: Content Security Policy blocks the use of 'eval' in JavaScript
+
+Avoid eval(), new Function(), setTimeout('...'), or setInterval('...')
+
+Never add 'unsafe-eval' to script-src (security risk)
+
+✅ Action Required:
+
+Scan the entire codebase for any direct or third-party usage of eval(), Function(), or unsafe dynamic execution patterns
+
+If found in third-party packages (e.g., html5-qrcode, icon libraries), replace or sandbox them
+
+Refactor all unsafe expressions into secure alternatives
+
+2. ❌ JavaScript Runtime Error
+js
+Copy
+Edit
+Scan error: TypeError: Cannot read properties of undefined (reading 'redirectCount')
+at PaySavvyPro.displayAdvancedResults
+✅ Action Required:
+
+Open displayAdvancedResults() and:
+
+Add full null-checking:
+
+js
+Copy
+Edit
+const redirectCount = results?.redirectCount ?? 0;
+Ensure the results object always has:
+
+redirectCount, finalUrl, aiAnalysis, fingerprint fields initialized with fallbacks
+
+3. ❌ OpenAI API Key Not Working
+js
+Copy
+Edit
+AI response error: "OpenAI API key not configured"
+✅ Action Required:
+
+Confirm .env contains:
+
+env
+Copy
+Edit
+VITE_OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
+Confirm frontend uses:
+
+js
+Copy
+Edit
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+Add fallback handling in AI fetch code:
+
+js
+Copy
+Edit
+if (!OPENAI_API_KEY) {
+  toast("AI temporarily unavailable. Missing key.", "error");
+  return;
+}
+4. ❌ QR Scanner Degraded Mode
+js
+Copy
+Edit
+QrScanner library not found, initializing file-only mode
+✅ Action Required:
+
+Check html5-qrcode or qr-scanner.min.js is imported properly
+
+Verify paths are relative (/src/libs/qr-scanner.min.js)
+
+If library fails to load, show toast notification:
+
+js
+Copy
+Edit
+toast("QR scanner fallback active. File upload only.", "warning");
+5. ❌ Icon Loader Error
+js
+Copy
+Edit
+feather: 'fingerprint' is not a valid icon
+✅ Action Required:
+
+Replace 'fingerprint' with a valid Feather icon (e.g. 'lock', 'shield', 'user-check')
+
+If fingerprint icon is required:
+
+Use Lucide or SVG fallback
+
+Or import custom SVG icon in /assets/icons/
+
+6. ⚠️ CSP-Compatible Dynamic Code Refactor
+✅ Search for and refactor:
+
+JSON.parse() calls on untrusted sources → wrap in try/catch
+
+innerHTML = ... → use .textContent or DOM manipulation
+
+All setTimeout("someString", 1000) → convert to setTimeout(() => { ... }, 1000)
+
+7. ✅ Add Defensive Error Handling Across App
+Wrap all fetch() with error blocks:
+
+js
+Copy
+Edit
+try {
+  const res = await fetch(...);
+  const data = await res.json();
+} catch (err) {
+  toast("Network error or invalid response", "error");
+}
+Use global error listener:
+
+js
+Copy
+Edit
+window.onerror = function (message, source, lineno, colno, error) {
+  toast(`System error: ${message}`, "error");
+};
+🧠 Application-Level Improvements
+✅ Refactor AI Assistant Response Handler
+Add a status object:
+
+js
+Copy
+Edit
+{ risk: "Suspicious", reason: "Fake brand name + bad TLD", flags: ["typosquatting", ".tk"] }
+If response fails:
+
+Show fallback: “Unable to analyze with AI. You can still use pattern scanner.”
+
+Don’t break UI
+
+✅ Refactor Fingerprint Engine
+Ensure:
+
+js
+Copy
+Edit
+const fingerprint = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(url + flags.join()));
+Add fallback:
+
+js
+Copy
+Edit
+if (!crypto || !crypto.subtle) {
+  toast("Device does not support fingerprinting", "warning");
+}
+✅ Redirect Chain Analyzer
+If using fetch(url, { redirect: "manual" }), wrap logic:
+
+Fallback to just showing url if trace fails
+
+Add toast: “Redirect trace not supported on this browser”
+
+✅ Regional Heatmap
+Fallback JSON:
+
+json
+Copy
+Edit
+{ "Selangor": 18, "KL": 22, "Johor": 15 }
+Graceful fail if JSON fails to load:
+
+js
+Copy
+Edit
+toast("Risk map temporarily unavailable", "info");
+🛡️ Security Best Practices (CSP, PII, API)
+✅ Do NOT include any unsafe-eval, unsafe-inline in CSP
+
+✅ Avoid inline <script> in HTML
+
+✅ No tracking pixels, analytics, or cookies
+
+✅ Confirm .env is in .gitignore
+
+🧪 Testing Suite (Run After Fixes)
+🧪 URL Tests
+🟢 Safe: https://www.cimbclicks.com.my/
+
+🟡 Suspicious: https://secure.cimb-login.com/
+
+🔴 Dangerous: http://mayb4nk-login.tk
+
+🧪 QR Tests
+Upload test QR PNG with embedded scam link
+
+Use webcam to scan a printed QR with bit.ly redirect
+
+🧪 Offline
+Disable network → check regex scanner fallback
+
+📦 Final Confirmation Checklist
+Component	Status
+AI Assistant functional	✅
+QR scanner (webcam/file)	✅
+Regex + redirect engine	✅
+Fingerprinting active	✅
+All console errors cleared	✅
+No CSP violations	✅
+Responsive design	✅
+.env working	✅
+GitHub ready	✅

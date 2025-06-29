@@ -613,12 +613,12 @@
             }
 
             getApiKey() {
-                // Multiple sources for API key detection
+                // Multiple sources for API key detection - no hardcoded fallback for security
                 return window.ENV?.VITE_OPENAI_API_KEY || 
                        window.VITE_OPENAI_API_KEY || 
                        window.OPENAI_API_KEY ||
                        localStorage.getItem('openai_api_key') || 
-                       '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';
+                       null;
             }
 
             // Load brand whitelist/blacklist data
@@ -660,11 +660,30 @@
 
             // Generate SHA-256 fingerprint for scam DNA tracking
             async generateFingerprint(url) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(url.toLowerCase().trim());
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                if (!crypto || !crypto.subtle) {
+                    this.showToast('Device does not support fingerprinting', '', 'warning');
+                    // Fallback to simple hash for older browsers
+                    let hash = 0;
+                    const str = url.toLowerCase().trim();
+                    for (let i = 0; i < str.length; i++) {
+                        const char = str.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash; // Convert to 32-bit integer
+                    }
+                    return Math.abs(hash).toString(16);
+                }
+
+                try {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(url.toLowerCase().trim());
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                } catch (error) {
+                    console.warn('Crypto fingerprinting failed:', error);
+                    this.showToast('Fingerprinting temporarily unavailable', '', 'warning');
+                    return 'fingerprint-unavailable-' + Date.now();
+                }
             }
 
             init() {
@@ -679,6 +698,7 @@
             initializeQRScanner() {
                 // QR scanner disabled to prevent import.meta errors - file upload only
                 this.qrScannerReady = false;
+                this.showToast('QR scanner fallback active. File upload only.', '', 'warning');
                 console.log('QR Scanner initialized in file-only mode');
             }
 
@@ -1015,7 +1035,14 @@
             // Layer 4: AI Semantic Analysis
             async analyzeAI(url) {
                 if (!this.apiKey) {
-                    return { error: 'API key not configured', available: false };
+                    this.showToast('AI temporarily unavailable. Missing key.', '', 'error');
+                    return { 
+                        error: 'API key not configured', 
+                        available: false,
+                        score: 0,
+                        riskLevel: 'unknown',
+                        explanation: 'AI analysis requires API key configuration'
+                    };
                 }
 
                 try {
@@ -1085,10 +1112,14 @@
 
                 } catch (error) {
                     console.warn('AI analysis failed:', error);
+                    this.showToast('Network error or invalid response', '', 'error');
                     return { 
                         error: error.message, 
                         available: false,
-                        fallback: 'AI analysis unavailable - using heuristic methods only'
+                        score: 0,
+                        riskLevel: 'unknown',
+                        explanation: 'AI analysis unavailable - using pattern analysis only',
+                        confidence: 0.5
                     };
                 }
             }
@@ -1658,21 +1689,27 @@ Respond with JSON:
                     </div>
                 `;
 
-                // Redirect Chain
+                // Redirect Chain - with proper null checking
+                const redirectData = results.redirectAnalysis || {};
+                const redirectCount = redirectData.redirectCount ?? 0;
+                const redirectChain = redirectData.redirectChain || [];
+                const finalUrl = redirectData.finalUrl || 'N/A';
+                
                 document.getElementById('redirectResults').innerHTML = `
                     <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-info me-2">${results.redirectChain.redirectCount} Redirects</span>
-                        <span class="badge bg-${results.redirectChain.riskLevel === 'safe' ? 'success' : 'warning'}">${results.redirectChain.riskLevel.toUpperCase()}</span>
+                        <span class="badge bg-info me-2">${redirectCount} Redirects</span>
+                        <span class="badge bg-${redirectCount > 2 ? 'warning' : 'success'}">${redirectCount > 2 ? 'SUSPICIOUS' : 'SAFE'}</span>
                     </div>
                     <div class="redirect-chain">
-                        ${results.redirectChain.steps.map((step, index) => `
+                        ${redirectChain.length > 0 ? redirectChain.map((step, index) => `
                             <div class="d-flex align-items-center mb-1">
                                 <span class="badge bg-secondary me-2">${index + 1}</span>
-                                <small class="text-truncate">${step.url}</small>
-                                <span class="badge bg-${step.risk === 'high' ? 'danger' : 'success'} ms-auto">${step.risk}</span>
+                                <small class="text-truncate">${step || 'Unknown URL'}</small>
+                                <span class="badge bg-success ms-auto">traced</span>
                             </div>
-                        `).join('')}
+                        `).join('') : '<p class="text-muted">No redirects detected</p>'}
                     </div>
+                    ${finalUrl !== 'N/A' ? `<p><strong>Final URL:</strong> <code>${finalUrl}</code></p>` : ''}
                 `;
 
                 // Multilingual Analysis
@@ -2820,6 +2857,24 @@ Respond with JSON:
                 }
             }
         }
+
+        // Global error handler for production stability
+        window.onerror = function (message, source, lineno, colno, error) {
+            console.error('System error:', { message, source, lineno, colno, error });
+            if (window.paysar && window.paysar.showToast) {
+                window.paysar.showToast(`System error: ${message}`, '', 'error');
+            }
+            return true; // Prevent default browser error handling
+        };
+
+        // Promise rejection handler
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled promise rejection:', event.reason);
+            if (window.paysar && window.paysar.showToast) {
+                window.paysar.showToast('Network error occurred', '', 'error');
+            }
+            event.preventDefault();
+        });
 
         // Initialize PaySavvy Pro
         document.addEventListener('DOMContentLoaded', () => {
