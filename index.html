@@ -810,35 +810,186 @@
             min-width: 300px;
         }
 
-        /* Professional AI Chat Formatting */
-        .scam-item {
-            margin: 12px 0;
-            padding: 10px 0;
-            border-bottom: 1px solid #e9ecef;
+        /* Professional AI Chat Formatting - Enterprise Grade */
+        .bot-response-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
         }
 
-        .scam-item:last-child {
-            border-bottom: none;
-        }
-
-        .scam-item strong {
-            color: #dc3545;
-            display: block;
-            margin-bottom: 6px;
+        .threat-section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0 12px 0;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
         }
 
-        .message-section {
+        .analysis-section-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 14px 0 10px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(245, 87, 108, 0.2);
+        }
+
+        .recommendations-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0 12px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.2);
+        }
+
+        .impact-header {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #2d3748;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0 12px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(250, 112, 154, 0.2);
+        }
+
+        .threat-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            margin: 10px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .threat-item:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .threat-number {
+            background: #e53e3e;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .threat-title {
+            font-weight: 600;
+            color: #2d3748;
+            flex: 1;
+        }
+
+        .threat-detail {
+            background: #fff;
+            border-left: 4px solid #4299e1;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+
+        .threat-bullet {
+            padding: 4px 0 4px 16px;
+            color: #4a5568;
+            position: relative;
+        }
+
+        .threat-bullet::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 12px;
+            width: 6px;
+            height: 6px;
+            background: #4299e1;
+            border-radius: 50%;
+        }
+
+        .financial-impact {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9em;
+            display: inline-block;
+            margin: 0 2px;
+            box-shadow: 0 2px 4px rgba(255, 65, 108, 0.3);
+        }
+
+        .brand-name {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9em;
+            display: inline-block;
+            margin: 0 1px;
+        }
+
+        .domain-example {
+            background: #2d3748;
+            color: #f7fafc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85em;
+            border: 1px solid #4a5568;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #2d3748;
+        }
+
+        .content-section {
             margin-bottom: 16px;
         }
 
-        .message-section:last-child {
+        .content-section:last-child {
             margin-bottom: 0;
         }
 
         .message.bot .message-content {
             line-height: 1.7;
             font-size: 14px;
+            max-width: 85%;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
         }
 
         .message.bot .message-content strong {
@@ -9206,31 +9357,46 @@ Respond with JSON:
                 const cleanApiKey = this.apiKey.trim();
                 console.log('Making API request with key starting with:', cleanApiKey.substring(0, 10) + '...');
 
-                // Enhanced PhD-level system prompt with comprehensive threat intelligence
-                const enhancedSystemPrompt = `You are a PhD-level cybersecurity expert specializing in Malaysian/ASEAN financial fraud detection and digital security. You have access to a comprehensive threat intelligence database containing:
+                // Enhanced PhD-level system prompt with professional response structure
+                const enhancedSystemPrompt = `You are a PhD-level cybersecurity expert specializing in Malaysian/ASEAN financial fraud detection and digital security. You have access to a comprehensive threat intelligence database containing 1,247+ documented scam patterns, verified domain databases for 89 government-authorized financial institutions, and real incident data showing RM 2.5M+ in actual financial losses.
 
-REAL-WORLD THREAT INTELLIGENCE:
-- 1,247+ documented scam patterns and attack vectors
-- Recent incident reports with actual financial losses (RM 892K+ in Maybank campaigns, RM 445K+ in CIMB scams, RM 1.2M+ in TNG fraud)
-- Verified domain databases for 89 government-authorized financial institutions across 6 ASEAN countries
-- Advanced typosquatting detection algorithms and homograph attack patterns
-- Multilingual scam indicators in Bahasa Malaysia, Mandarin, Tamil, and English
+RESPONSE STRUCTURE - Always format responses using this professional structure:
 
-SPECIALIZED KNOWLEDGE AREAS:
-1. Malaysian Banking Security: Maybank, CIMB, Public Bank, RHB, Hong Leong patterns
-2. E-wallet Fraud: Touch 'n Go, GrabPay, Boost, ShopeePay threat vectors  
-3. Regional ASEAN Threats: Singapore (DBS, OCBC), Indonesia (BCA, Mandiri), Thailand (SCB, Bangkok Bank)
-4. Technical Indicators: Suspicious TLDs (.tk, .ml, .ga), domain reputation scoring, SSL analysis
-5. Social Engineering Tactics: Urgency creation, authority impersonation, fear-based manipulation
+### Latest Scam Tactics:
+1. [Technique Name]:
+- [Platform]: [Specific details about the threat]
+- [Platform]: [Specific details about the threat]
 
-RESPONSE GUIDELINES:
-- Provide specific, actionable cybersecurity advice with Malaysian context
-- Reference actual threat patterns and verified legitimate institutions
-- Use technical precision while remaining user-friendly
-- Include prevention strategies and verification steps
-- Cite real incident data when relevant for impact demonstration
+2. [Technique Name]:
+- [Platform]: [Specific details about the threat]
 
-Respond professionally with structured analysis, numbered recommendations, and Malaysian-specific security best practices.`;
+### Recommendations:
+1. [Action Title]:
+- [Specific actionable step with technical details]
+
+2. [Action Title]:
+- [Specific actionable step with technical details]
+
+### Impact Demonstration:
+- Recent incident reports indicate significant financial losses, with over **RM [amount]** in [specific platform] fraud alone. This underscores the importance of vigilance and proactive security measures.
+
+FORMATTING REQUIREMENTS:
+- Use ### for major section headers
+- Use numbered lists (1., 2., 3.) for main points
+- Use bullet points (-) for sub-items under each platform
+- Put financial amounts in **bold** (e.g., **RM 1.2M**)
+- Put platform names as-is (Touch 'n Go, GrabPay, Boost, Maybank, CIMB)
+- Use quotes for domain examples ("touchngo.com")
+- End with actionable summary referencing PaySavvy Pro capabilities
+
+SPECIALIZED KNOWLEDGE:
+- Malaysian Banking: Maybank, CIMB, Public Bank, RHB threat patterns
+- E-wallets: TNG, GrabPay, Boost, ShopeePay attack vectors
+- ASEAN Regional: Singapore (DBS, OCBC), Indonesia (BCA, Mandiri), Thailand (SCB)
+- Technical: Suspicious TLDs (.tk, .ml, .ga), typosquatting, homograph attacks
+- Real Losses: RM 892K+ Maybank, RM 445K+ CIMB, RM 1.2M+ TNG documented fraud
+
+Always structure responses professionally for enterprise-grade user experience with clear visual hierarchy and actionable intelligence.`;
 
                 const response = await fetch(this.baseUrl, {
                     method: 'POST',
@@ -9287,21 +9453,48 @@ Respond professionally with structured analysis, numbered recommendations, and M
             }
 
             formatBotMessage(message) {
+                // Enhanced professional formatting for enterprise-grade user experience
                 return message
-                    // Convert numbered lists to HTML
-                    .replace(/(\d+\.\s\*\*[^*]+\*\*:)/g, '<div class="scam-item"><strong>$1</strong>')
-                    .replace(/(\d+\.\s)([^:]+:)/g, '<div class="scam-item"><strong>$1$2</strong>')
-                    // Convert bold text
-                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                    // Handle paragraphs and line breaks
-                    .replace(/\n\n/g, '</div><div class="message-section">')
+                    // Format section headers with visual hierarchy
+                    .replace(/### ([^:]+):/g, '<div class="threat-section-header"><i data-feather="shield" class="me-2"></i><strong>$1</strong></div>')
+                    .replace(/## ([^:]+):/g, '<div class="analysis-section-header"><i data-feather="alert-triangle" class="me-2"></i><strong>$1</strong></div>')
+                    
+                    // Format numbered threat items with enhanced styling
+                    .replace(/(\d+\.\s+)([^:]+):/g, '<div class="threat-item"><div class="threat-number">$1</div><div class="threat-title">$2</div>')
+                    
+                    // Format sub-bullets with proper indentation
+                    .replace(/^\s*-\s+([^:]+):\s*/gm, '<div class="threat-detail"><span class="detail-label">$1:</span> ')
+                    .replace(/^\s*-\s+/gm, '<div class="threat-bullet">• ')
+                    
+                    // Format financial impact with emphasis
+                    .replace(/(RM\s+[\d,]+[KM]?)/g, '<span class="financial-impact">$1</span>')
+                    
+                    // Format platform names with brand styling
+                    .replace(/(Touch 'n Go|TNG|GrabPay|Boost|Maybank|CIMB|Public Bank)/g, '<span class="brand-name">$1</span>')
+                    
+                    // Format recommendations with action-oriented styling
+                    .replace(/### Recommendations:/g, '<div class="recommendations-header"><i data-feather="check-circle" class="me-2"></i><strong>Security Recommendations</strong></div>')
+                    
+                    // Format impact demonstrations
+                    .replace(/### Impact Demonstration:/g, '<div class="impact-header"><i data-feather="trending-up" class="me-2"></i><strong>Real-World Impact</strong></div>')
+                    
+                    // Convert bold text with enhanced styling
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong class="highlight">$1</strong>')
+                    
+                    // Format domain examples with code styling
+                    .replace(/"([^"]*\.(com|net|org|tk|ml|ga)[^"]*)"/g, '<code class="domain-example">$1</code>')
+                    
+                    // Handle line breaks and sections
+                    .replace(/\n\n/g, '</div><div class="content-section">')
                     .replace(/\n/g, '<br>')
-                    // Wrap in sections
-                    .replace(/^/, '<div class="message-section">')
-                    .replace(/$/, '</div>')
-                    // Clean up list items
-                    .replace(/<div class="scam-item"><strong>([^<]+)<\/strong>([^<]*?)(?=<div class="scam-item">|<\/div>|$)/g, 
-                            '<div class="scam-item"><strong>$1</strong>$2</div>');
+                    
+                    // Wrap content in professional container
+                    .replace(/^/, '<div class="bot-response-container"><div class="content-section">')
+                    .replace(/$/, '</div></div>')
+                    
+                    // Clean up unclosed threat items
+                    .replace(/<div class="threat-item">([^<]*?)(?=<div class="threat-item">|<div class="content-section">|<\/div>|$)/g, 
+                            '<div class="threat-item">$1</div>');
             }
 
             showToast(title, message, type = 'info') {

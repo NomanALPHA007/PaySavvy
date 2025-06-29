@@ -1,0 +1,66 @@
+As a user of PaySavvy Pro, you have access to advanced scam detection tools and real-time threat analysis. Here are the latest scam tactics targeting Touch 'n Go (TNG), GrabPay, and Boost that you should be aware of:
+### Latest Scam Tactics:
+1.
+Phishing Websites and Typosquatting:
+
+-
+TNG:
+Scammers are creating phishing websites that mimic the official TNG portal. These sites often use typosquatting techniques, such as replacing letters in the domain name (e.g., "t0uchngo.com" instead of "touchngo.com").
+-
+GrabPay & Boost:
+Similar tactics are used, with domains like "grabbpay.com" or "bo0stpay.com" appearing. These sites are designed to harvest login credentials and personal information.
+2.
+Fake Promotions and Cashback Offers:
+
+-
+TNG:
+Fraudsters send messages via SMS or email, promising cashback or rewards for clicking on a link and logging in. These links lead to phishing sites.
+-
+GrabPay & Boost:
+Scammers use social media platforms to promote fake contests or giveaways, requiring users to enter personal information to claim their "prize."
+3.
+Social Engineering and Impersonation:
+
+-
+TNG:
+Scammers impersonate TNG customer service representatives, contacting users via phone or messaging apps, claiming there are issues with their account that require immediate action.
+-
+GrabPay & Boost:
+Fraudsters pose as company officials, urging users to verify their account details to avoid suspension.
+4.
+Malware and App Clones:
+
+-
+TNG:
+Malicious apps that mimic the TNG app are distributed through unofficial app stores. These apps are designed to steal sensitive information once installed.
+-
+GrabPay & Boost:
+Similar cloned apps are used to capture login credentials and financial data.
+### Recommendations:
+1.
+Verify URLs and Domains:
+
+- Always check the URL for any typos or suspicious TLDs (.tk, .ml, .ga). Use PaySavvy Pro's domain reputation scoring to verify legitimacy.
+2.
+Be Skeptical of Unsolicited Communications:
+
+- Do not click on links or download attachments from unknown sources. Verify any communication by contacting the financial institution directly using official contact details.
+3.
+Install Apps from Official Sources:
+
+- Only download apps from official app stores (Google Play Store, Apple App Store) and verify the developer's name.
+4.
+Enable Two-Factor Authentication (2FA):
+
+- Use 2FA for an additional layer of security on your e-wallet accounts.
+5.
+Regularly Monitor Transactions:
+
+- Frequently check your transaction history for any unauthorized activities and report suspicious transactions immediately.
+6.
+Educate Yourself and Others:
+
+- Stay informed about the latest scams and share information with family and friends to increase awareness.
+### Impact Demonstration:
+- Recent incident reports indicate significant financial losses due to these tactics, with over RM 1.2M in TNG fraud alone. This underscores the importance of vigilance and proactive security measures.
+By following these guidelines and leveraging PaySavvy Pro's capabilities, you can enhance your digital security and reduce the risk of falling victim to these scams.
