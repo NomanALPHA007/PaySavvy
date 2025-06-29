@@ -3842,8 +3842,24 @@ Consider:
                         errorMessage = 'Camera not supported on this device. Please use file upload mode.';
                     }
                     
-                    this.showToast('Warning', errorMessage, 'warning');
-                    // this.switchQRMode('file');
+                    // Show error with retry option instead of auto-switching
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i data-feather="camera-off" class="me-2"></i>
+                            <strong>Camera Permission Required</strong>
+                            <p class="mb-2">${errorMessage}</p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="window.app.initCameraScanning()">
+                                    <i data-feather="refresh-cw" class="me-1"></i>Try Again
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="window.app.switchQRMode('file')">
+                                    <i data-feather="upload" class="me-1"></i>Switch to File Upload
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    feather.replace();
+                    this.showToast('Camera Error', 'Grant camera permission and try again', 'error');
                 }
             }
 
