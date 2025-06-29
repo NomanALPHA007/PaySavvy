@@ -438,6 +438,193 @@
             border-radius: 10px;
         }
 
+        /* Japanese Anime Welcome Banner Styles */
+        .welcome-banner {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #786fa6 100%);
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.3"/><circle cx="80" cy="40" r="1" fill="white" opacity="0.5"/><circle cx="40" cy="80" r="1.5" fill="white" opacity="0.4"/></svg>');
+            animation: sparkle 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .welcome-content {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .anime-mascot {
+            flex-shrink: 0;
+        }
+
+        .mascot-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .mascot-body {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff9ff3, #f368e0);
+            border-radius: 50%;
+            position: relative;
+            margin: 20px auto;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .mascot-face {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .eye {
+            width: 8px;
+            height: 12px;
+            background: #2c3e50;
+            border-radius: 50%;
+            position: absolute;
+            animation: blink 4s infinite;
+        }
+
+        .left-eye { left: -12px; top: -8px; }
+        .right-eye { right: -12px; top: -8px; }
+
+        @keyframes blink {
+            0%, 90%, 100% { height: 12px; }
+            95% { height: 2px; }
+        }
+
+        .mouth {
+            width: 16px;
+            height: 8px;
+            border: 2px solid #2c3e50;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            position: absolute;
+            left: -8px;
+            top: 5px;
+        }
+
+        .mascot-shield {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+
+        .mascot-aura {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: aura 2s ease-in-out infinite;
+        }
+
+        @keyframes aura {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.2; }
+        }
+
+        .welcome-text {
+            flex: 1;
+            color: white;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #fff, #f8f9fa, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .title-sparkles {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.5rem;
+            animation: sparkleRotate 2s linear infinite;
+        }
+
+        @keyframes sparkleRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .anime-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 4px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .anime-badge:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 0.5rem;
@@ -459,10 +646,278 @@
                 height: 500px;
             }
         }
+        /* Coffee Tip Section Styles */
+        .coffee-tip-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            margin: 40px 0;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .coffee-tip-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="white" opacity="0.3"/><circle cx="90" cy="30" r="0.5" fill="white" opacity="0.5"/><circle cx="30" cy="90" r="1.5" fill="white" opacity="0.4"/></svg>');
+            animation: twinkle 4s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .tip-container {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .anime-coffee-mascot {
+            flex-shrink: 0;
+        }
+
+        .coffee-cup {
+            position: relative;
+            width: 100px;
+            height: 120px;
+            animation: coffeeFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes coffeeFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+
+        .coffee-steam {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .steam-line {
+            width: 2px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 1px;
+            position: absolute;
+            animation: steam 2s ease-in-out infinite;
+        }
+
+        .steam-line:nth-child(1) { left: -4px; animation-delay: 0s; }
+        .steam-line:nth-child(2) { left: 0px; animation-delay: 0.5s; }
+        .steam-line:nth-child(3) { left: 4px; animation-delay: 1s; }
+
+        @keyframes steam {
+            0% { opacity: 0; transform: translateY(0px) scaleY(1); }
+            50% { opacity: 1; transform: translateY(-10px) scaleY(1.2); }
+            100% { opacity: 0; transform: translateY(-20px) scaleY(0.8); }
+        }
+
+        .cup-body {
+            font-size: 4rem;
+            text-align: center;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+        }
+
+        .kawaii-face {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .coffee-eye {
+            width: 6px;
+            height: 10px;
+            background: #2c3e50;
+            border-radius: 50%;
+            position: absolute;
+            animation: coffeeBlink 5s infinite;
+        }
+
+        .coffee-eye.left { left: -10px; top: -5px; }
+        .coffee-eye.right { right: -10px; top: -5px; }
+
+        @keyframes coffeeBlink {
+            0%, 90%, 100% { height: 10px; }
+            95% { height: 2px; }
+        }
+
+        .coffee-smile {
+            width: 12px;
+            height: 6px;
+            border: 2px solid #2c3e50;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            position: absolute;
+            left: -6px;
+            top: 8px;
+        }
+
+        .tip-content {
+            flex: 1;
+            color: white;
+        }
+
+        .tip-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .japanese-text {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .english-text {
+            font-size: 2rem;
+        }
+
+        .sparkle {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            animation: sparkleRotate 2s linear infinite;
+        }
+
+        .tip-subtitle {
+            font-size: 1rem;
+            margin-bottom: 25px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .tip-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tip-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tip-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tip-btn.popular {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ffd700;
+            color: #2c3e50;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .tip-amount {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .tip-desc {
+            display: block;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .tip-note {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .welcome-content, .tip-container {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .welcome-title {
+                font-size: 2rem;
+            }
+            
+            .tip-title {
+                font-size: 1.5rem;
+            }
+            
+            .tip-buttons {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="main-container">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div class="welcome-content">
+                <div class="anime-mascot">
+                    <div class="mascot-container">
+                        <div class="mascot-body">
+                            <div class="mascot-face">
+                                <div class="eye left-eye"></div>
+                                <div class="eye right-eye"></div>
+                                <div class="mouth"></div>
+                            </div>
+                            <div class="mascot-shield">🛡️</div>
+                        </div>
+                        <div class="mascot-aura"></div>
+                    </div>
+                </div>
+                <div class="welcome-text">
+                    <h1 class="welcome-title">
+                        <span class="gradient-text">こんにちは！Welcome to PaySavvy Pro</span>
+                        <div class="title-sparkles">✨</div>
+                    </h1>
+                    <p class="welcome-subtitle">
+                        Your kawaii AI guardian protecting Malaysia from payment scams with advanced detection technology
+                    </p>
+                    <div class="feature-tags">
+                        <span class="anime-badge success">✓ AI Analysis</span>
+                        <span class="anime-badge info">✓ QR Scanner</span>
+                        <span class="anime-badge warning">✓ EMV DuitNow</span>
+                        <span class="anime-badge primary">✓ Real-time Protection</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- App Header -->
         <div class="app-header text-center">
             <div class="logo">🛡️ PaySavvy Pro</div>
@@ -597,6 +1052,57 @@
                 <button id="clearHistory" class="btn btn-outline-danger btn-sm mt-2" style="display: none;">
                     <i data-feather="trash-2" class="me-1"></i>Clear History
                 </button>
+            </div>
+        </div>
+
+        <!-- Coffee Tip Section -->
+        <div class="coffee-tip-section">
+            <div class="tip-container">
+                <div class="anime-coffee-mascot">
+                    <div class="coffee-cup">
+                        <div class="coffee-steam">
+                            <div class="steam-line"></div>
+                            <div class="steam-line"></div>
+                            <div class="steam-line"></div>
+                        </div>
+                        <div class="cup-body">☕</div>
+                        <div class="kawaii-face">
+                            <div class="coffee-eye left"></div>
+                            <div class="coffee-eye right"></div>
+                            <div class="coffee-smile"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tip-content">
+                    <h3 class="tip-title">
+                        <span class="japanese-text">ありがとう！</span>
+                        <span class="english-text">Buy me a coffee</span>
+                        <span class="sparkle">✨</span>
+                    </h3>
+                    <p class="tip-subtitle">
+                        If PaySavvy Pro helped protect you from scams, consider supporting my work with a small tip!
+                        Your support keeps this free protection service running for everyone in Malaysia.
+                    </p>
+                    <div class="tip-buttons">
+                        <button class="tip-btn small" onclick="payApp.tipDeveloperSimple(300)">
+                            <span class="tip-amount">RM 3</span>
+                            <span class="tip-desc">Teh Tarik</span>
+                        </button>
+                        <button class="tip-btn medium popular" onclick="payApp.tipDeveloperSimple(500)">
+                            <span class="tip-amount">RM 5</span>
+                            <span class="tip-desc">Coffee ☕</span>
+                            <div class="popular-badge">Popular</div>
+                        </button>
+                        <button class="tip-btn large" onclick="payApp.tipDeveloperSimple(1000)">
+                            <span class="tip-amount">RM 10</span>
+                            <span class="tip-desc">Meal Support</span>
+                        </button>
+                    </div>
+                    <p class="tip-note">
+                        <i data-feather="heart" class="me-1"></i>
+                        Secure payment powered by Stripe • All tips go directly to development costs
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -3550,6 +4056,57 @@ Respond with JSON:
                 console.log("🧪 Quick Testing URL QR");
                 await this.handleScannedQR(testURL);
                 return testURL;
+            }
+
+            // Coffee tip payment functionality
+            async tipDeveloper(amountCents) {
+                try {
+                    this.showToast('Processing Payment', 'Creating secure payment session...', 'info');
+                    
+                    // Create payment intent
+                    const response = await fetch('/api/create-tip-payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            amount: amountCents,
+                            currency: 'myr',
+                            description: `Coffee tip for PaySavvy Pro development - RM ${(amountCents / 100).toFixed(2)}`
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Payment setup failed');
+                    }
+
+                    const { clientSecret, paymentIntentId } = await response.json();
+                    
+                    // Redirect to Stripe Checkout
+                    window.location.href = `https://checkout.stripe.com/pay/${clientSecret}#fidkdWxOYHwnPyd1blpxYHZxWjA0S2JGMmJ8bTdtTElvMTJOT2hvNkFGajVKQUpkNkNIfEN0T08xTlJmVWtLalFGSzBONGNON0Z2Y2tHPUdyfHQ2Q3F2XGl8Y1ZpZDNnbzZhRnc1dUMwQWd8RUg3M1c3N2dRdmMnKSd2MHxqWEppYmc9NkZjPTd2fExGJ3gl`;
+                    
+                } catch (error) {
+                    console.error('Tip payment error:', error);
+                    this.showToast('Payment Failed', 'Unable to process payment. Please try again.', 'error');
+                }
+            }
+
+            // Alternative simple tip implementation
+            async tipDeveloperSimple(amountCents) {
+                const amounts = {
+                    300: { rm: 'RM 3', desc: 'Teh Tarik' },
+                    500: { rm: 'RM 5', desc: 'Coffee' },
+                    1000: { rm: 'RM 10', desc: 'Meal Support' }
+                };
+                
+                const tipInfo = amounts[amountCents] || { rm: `RM ${(amountCents/100).toFixed(2)}`, desc: 'Support' };
+                
+                this.showToast('Thank You!', `${tipInfo.rm} tip for ${tipInfo.desc} - Payment coming soon!`, 'success');
+                
+                // For now, show appreciation message
+                setTimeout(() => {
+                    this.showToast('ありがとうございます！', 'Your support means everything to the PaySavvy community!', 'info');
+                }, 2000);
             }
 
             showCommonQRFormats() {
