@@ -3325,25 +3325,42 @@ Consider:
 
             // Switch between camera and file upload modes
             switchQRMode(mode) {
+                console.log(`🔄 Switching QR mode to: ${mode}`);
                 const cameraBtn = document.getElementById('cameraMode');
                 const fileBtn = document.getElementById('fileMode');
                 const videoElement = document.getElementById('qr-reader');
                 const fileButton = document.getElementById('qr-file-button');
                 const resultsDiv = document.getElementById('qr-results');
                 
+                if (!cameraBtn || !fileBtn || !videoElement || !fileButton || !resultsDiv) {
+                    console.error('QR mode elements not found');
+                    return;
+                }
+                
                 // Stop any active scanning
                 this.stopQRScanning();
                 
                 if (mode === 'camera') {
+                    console.log('📹 Activating camera mode');
                     cameraBtn.classList.add('active');
                     fileBtn.classList.remove('active');
                     videoElement.style.display = 'block';
                     fileButton.style.display = 'none';
-                    resultsDiv.innerHTML = '';
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <i data-feather="camera" class="me-2"></i>
+                            <strong>Initializing Camera...</strong>
+                            <p class="mb-0">Please allow camera access when prompted.</p>
+                        </div>
+                    `;
+                    feather.replace();
                     
-                    // Start camera scanning
-                    this.initCameraScanning();
+                    // Start camera scanning with delay to ensure DOM updates
+                    setTimeout(() => {
+                        this.initCameraScanning();
+                    }, 100);
                 } else if (mode === 'file') {
+                    console.log('📁 Activating file upload mode');
                     fileBtn.classList.add('active');
                     cameraBtn.classList.remove('active');
                     videoElement.style.display = 'none';
@@ -3651,42 +3668,66 @@ Consider:
 
             // Initialize camera scanning
             async initCameraScanning() {
+                console.log('🎥 Initializing camera QR scanning...');
                 const videoElement = document.getElementById('qr-reader');
                 const resultsDiv = document.getElementById('qr-results');
+                
+                if (!videoElement) {
+                    console.error('Video element not found');
+                    return;
+                }
                 
                 try {
                     // Stop any existing streams
                     this.stopQRScanning();
+                    console.log('🛑 Stopped existing camera streams');
                     
-                    // Request camera access
+                    // Request camera access with enhanced settings
+                    console.log('📷 Requesting camera access...');
                     this.videoStream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'environment', // Use back camera if available
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
+                            width: { ideal: 1280, min: 640 },
+                            height: { ideal: 720, min: 480 }
                         }
                     });
 
+                    console.log('✅ Camera access granted');
                     videoElement.srcObject = this.videoStream;
-                    await videoElement.play();
-
+                    
                     // Enhanced video initialization for mobile compatibility
                     videoElement.setAttribute('playsinline', true);
                     videoElement.setAttribute('muted', true);
+                    videoElement.setAttribute('autoplay', true);
+                    
+                    await videoElement.play();
+                    console.log('▶️ Video playback started');
                     
                     // Wait for video to be ready, then start scanning
+                    const startScanningWhenReady = () => {
+                        if (videoElement.readyState >= 2 && videoElement.videoWidth > 0) {
+                            console.log(`📺 Video ready: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+                            this.startQRScanLoop(videoElement);
+                        } else {
+                            console.log('⏳ Waiting for video to be ready...');
+                            setTimeout(startScanningWhenReady, 100);
+                        }
+                    };
+                    
                     videoElement.addEventListener('loadedmetadata', () => {
-                        console.log('Video metadata loaded, starting QR scanning');
-                        setTimeout(() => this.startQRScanLoop(videoElement), 100);
+                        console.log('🎬 Video metadata loaded');
+                        startScanningWhenReady();
                     });
 
-                    // Additional event listener for mobile devices
                     videoElement.addEventListener('canplay', () => {
+                        console.log('🎮 Video can play event');
                         if (!this.qrScanningActive && videoElement.videoWidth > 0) {
-                            console.log('Video can play, ensuring scan loop is active');
-                            this.startQRScanLoop(videoElement);
+                            startScanningWhenReady();
                         }
                     });
+                    
+                    // Immediate check if video is already ready
+                    setTimeout(startScanningWhenReady, 200);
 
                     // Show scanning status
                     resultsDiv.innerHTML = `
@@ -3719,6 +3760,7 @@ Consider:
 
             // Start QR scanning loop
             startQRScanLoop(videoElement) {
+                console.log('🔄 Starting QR scan loop');
                 this.qrScanningActive = true;
                 this.scanAttempts = 0;
                 
@@ -3726,10 +3768,14 @@ Consider:
                 if (!this.qrCanvas) {
                     this.qrCanvas = document.createElement('canvas');
                     this.qrContext = this.qrCanvas.getContext('2d');
+                    console.log('📋 Created QR scanning canvas');
                 }
                 
                 const scanFrame = () => {
-                    if (!this.qrScanningActive) return;
+                    if (!this.qrScanningActive) {
+                        console.log('🛑 QR scanning stopped');
+                        return;
+                    }
                     
                     this.scanAttempts++;
                     
@@ -3746,9 +3792,9 @@ Consider:
                             this.qrContext.drawImage(videoElement, 0, 0, this.qrCanvas.width, this.qrCanvas.height);
                             const imageData = this.qrContext.getImageData(0, 0, this.qrCanvas.width, this.qrCanvas.height);
                             
-                            // Debug logging every 20 attempts
-                            if (this.scanAttempts % 20 === 1) {
-                                console.log(`QR Scan Frame ${this.scanAttempts}: ${this.qrCanvas.width}x${this.qrCanvas.height}, jsQR: ${typeof jsQR !== 'undefined'}`);
+                            // Debug logging every 30 attempts (reduce console spam)
+                            if (this.scanAttempts % 30 === 1) {
+                                console.log(`🔍 QR Scan Frame ${this.scanAttempts}: ${this.qrCanvas.width}x${this.qrCanvas.height}, jsQR available: ${typeof jsQR !== 'undefined'}`);
                             }
                             
                             // Detect QR codes using jsQR with enhanced options
@@ -3759,31 +3805,48 @@ Consider:
                                 
                                 if (qrResult && qrResult.data && qrResult.data.trim()) {
                                     const qrContent = qrResult.data.trim();
-                                    console.log('QR Code detected from camera:', qrContent.substring(0, 50) + (qrContent.length > 50 ? '...' : ''));
+                                    console.log('✅ QR Code detected from camera:', qrContent.substring(0, 50) + (qrContent.length > 50 ? '...' : ''));
                                     
-                                    // Stop scanning and analyze with dual-mode system
+                                    // Stop scanning and analyze
                                     this.qrScanningActive = false;
+                                    this.stopQRScanning(); // Clean stop of camera
+                                    
+                                    // Analyze the detected QR content
                                     this.analyzeQRContent(qrContent, document.getElementById('qr-results'));
+                                    this.showToast('QR Code Detected', 'Analyzing content...', 'success');
                                     return;
                                 }
                             } else {
-                                console.warn('jsQR library not loaded - camera scanning disabled');
+                                console.error('❌ jsQR library not available - camera scanning disabled');
                                 this.qrScanningActive = false;
+                                this.showToast('Scanner Error', 'QR detection library not loaded', 'error');
                                 return;
                             }
                             
                         } catch (error) {
-                            console.warn('QR scan frame error:', error);
+                            if (this.scanAttempts % 50 === 1) { // Only log occasionally to avoid spam
+                                console.warn('⚠️ QR scan frame error:', error);
+                            }
+                        }
+                    } else {
+                        // Video not ready yet
+                        if (this.scanAttempts % 50 === 1) {
+                            console.log('⏳ Waiting for video to be ready...', {
+                                readyState: videoElement.readyState,
+                                videoWidth: videoElement.videoWidth,
+                                videoHeight: videoElement.videoHeight
+                            });
                         }
                     }
                     
-                    // Continue scanning at 2 FPS (500ms intervals) for optimal performance
+                    // Continue scanning at 3 FPS (333ms intervals) for better performance
                     if (this.qrScanningActive) {
-                        setTimeout(() => requestAnimationFrame(scanFrame), 500);
+                        setTimeout(() => requestAnimationFrame(scanFrame), 333);
                     }
                 };
                 
                 // Start the scanning loop
+                console.log('🚀 Starting camera QR scan loop');
                 requestAnimationFrame(scanFrame);
             }
 
