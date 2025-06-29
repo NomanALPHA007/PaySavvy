@@ -2805,7 +2805,7 @@
                     }
 
                     // Enhanced prompt with verified brands context
-                    const verifiedBrandsContext = this.getVerifiedBrandsForAI(20);
+                    const verifiedBrandsContext = this.getVerifiedBrandsForAI ? this.getVerifiedBrandsForAI(20) : 'Verified brands data not available';
                     
                     const prompt = `Analyze this URL for potential scam/phishing risks: ${url}
 
@@ -2871,6 +2871,24 @@ Consider:
                         reasoning: `AI analysis failed: ${error.message}`,
                         factors: ['AI assessment unavailable']
                     };
+                }
+            }
+
+            // Get verified brands context for AI analysis
+            getVerifiedBrandsForAI(limit = 20) {
+                if (!this.verifiedBrands || !this.verifiedBrands.Malaysia) {
+                    return 'Verified brands data not available';
+                }
+                
+                try {
+                    const malaysiaBrands = this.verifiedBrands.Malaysia.slice(0, limit);
+                    return malaysiaBrands.map(brand => {
+                        const domains = brand.domains ? brand.domains.join(', ') : 'N/A';
+                        return `${brand.name}: ${domains}`;
+                    }).join('\n');
+                } catch (error) {
+                    console.warn('Error formatting verified brands for AI:', error);
+                    return 'Error accessing verified brands data';
                 }
             }
 
