@@ -492,8 +492,12 @@
             }
 
             getApiKey() {
-                // Environment variables for deployment
-                return localStorage.getItem('openai_api_key') || '';
+                // Multiple sources for API key detection
+                return window.ENV?.VITE_OPENAI_API_KEY || 
+                       window.VITE_OPENAI_API_KEY || 
+                       window.OPENAI_API_KEY ||
+                       localStorage.getItem('openai_api_key') || 
+                       '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';
             }
 
             init() {

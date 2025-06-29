@@ -83,12 +83,12 @@ app.get('/', (req, res) => {
           delete window.import;
         }
         
-        // Environment configuration
+        // Environment configuration with API key injection
         window.ENV = {
-          VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}'
+          VITE_OPENAI_API_KEY: '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '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'}'
         };
-        window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''}';
-        window.OPENAI_API_KEY = '${process.env.OPENAI_API_KEY || ''}';
+        window.VITE_OPENAI_API_KEY = '${process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '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'}';
+        window.OPENAI_API_KEY = '${process.env.OPENAI_API_KEY || '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'}';
         window.PAYSAVVY_VERSION = '${timestamp}';
         
         console.log('PaySavvy Production v${timestamp} - API key:', window.ENV.VITE_OPENAI_API_KEY ? 'Present' : 'Missing');
