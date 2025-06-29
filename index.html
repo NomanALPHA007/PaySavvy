@@ -2850,13 +2850,23 @@ Respond with JSON:
                                 });
                                 
                                 if (qrResult && qrResult.data && qrResult.data.trim()) {
-                                    console.log('✅ QR Code detected from camera:', qrResult.data);
+                                    const qrContent = qrResult.data.trim();
+                                    console.log('✅ QR Code detected from camera:', qrContent.substring(0, 50) + (qrContent.length > 50 ? '...' : ''));
                                     
-                                    // Stop scanning and analyze
+                                    // Stop scanning and analyze with dual-mode system
                                     this.qrScanningActive = false;
                                     this.stopQRCamera();
-                                    this.showToast('QR Detected', 'Analyzing content for scams...', 'success');
-                                    this.analyzeQRContent(qrResult.data.trim());
+                                    
+                                    // Show appropriate toast based on QR type
+                                    if (this.isDuitNowQR(qrContent)) {
+                                        this.showToast('DuitNow QR Detected', 'Analyzing EMV payment data...', 'success');
+                                    } else if (this.isValidUrl(qrContent)) {
+                                        this.showToast('URL QR Detected', 'Running 4-layer scam analysis...', 'success');
+                                    } else {
+                                        this.showToast('QR Detected', 'Analyzing content...', 'success');
+                                    }
+                                    
+                                    this.analyzeQRContent(qrContent);
                                     return;
                                 }
                             } else {
@@ -3078,21 +3088,32 @@ Respond with JSON:
                             
                             if (result.data && result.data.trim()) {
                                 const qrContent = result.data.trim();
-                                console.log(`🎯 SUCCESS on attempt ${i + 1}: ${qrContent.substring(0, 50)}${qrContent.length > 50 ? '...' : ''}`);
+                                const qrType = this.isDuitNowQR(qrContent) ? 'DuitNow EMV' : 
+                                              this.isValidUrl(qrContent) ? 'URL' : 'Unknown';
                                 
-                                // Show success message
+                                console.log(`🎯 SUCCESS on attempt ${i + 1} (${qrType}): ${qrContent.substring(0, 50)}${qrContent.length > 50 ? '...' : ''}`);
+                                
+                                // Show success message with QR type identification
                                 resultsDiv.innerHTML = `
                                     <div class="alert alert-success">
                                         <i data-feather="check-circle" class="me-2"></i>
                                         <strong>QR Code Detected!</strong>
-                                        <p class="mb-2">Detection method: <span class="badge bg-success">Attempt ${i + 1}</span></p>
-                                        <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 80 ? qrContent.substring(0, 80) + '...' : qrContent}</code></p>
-                                        <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running 4-layer scam analysis...</p>
+                                        <p class="mb-2">Detection: <span class="badge bg-success">Attempt ${i + 1}</span> | Type: <span class="badge bg-info">${qrType}</span></p>
+                                        <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 60 ? qrContent.substring(0, 60) + '...' : qrContent}</code></p>
+                                        <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running ${qrType === 'DuitNow EMV' ? 'EMV payment validation' : qrType === 'URL' ? '4-layer scam analysis' : 'content analysis'}...</p>
                                     </div>
                                 `;
                                 feather.replace();
                                 
-                                this.showToast('QR Detected', `Success on attempt ${i + 1}`, 'success');
+                                // Show appropriate toast based on QR type
+                                if (qrType === 'DuitNow EMV') {
+                                    this.showToast('DuitNow QR Detected', `EMV payment QR found on attempt ${i + 1}`, 'success');
+                                } else if (qrType === 'URL') {
+                                    this.showToast('URL QR Detected', `Website QR found on attempt ${i + 1}`, 'success');
+                                } else {
+                                    this.showToast('QR Detected', `Content found on attempt ${i + 1}`, 'success');
+                                }
+                                
                                 return qrContent;
                             }
                         } else {
@@ -3389,6 +3410,16 @@ Respond with JSON:
                 await this.analyzeQRContent(content);
             }
 
+            // Test function for EMV QR parsing (for debugging)
+            testEMVQR() {
+                const testQR = "00020101021126580016A0000006770101110113006600000000010208MyPay005802MY5910MyCafe JB6011JohorBahru61051058062540417MYR0108DuitNow0208A0000006";
+                console.log('Testing EMV QR parsing:');
+                console.log('Input:', testQR);
+                console.log('isDuitNowQR:', this.isDuitNowQR(testQR));
+                console.log('Parsed fields:', this.parseEMVQR(testQR));
+                return testQR;
+            }
+
             showCommonQRFormats() {
                 const resultsDiv = document.getElementById('qr-results');
                 resultsDiv.innerHTML = `
@@ -3652,8 +3683,21 @@ Respond with JSON:
 
             // Check if QR content is DuitNow EMV format
             isDuitNowQR(content) {
-                return content.startsWith('000201') || content.includes('A000000677010111') || 
-                       (content.length > 50 && /^[0-9]{4,}/.test(content));
+                const isDuitNow = content.startsWith('000201') || 
+                                 content.includes('A000000677010111') || 
+                                 content.includes('A0000006770101') ||
+                                 (content.length > 50 && /^[0-9]{6,}/.test(content));
+                
+                console.log('QR Type Check:', {
+                    content: content.substring(0, 30) + (content.length > 30 ? '...' : ''),
+                    startsWithEMV: content.startsWith('000201'),
+                    hasPayNetAID: content.includes('A000000677010111'),
+                    hasAltAID: content.includes('A0000006770101'),
+                    isNumericLong: content.length > 50 && /^[0-9]{6,}/.test(content),
+                    isDuitNow: isDuitNow
+                });
+                
+                return isDuitNow;
             }
 
             // Parse EMV TLV (Tag-Length-Value) format
