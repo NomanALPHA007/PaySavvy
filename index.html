@@ -57,6 +57,12 @@
     
     <!-- QR Code Scanner Library -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+        // Ensure jsQR is loaded
+        window.addEventListener('load', function() {
+            console.log('jsQR library loaded:', typeof jsQR !== 'undefined');
+        });
+    </script>
     <!-- <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script> -->
     
     <style>
@@ -2756,8 +2762,11 @@ Respond with JSON:
                     videoElement.srcObject = this.videoStream;
                     await videoElement.play();
 
-                    // Start QR scanning loop
-                    this.startQRScanLoop(videoElement);
+                    // Wait for video to be ready, then start scanning
+                    videoElement.addEventListener('loadedmetadata', () => {
+                        console.log('Video metadata loaded, starting QR scanning');
+                        this.startQRScanLoop(videoElement);
+                    });
 
                     // Show scanning status
                     const resultsDiv = document.getElementById('qr-results');
@@ -2790,26 +2799,61 @@ Respond with JSON:
             }
 
             startQRScanLoop(videoElement) {
-                this.scanInterval = setInterval(() => {
-                    if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-                        const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
-                        canvas.width = videoElement.videoWidth;
-                        canvas.height = videoElement.videoHeight;
-                        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                let scanCount = 0;
+                let lastScanTime = 0;
+                
+                const scan = () => {
+                    const now = Date.now();
+                    if (now - lastScanTime < 300) return; // Throttle to max 3 scans per second
+                    lastScanTime = now;
+                    
+                    scanCount++;
+                    if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && 
+                        videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
                         
-                        // Use jsQR to detect QR codes
-                        if (typeof jsQR !== 'undefined') {
-                            const code = jsQR(imageData.data, imageData.width, imageData.height);
-                            if (code) {
-                                console.log('QR Code detected from camera:', code.data);
-                                this.stopQRCamera();
-                                this.handleAutoDetectedQR(code.data);
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            
+                            // Set canvas size to video dimensions
+                            canvas.width = videoElement.videoWidth;
+                            canvas.height = videoElement.videoHeight;
+                            
+                            // Draw video frame to canvas
+                            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                            
+                            // Log scanning attempt
+                            if (scanCount % 10 === 1) {
+                                console.log(`QR Scan attempt ${scanCount}: Video ${canvas.width}x${canvas.height}, jsQR available: ${typeof jsQR !== 'undefined'}`);
                             }
+                            
+                            // Use jsQR to detect QR codes with all inversion attempts
+                            if (typeof jsQR !== 'undefined') {
+                                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                                    inversionAttempts: "attemptBoth"
+                                });
+                                
+                                if (code && code.data && code.data.trim()) {
+                                    console.log('QR Code successfully detected from camera:', code.data);
+                                    clearInterval(this.scanInterval);
+                                    this.stopQRCamera();
+                                    this.handleAutoDetectedQR(code.data.trim());
+                                    return;
+                                }
+                            } else {
+                                if (scanCount === 1) {
+                                    console.error('jsQR library not loaded - cannot scan QR codes');
+                                    this.showToast('Library Error', 'QR scanner library not loaded', 'error');
+                                }
+                            }
+                        } catch (error) {
+                            console.error('QR scanning error:', error);
                         }
                     }
-                }, 500); // Check every 500ms for better performance
+                };
+                
+                this.scanInterval = setInterval(scan, 100); // Check every 100ms but throttled internally
             }
 
             async stopQRCamera() {
@@ -2978,15 +3022,35 @@ Respond with JSON:
                             context.drawImage(img, 0, 0);
                             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                             
-                            // Use jsQR to detect QR codes from uploaded image
+                            // Use jsQR to detect QR codes from uploaded image with enhanced options
                             if (typeof jsQR !== 'undefined') {
-                                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                                if (code) {
+                                console.log(`Scanning uploaded image: ${canvas.width}x${canvas.height}`);
+                                
+                                // Try multiple scanning attempts with different options
+                                let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                                    inversionAttempts: "dontInvert"
+                                });
+                                
+                                if (!code) {
+                                    // Try with inversion
+                                    code = jsQR(imageData.data, imageData.width, imageData.height, {
+                                        inversionAttempts: "onlyInvert"
+                                    });
+                                }
+                                
+                                if (!code) {
+                                    // Try with both
+                                    code = jsQR(imageData.data, imageData.width, imageData.height, {
+                                        inversionAttempts: "attemptBoth"
+                                    });
+                                }
+                                
+                                if (code && code.data) {
                                     console.log('QR Code detected from upload:', code.data);
                                     
                                     // QR code detected automatically
                                     resultsDiv.innerHTML = `
-                                        <div class="alert alert-success">
+                                        <div class="alert alert-info">
                                             <i data-feather="check-circle" class="me-2"></i>
                                             <strong>QR Code Detected!</strong>
                                             <p class="mb-2"><strong>Content:</strong> <code>${code.data}</code></p>
@@ -3000,7 +3064,11 @@ Respond with JSON:
                                     // Automatically analyze the detected QR content
                                     await this.analyzeQRContent(code.data);
                                     return;
+                                } else {
+                                    console.log('No QR code found in uploaded image');
                                 }
+                            } else {
+                                console.error('jsQR library not available for file upload');
                             }
                             
                             // Fallback to manual input if no QR code found
