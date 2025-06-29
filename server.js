@@ -26,6 +26,63 @@ app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
 
+// Social sharing image endpoint
+app.get('/social-share-image', (req, res) => {
+    const svg = `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                <stop offset="30%" style="stop-color:#f0fdf4;stop-opacity:1" />
+                <stop offset="70%" style="stop-color:#34d399;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#34d399;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#6ee7b7;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+        
+        <rect width="1200" height="630" fill="url(#bg)"/>
+        
+        <circle cx="100" cy="100" r="30" fill="rgba(255,255,255,0.4)"/>
+        <circle cx="1100" cy="150" r="20" fill="rgba(255,255,255,0.3)"/>
+        <circle cx="150" cy="500" r="25" fill="rgba(255,255,255,0.3)"/>
+        <circle cx="1050" cy="500" r="35" fill="rgba(255,255,255,0.2)"/>
+        
+        <g transform="translate(150,70) scale(2.5)">
+            <path d="M30 5 L50 15 L50 35 Q50 50 30 55 Q10 50 10 35 L10 15 Z" fill="url(#shield)" stroke="#065f46" stroke-width="2"/>
+            <circle cx="30" cy="25" r="8" fill="rgba(255,255,255,0.3)" stroke="#ffffff" stroke-width="1.5"/>
+            <path d="M26 25 L29 28 L34 21" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <text x="30" y="45" text-anchor="middle" fill="#ffffff" font-family="Arial" font-size="8" font-weight="bold">PS</text>
+        </g>
+        
+        <text x="600" y="180" text-anchor="middle" fill="#065f46" font-family="Arial, sans-serif" font-size="72" font-weight="900">PaySavvy Pro</text>
+        
+        <text x="600" y="230" text-anchor="middle" fill="#065f46" font-family="Arial, sans-serif" font-size="28" opacity="0.8">Advanced AI-Powered Cybersecurity Platform for Malaysia</text>
+        
+        <g transform="translate(200, 300)">
+            <rect x="0" y="0" width="180" height="60" rx="30" fill="rgba(255,255,255,0.9)" stroke="#10b981" stroke-width="2"/>
+            <text x="30" y="38" fill="#065f46" font-family="Arial" font-size="16" font-weight="600">🧠 AI Analysis</text>
+            
+            <rect x="220" y="0" width="180" height="60" rx="30" fill="rgba(255,255,255,0.9)" stroke="#10b981" stroke-width="2"/>
+            <text x="250" y="38" fill="#065f46" font-family="Arial" font-size="16" font-weight="600">📷 QR Scanner</text>
+            
+            <rect x="440" y="0" width="180" height="60" rx="30" fill="rgba(255,255,255,0.9)" stroke="#10b981" stroke-width="2"/>
+            <text x="470" y="38" fill="#065f46" font-family="Arial" font-size="16" font-weight="600">🌐 Multilingual</text>
+            
+            <rect x="660" y="0" width="200" height="60" rx="30" fill="rgba(255,255,255,0.9)" stroke="#10b981" stroke-width="2"/>
+            <text x="690" y="38" fill="#065f46" font-family="Arial" font-size="16" font-weight="600">⚡ Real-time Protection</text>
+        </g>
+        
+        <text x="600" y="550" text-anchor="middle" fill="#065f46" font-family="Arial" font-size="20" font-weight="500">Protecting Malaysia from Payment Scams</text>
+    </svg>`;
+    
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(svg);
+});
+
 // Coffee tip payment endpoint
 app.post('/api/create-tip-payment', async (req, res) => {
   try {
