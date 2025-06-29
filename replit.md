@@ -168,6 +168,12 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Included detailed scam mimic patterns for each institution based on known fraud patterns
   - Created comprehensive coverage of digital banks, e-money issuers, payment system operators, and traditional banks
 - June 29, 2025: Expanded verifiedBrands.json with comprehensive international payment systems (v3.0)
+- June 29, 2025: Fixed critical color mapping bug - "DANGEROUS" results now display in red instead of green for proper user safety
+- June 29, 2025: Implemented working QR Code Scanner with camera access and file upload functionality
+  - Camera mode: Requests proper camera permissions and displays live video feed
+  - File upload mode: Validates image files and provides manual input interface
+  - Both modes integrate seamlessly with 4-layer scam detection system
+  - Added clear user instructions for manual QR content entry when automatic detection unavailable
   - Added 11 major international payment providers: PayPal, Wise, Revolut, Payoneer, Stripe, Skrill, Neteller, Western Union, MoneyGram, Remitly
   - Total coverage now includes 100 government-authorized financial institutions globally
   - Enhanced with multi-jurisdictional regulatory oversight including FinCEN (US), FCA (UK), ACPR (France), BaFin (Germany), APRA (Australia)
