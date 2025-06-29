@@ -645,7 +645,13 @@
             // Load and manage scam fingerprints
             loadScamFingerprints() {
                 const stored = localStorage.getItem('scam_fingerprints');
-                return stored ? JSON.parse(stored) : {};
+                if (!stored) return {};
+                try {
+                    return JSON.parse(stored);
+                } catch (error) {
+                    console.warn('Failed to parse scam fingerprints:', error);
+                    return {};
+                }
             }
 
             saveScamFingerprints() {
@@ -1059,7 +1065,14 @@
                     }
 
                     const data = await response.json();
-                    const aiResult = JSON.parse(data.choices[0].message.content);
+                    let aiResult;
+                    try {
+                        aiResult = data.choices[0].message.content ? 
+                            JSON.parse(data.choices[0].message.content) : {};
+                    } catch (parseError) {
+                        console.warn('Failed to parse AI response:', parseError);
+                        aiResult = { riskScore: 0, riskLevel: 'unknown', explanation: 'AI analysis unavailable' };
+                    }
 
                     return {
                         score: aiResult.riskScore || 0,
@@ -2680,8 +2693,11 @@ Respond with JSON:
             // Storage Functions
             loadScanHistory() {
                 try {
-                    return JSON.parse(localStorage.getItem('paysavvy_scan_history') || '[]');
-                } catch {
+                    const stored = localStorage.getItem('paysavvy_scan_history');
+                    if (!stored) return [];
+                    return JSON.parse(stored);
+                } catch (error) {
+                    console.warn('Failed to parse scan history:', error);
                     return [];
                 }
             }
