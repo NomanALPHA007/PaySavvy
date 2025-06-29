@@ -26,24 +26,17 @@ app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
 
-// Block ALL JavaScript files except server files to prevent import.meta errors
-app.get('/main.js', (req, res) => {
-  res.status(404).send('Module files disabled - production version active');
-});
-
-app.get('/style.css', (req, res) => {
-  res.status(404).send('Legacy CSS disabled - styles included in HTML');
-});
-
-// Block any remaining JavaScript module files
-app.get('/database.js', (req, res) => {
-  res.status(404).send('Module files disabled - production version active');
-});
-
-// Comprehensive module blocking
+// Block ALL legacy JavaScript files to prevent import.meta errors
 app.use((req, res, next) => {
   const path = req.path;
-  if (path.endsWith('.js') && (path.includes('/src/') || path === '/main.js' || path === '/database.js')) {
+  if (path.endsWith('.js') && 
+      (path.includes('/src/') || 
+       path === '/main.js' || 
+       path === '/database.js' || 
+       path === '/ai.js' ||
+       path.includes('/src_backup/') ||
+       path.includes('/utils/') ||
+       path.includes('/components/'))) {
     return res.status(404).send('Module files disabled - production version active');
   }
   next();
@@ -68,7 +61,7 @@ app.get('/', (req, res) => {
     const timestamp = Date.now();
     const envScript = `
       <script>
-        // Force complete cache clear
+        // Aggressive cache clearing and module prevention
         if ('caches' in window) {
           caches.keys().then(names => names.forEach(name => caches.delete(name)));
         }
@@ -76,6 +69,17 @@ app.get('/', (req, res) => {
           navigator.serviceWorker.getRegistrations().then(registrations => {
             registrations.forEach(registration => registration.unregister());
           });
+        }
+        
+        // Clear localStorage and sessionStorage
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch(e) {}
+        
+        // Prevent any dynamic imports
+        if (window.import) {
+          delete window.import;
         }
         
         // Environment configuration
