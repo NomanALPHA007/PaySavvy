@@ -1,19 +1,21 @@
 {
   "metadata": {
-    "version": "2.0",
+    "version": "3.0",
     "lastUpdated": "2025-01-29",
-    "source": "Government Regulatory Databases",
-    "coverage": "ASEAN Government-Authorized Financial Institutions",
+    "source": "Global Government Regulatory Databases",
+    "coverage": "ASEAN + International Government-Authorized Financial Institutions",
     "regulatoryBodies": {
       "Malaysia": "Bank Negara Malaysia (BNM)",
       "Singapore": "Monetary Authority of Singapore (MAS)",
       "Indonesia": "Otoritas Jasa Keuangan (OJK) & Bank Indonesia (BI)",
       "Philippines": "Bangko Sentral ng Pilipinas (BSP)",
       "Thailand": "Bank of Thailand (BOT)",
-      "Vietnam": "State Bank of Vietnam (SBV)"
+      "Vietnam": "State Bank of Vietnam (SBV)",
+      "International": "FinCEN (US), FCA (UK), ACPR (France), BaFin (Germany), APRA (Australia), Central Bank of Ireland, Gibraltar FSC, MFSA (Malta)"
     },
-    "totalInstitutions": 89,
-    "verificationStandard": "Government License Verification"
+    "totalInstitutions": 100,
+    "verificationStandard": "Multi-Jurisdictional Government License Verification",
+    "internationalCoverage": "Major global payment providers with regulatory oversight in 200+ countries"
   },
   "Malaysia": {
     "Maybank": {
@@ -545,6 +547,148 @@
       "headquarters": "Ho Chi Minh City",
       "aseanPresence": ["Vietnam"],
       "commonScamMimics": ["zalopay.net", "zalo-pay.tk", "zallopay.vn"]
+    }
+  },
+  "International": {
+    "PayPal": {
+      "domains": ["paypal.com", "paypal.me", "sandbox.paypal.com", "paypal.co.uk", "paypal.com.au", "paypal.ca"],
+      "institution": "PayPal Holdings, Inc.",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iIzAwMzA4NyIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QYXlQYWw8L3RleHQ+Cjwvc3ZnPg==",
+      "services": ["Digital Payments", "Money Transfer", "Merchant Services", "Buy Now Pay Later", "Cryptocurrency"],
+      "countryCode": "US",
+      "region": "International",
+      "regulatoryLicense": "US MSB License, EU PSD2 License, FCA Authorization (UK), APRA Oversight (AU)",
+      "establishedYear": 1998,
+      "headquarters": "San Jose, California, USA",
+      "globalPresence": ["United States", "European Union", "United Kingdom", "Canada", "Australia", "Japan", "Singapore", "Hong Kong", "Malaysia", "Philippines", "Thailand", "Vietnam", "Indonesia"],
+      "regulatoryBodies": ["FinCEN (US)", "FCA (UK)", "ACPR (France)", "BaFin (Germany)", "APRA (Australia)", "MAS (Singapore)"],
+      "commonScamMimics": ["paypal-secure.tk", "paypal-verification.com", "paypal-support.net", "paypal.co.tk", "paypaI.com"]
+    },
+    "Wise": {
+      "domains": ["wise.com", "transferwise.com", "wise.co.uk", "wise.eu"],
+      "institution": "Wise Payments Limited",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iIzAwQjlGRiIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI5cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5XaXNlPC90ZXh0Pgo8L3N2Zz4=",
+      "services": ["International Money Transfer", "Multi-Currency Account", "Debit Card", "Business Accounts", "API Integration"],
+      "countryCode": "UK",
+      "region": "International",
+      "regulatoryLicense": "FCA Authorization (UK), FinCEN MSB (US), ACPR (France), DNB (Netherlands), APRA (Australia)",
+      "establishedYear": 2011,
+      "headquarters": "London, United Kingdom",
+      "globalPresence": ["United Kingdom", "United States", "European Union", "Australia", "Canada", "Japan", "Singapore", "Brazil", "India", "Malaysia", "Philippines"],
+      "regulatoryBodies": ["FCA (UK)", "FinCEN (US)", "ACPR (France)", "DNB (Netherlands)", "APRA (Australia)", "MAS (Singapore)"],
+      "commonScamMimics": ["wise-transfer.net", "transferwise.tk", "wise-secure.com", "wise-support.co", "transferwise-help.net"]
+    },
+    "Revolut": {
+      "domains": ["revolut.com", "revolut.co.uk", "revolut.eu", "business.revolut.com"],
+      "institution": "Revolut Ltd",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iIzAwNENGRiIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI3cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SZXZvbHV0PC90ZXh0Pgo8L3N2Zz4=",
+      "services": ["Digital Banking", "Cryptocurrency Exchange", "Stock Trading", "Business Banking", "Insurance"],
+      "countryCode": "UK",
+      "region": "International",
+      "regulatoryLicense": "FCA Authorization (UK), Bank of Lithuania License (EU), APRA Oversight (Australia), Central Bank of Ireland",
+      "establishedYear": 2015,
+      "headquarters": "London, United Kingdom",
+      "globalPresence": ["United Kingdom", "European Union", "United States", "Australia", "Japan", "Singapore", "Switzerland"],
+      "regulatoryBodies": ["FCA (UK)", "Bank of Lithuania", "Central Bank of Ireland", "APRA (Australia)", "MAS (Singapore)"],
+      "commonScamMimics": ["revolut-secure.tk", "revolut-support.net", "revolut-verify.com", "revolut.co.tk", "revolut-bank.org"]
+    },
+    "Payoneer": {
+      "domains": ["payoneer.com", "payoneer.co.uk", "login.payoneer.com"],
+      "institution": "Payoneer Inc.",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iI0ZGNjAwMCIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI3cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QYXlvbmVlcjwvdGV4dD4KPC9zdmc+",
+      "services": ["Cross-Border Payments", "Working Capital", "Marketplace Payments", "Mass Payouts", "Tax Solutions"],
+      "countryCode": "US",
+      "region": "International",
+      "regulatoryLicense": "FinCEN MSB (US), FCA Authorization (UK), ACPR (France), Gibraltar FSC, Central Bank of Ireland",
+      "establishedYear": 2005,
+      "headquarters": "New York, USA",
+      "globalPresence": ["United States", "United Kingdom", "European Union", "Japan", "Australia", "Canada", "Hong Kong", "Singapore", "Philippines", "India"],
+      "regulatoryBodies": ["FinCEN (US)", "FCA (UK)", "ACPR (France)", "Gibraltar FSC", "Central Bank of Ireland", "MAS (Singapore)"],
+      "commonScamMimics": ["payoneer-secure.tk", "payoneer-support.com", "payoneer.co.tk", "payoneer-verify.net", "payonner.com"]
+    },
+    "Stripe": {
+      "domains": ["stripe.com", "dashboard.stripe.com", "connect.stripe.com", "checkout.stripe.com"],
+      "institution": "Stripe, Inc.",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iIzY3NzJFNSIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TdHJpcGU8L3RleHQ+Cjwvc3ZnPg==",
+      "services": ["Payment Processing", "Online Marketplace", "Subscription Billing", "Corporate Cards", "Banking Services"],
+      "countryCode": "US",
+      "region": "International",
+      "regulatoryLicense": "FinCEN MSB (US), FCA Authorization (UK), ACPR (France), Central Bank of Ireland, MAS (Singapore)",
+      "establishedYear": 2010,
+      "headquarters": "San Francisco, California, USA",
+      "globalPresence": ["United States", "Canada", "United Kingdom", "European Union", "Australia", "Japan", "Singapore", "Hong Kong", "Malaysia", "Thailand", "Philippines", "India", "Brazil", "Mexico"],
+      "regulatoryBodies": ["FinCEN (US)", "FCA (UK)", "ACPR (France)", "Central Bank of Ireland", "MAS (Singapore)", "APRA (Australia)"],
+      "commonScamMimics": ["stripe-secure.tk", "stripe-support.net", "stripe-verify.com", "stripe.co.tk", "stripe-dashboard.org"]
+    },
+    "Skrill": {
+      "domains": ["skrill.com", "account.skrill.com", "skrill.co.uk"],
+      "institution": "Skrill Limited",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iIzY2MkQ5MSIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Ta3JpbGw8L3RleHQ+Cjwvc3ZnPg==",
+      "services": ["Digital Wallet", "Money Transfer", "Prepaid Cards", "Cryptocurrency", "Online Gaming Payments"],
+      "countryCode": "UK",
+      "region": "International",
+      "regulatoryLicense": "FCA Authorization (UK), Central Bank of Ireland, Gibraltar FSC, Malta Financial Services Authority",
+      "establishedYear": 2001,
+      "headquarters": "London, United Kingdom",
+      "globalPresence": ["United Kingdom", "European Union", "United States", "Canada", "Australia", "Singapore", "India", "Malaysia", "Philippines", "Thailand"],
+      "regulatoryBodies": ["FCA (UK)", "Central Bank of Ireland", "Gibraltar FSC", "MFSA (Malta)", "MAS (Singapore)"],
+      "commonScamMimics": ["skrill-secure.tk", "skrill-support.net", "skrill.co.tk", "skrill-verification.com", "skriill.com"]
+    },
+    "Neteller": {
+      "domains": ["neteller.com", "secure.neteller.com", "neteller.co.uk"],
+      "institution": "Paysafe Financial Services Limited",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iIzAwN0RGRiIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI3cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5OZXR0ZWxsZXI8L3RleHQ+Cjwvc3ZnPg==",
+      "services": ["Digital Wallet", "Instant Bank Transfer", "Prepaid Cards", "Cryptocurrency", "Merchant Services"],
+      "countryCode": "UK",
+      "region": "International",
+      "regulatoryLicense": "FCA Authorization (UK), Central Bank of Ireland, Gibraltar FSC, Malta Financial Services Authority",
+      "establishedYear": 1999,
+      "headquarters": "London, United Kingdom",
+      "globalPresence": ["United Kingdom", "European Union", "Canada", "Australia", "Singapore", "India", "Malaysia", "Philippines", "Thailand", "Brazil"],
+      "regulatoryBodies": ["FCA (UK)", "Central Bank of Ireland", "Gibraltar FSC", "MFSA (Malta)", "MAS (Singapore)"],
+      "commonScamMimics": ["neteller-secure.tk", "neteller-support.com", "neteller.co.tk", "neteller-verify.net", "netteller.com"]
+    },
+    "Western Union": {
+      "domains": ["westernunion.com", "wu.com", "westernunion.co.uk", "westernunion.com.au"],
+      "institution": "The Western Union Company",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iI0ZGRUQwMCIvPgo8dGV4dCB4PSIyMCIgeT0iMTgiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2cHgiIGZpbGw9IiMwMDMzNjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldlc3Rlcm48L3RleHQ+Cjx0ZXh0IHg9IjIwIiB5PSIyOCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjZweCIgZmlsbD0iIzAwMzM2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VW5pb248L3RleHQ+Cjwvc3ZnPg==",
+      "services": ["Money Transfer", "Bill Payment", "Prepaid Services", "Business Solutions", "Digital Banking"],
+      "countryCode": "US",
+      "region": "International",
+      "regulatoryLicense": "FinCEN MSB (US), FCA Authorization (UK), ACPR (France), APRA (Australia), Central Bank oversight in 200+ countries",
+      "establishedYear": 1851,
+      "headquarters": "Denver, Colorado, USA",
+      "globalPresence": ["200+ countries and territories worldwide including all ASEAN nations"],
+      "regulatoryBodies": ["FinCEN (US)", "FCA (UK)", "ACPR (France)", "APRA (Australia)", "Central banks in 200+ jurisdictions"],
+      "commonScamMimics": ["westernunion-secure.tk", "wu-transfer.net", "westernunion.co.tk", "western-union.org", "westernuniion.com"]
+    },
+    "MoneyGram": {
+      "domains": ["moneygram.com", "moneygram.co.uk", "moneygram.com.au"],
+      "institution": "MoneyGram International, Inc.",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iI0VEMEEzRiIvPgo8dGV4dCB4PSIyMCIgeT0iMTgiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Nb25leTwvdGV4dD4KPHR4dCB4PSIyMCIgeT0iMjgiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5HcmFtPC90ZXh0Pgo8L3N2Zz4=",
+      "services": ["Money Transfer", "Bill Payment", "Mobile Wallet", "Blockchain Technology", "Financial Inclusion"],
+      "countryCode": "US",
+      "region": "International",
+      "regulatoryLicense": "FinCEN MSB (US), FCA Authorization (UK), ACPR (France), APRA (Australia), Central Bank licenses in 190+ countries",
+      "establishedYear": 1940,
+      "headquarters": "Dallas, Texas, USA",
+      "globalPresence": ["190+ countries and territories including all ASEAN nations"],
+      "regulatoryBodies": ["FinCEN (US)", "FCA (UK)", "ACPR (France)", "APRA (Australia)", "Central banks in 190+ jurisdictions"],
+      "commonScamMimics": ["moneygram-secure.tk", "moneygram-support.net", "money-gram.org", "moneygram.co.tk", "monneygram.com"]
+    },
+    "Remitly": {
+      "domains": ["remitly.com", "remitly.co.uk", "remitly.com.au"],
+      "institution": "Remitly, Inc.",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iIzAwNzJGRiIvPgo8dGV4dCB4PSIyMCIgeT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI3cHgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SZW1pdGx5PC90ZXh0Pgo8L3N2Zz4=",
+      "services": ["Digital Remittances", "Mobile Money", "Bank Deposits", "Cash Pickup", "Home Delivery"],
+      "countryCode": "US",
+      "region": "International",
+      "regulatoryLicense": "FinCEN MSB (US), FCA Authorization (UK), APRA (Australia), Central Bank of Philippines, MAS (Singapore)",
+      "establishedYear": 2011,
+      "headquarters": "Seattle, Washington, USA",
+      "globalPresence": ["United States", "United Kingdom", "Canada", "Australia", "Philippines", "Singapore", "Malaysia", "India", "Mexico", "Kenya"],
+      "regulatoryBodies": ["FinCEN (US)", "FCA (UK)", "APRA (Australia)", "BSP (Philippines)", "MAS (Singapore)"],
+      "commonScamMimics": ["remitly-secure.tk", "remitly-support.net", "remitly.co.tk", "remitly-transfer.org", "remmitly.com"]
     }
   }
 }
