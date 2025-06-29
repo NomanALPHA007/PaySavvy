@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
     'Expires': '0',
     'Last-Modified': new Date().toUTCString(),
     'ETag': `"${Date.now()}"`,
-    'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; media-src * data: blob:; connect-src *;",
+    'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval' data: blob:; style-src * 'unsafe-inline' data:; img-src * data: blob:; media-src * data: blob:; connect-src *; frame-src *; worker-src *;",
     'Vary': '*'
   });
   

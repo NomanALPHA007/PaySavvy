@@ -18,8 +18,8 @@
     <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- QR Code Scanner - Compatible version -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- QR Code Scanner - Browser-compatible version -->
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     
     <style>
         :root {
@@ -1456,30 +1456,32 @@ Respond with JSON:
                 const localThreats = [];
                 let riskLevel = 'low';
 
+                // Use brandList data if available, otherwise use fallback arrays
+                const malaysianBanks = this.brandList?.malaysianBanks || ['maybank.com.my', 'publicbank.com.my', 'rhbbank.com.my', 'cimb.com.my'];
+                const eWallets = this.brandList?.eWallets || ['grab.com', 'touchngo.com.my', 'boost.com.my', 'shopee.com.my'];
+
                 // Check for Malaysian banking/e-wallet targeting
-                this.malaysianBanks.forEach(bank => {
-                    if (domain.includes(bank) && !this.isLegitemateDomain(domain, bank)) {
+                malaysianBanks.forEach(bank => {
+                    const bankName = bank.replace('.com.my', '').replace('.com', '');
+                    if (domain.includes(bankName) && !domain.includes(bank)) {
                         localThreats.push({
                             type: 'Banking Fraud',
-                            target: bank.toUpperCase(),
+                            target: bankName.toUpperCase(),
                             severity: 'HIGH',
-                            victims: Math.floor(Math.random() * 2000) + 500,
-                            avgLoss: `RM ${Math.floor(Math.random() * 500) + 100}`,
-                            description: `Fraudulent ${bank} domain targeting banking users`
+                            description: `Potential fraudulent ${bankName} domain targeting banking users`
                         });
                         riskLevel = 'high';
                     }
                 });
 
-                this.ewallets.forEach(ewallet => {
-                    if (domain.includes(ewallet) && !this.isLegitemateDomain(domain, ewallet)) {
+                eWallets.forEach(ewallet => {
+                    const walletName = ewallet.replace('.com.my', '').replace('.com', '');
+                    if (domain.includes(walletName) && !domain.includes(ewallet)) {
                         localThreats.push({
                             type: 'E-wallet Fraud',
-                            target: ewallet.toUpperCase(),
+                            target: walletName.toUpperCase(),
                             severity: 'HIGH',
-                            victims: Math.floor(Math.random() * 1500) + 200,
-                            avgLoss: `RM ${Math.floor(Math.random() * 300) + 50}`,
-                            description: `Fraudulent ${ewallet} domain targeting digital wallet users`
+                            description: `Potential fraudulent ${walletName} domain targeting e-wallet users`
                         });
                         riskLevel = 'high';
                     }
