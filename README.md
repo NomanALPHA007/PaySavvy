@@ -6,7 +6,7 @@
 
 ## 🚀 Live Demo
 
-[Try PaySavvy Pro](https://paysavvy-pro.vercel.app) - Test with: `https://maybank-secure.com`
+[Try PaySavvy Pro](https://pay-savvy.vercel.app/) - Test with: `https://maybank-secure.com`
 
 ## ⚡ Features
 
