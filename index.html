@@ -1364,8 +1364,18 @@ Focus on:
                     score: analysis.score
                 });
 
+                // Force correct color classes for risk levels
+                let alertClass = 'alert-secondary';
+                if (analysis.trustLevel.toLowerCase() === 'safe') {
+                    alertClass = 'alert-success';
+                } else if (analysis.trustLevel.toLowerCase() === 'suspicious') {
+                    alertClass = 'alert-warning';
+                } else if (analysis.trustLevel.toLowerCase() === 'dangerous') {
+                    alertClass = 'alert-danger';
+                }
+                
                 resultsDiv.innerHTML = `
-                    <div class="alert alert-${riskClass}">
+                    <div class="alert ${alertClass}">
                         <div class="d-flex align-items-center mb-3">
                             <i data-feather="${riskIcon}" class="me-2"></i>
                             <strong>${analysis.trustLevel.toUpperCase()}</strong>
