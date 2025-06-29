@@ -1,0 +1,64 @@
+{
+  "malaysianBanks": [
+    "maybank.com.my",
+    "publicbank.com.my", 
+    "rhbbank.com.my",
+    "cimb.com.my",
+    "hongleongbank.com.my",
+    "ambank.com.my",
+    "alliancebank.com.my",
+    "bankislam.com.my",
+    "muamalat.com.my",
+    "affinbank.com.my",
+    "bsn.com.my",
+    "agrobank.com.my"
+  ],
+  "eWallets": [
+    "grab.com",
+    "touchngo.com.my",
+    "boost.com.my",
+    "bigpay.com.my",
+    "fave.asia",
+    "razerpay.com",
+    "shopee.com.my",
+    "lazada.com.my"
+  ],
+  "governmentSites": [
+    "gov.my",
+    "hasil.gov.my",
+    "kwsp.gov.my",
+    "socso.gov.my",
+    "jpn.gov.my",
+    "rmp.gov.my"
+  ],
+  "trustedDomains": [
+    "google.com",
+    "microsoft.com",
+    "apple.com",
+    "facebook.com",
+    "instagram.com",
+    "whatsapp.com",
+    "telegram.org",
+    "youtube.com",
+    "twitter.com",
+    "linkedin.com"
+  ],
+  "suspiciousTlds": [
+    ".tk", ".ml", ".ga", ".cf", ".pw", ".top", ".click", ".download", 
+    ".loan", ".win", ".bid", ".date", ".review", ".faith", ".science",
+    ".accountant", ".racing", ".cricket", ".party", ".work", ".men",
+    ".trade", ".webcam", ".stream", ".gdn", ".pro", ".club"
+  ],
+  "scamKeywords": [
+    "urgent", "verify", "suspend", "expire", "immediate", "action required",
+    "click here", "limited time", "congratulations", "winner", "prize",
+    "free money", "guaranteed", "100% secure", "government grant",
+    "tax refund", "inheritance", "lottery", "investment opportunity",
+    "get rich quick", "make money fast", "work from home", "easy money"
+  ],
+  "malaysianScamPatterns": [
+    "bank negara", "lhdn", "kwsp", "socso", "pdrm", "jpj", "jpn",
+    "kementerian", "jabatan", "kerajaan", "malaysia", "govt",
+    "refund", "rebate", "bantuan", "subsidi", "claim", "tuntut"
+  ]
+}
