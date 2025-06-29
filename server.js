@@ -44,13 +44,14 @@ app.use((req, res, next) => {
 
 // Root endpoint - serve production app
 app.get('/', (req, res) => {
-  // Aggressive cache-busting headers
+  // Aggressive cache-busting headers and CSP
   res.set({
     'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
     'Pragma': 'no-cache',
     'Expires': '0',
     'Last-Modified': new Date().toUTCString(),
     'ETag': `"${Date.now()}"`,
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.openai.com; media-src 'self' blob:; worker-src 'self' blob:;",
     'Vary': '*'
   });
   
