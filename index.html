@@ -2851,6 +2851,79 @@ Respond with JSON:
                 this.showToast('Manual Input', 'Please enter QR code content manually', 'info');
             }
 
+            // Display QR analysis results with same format as URL scanner
+            displayQRResults(analysis, qrContent) {
+                const resultsDiv = document.getElementById('qr-results');
+                const riskClass = this.getRiskClass(analysis.trustLevel);
+                const riskIcon = this.getRiskIcon(analysis.trustLevel);
+                
+                // Force correct color classes for risk levels
+                let alertClass = 'alert-secondary';
+                if (analysis.trustLevel.toLowerCase() === 'safe') {
+                    alertClass = 'alert-success';
+                } else if (analysis.trustLevel.toLowerCase() === 'suspicious') {
+                    alertClass = 'alert-warning';
+                } else if (analysis.trustLevel.toLowerCase() === 'dangerous') {
+                    alertClass = 'alert-danger';
+                }
+
+                resultsDiv.innerHTML = `
+                    <div class="alert ${alertClass}">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-feather="${riskIcon}" class="me-2"></i>
+                            <strong>${analysis.trustLevel.toUpperCase()}</strong>
+                            <span class="badge bg-info ms-2">${Math.round(analysis.confidence * 100)}% Confidence</span>
+                            <span class="badge bg-secondary ms-auto">Risk Score: ${analysis.score}/10</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>4-Layer Centralized Analysis:</strong>
+                            <div class="row mt-2">
+                                <div class="col-3">
+                                    <div class="text-center">
+                                        <small><strong>Layer 1:</strong> Heuristics</small><br>
+                                        <span class="badge ${analysis.layerResults.heuristics?.score > 0 ? 'bg-danger' : 'bg-success'}">${analysis.layerResults.heuristics?.score || 0} pts</span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="text-center">
+                                        <small><strong>Layer 2:</strong> Brand Check</small><br>
+                                        <span class="badge ${analysis.brandAnalysis?.match ? 'bg-success' : (analysis.brandAnalysis?.scamMimic ? 'bg-danger' : 'bg-secondary')}">${analysis.brandAnalysis?.match ? 'Verified' : (analysis.brandAnalysis?.scamMimic ? 'Scam Mimic' : 'Unknown')}</span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="text-center">
+                                        <small><strong>Layer 3:</strong> Redirects</small><br>
+                                        <span class="badge ${analysis.layerResults.redirects?.score > 0 ? 'bg-warning' : 'bg-success'}">${analysis.layerResults.redirects?.score || 0} pts</span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="text-center">
+                                        <small><strong>Layer 4:</strong> AI Analysis</small><br>
+                                        <span class="badge ${analysis.layerResults.ai?.available ? 'bg-primary' : 'bg-secondary'}">${analysis.layerResults.ai?.available ? 'Active' : 'Offline'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Detection Factors:</strong>
+                            <ul class="mt-2 mb-0">
+                                ${analysis.reason && analysis.reason.length > 0 ? 
+                                    analysis.reason.map(factor => `<li>${factor}</li>`).join('') : 
+                                    '<li>No specific risk factors detected</li>'
+                                }
+                            </ul>
+                        </div>
+
+                        <div class="small text-muted">
+                            <strong>QR Content:</strong> <code>${qrContent}</code>
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+            }
+
             // Handle automatically detected QR codes
             async handleAutoDetectedQR(qrData) {
                 console.log('Auto-detected QR code:', qrData);
@@ -3015,8 +3088,8 @@ Respond with JSON:
                         // Add brand analysis to results
                         results.brandAnalysis = brandMatch;
                         
-                        // Display results in QR section
-                        this.displayQRResults(results);
+                        // Display results using the same format as URL scanner
+                        this.displayQRResults(results, content);
                         
                         // Also save to scan history
                         this.saveScanResult(results);
