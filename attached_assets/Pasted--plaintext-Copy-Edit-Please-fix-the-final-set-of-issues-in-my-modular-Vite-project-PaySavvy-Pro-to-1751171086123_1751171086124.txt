@@ -1,0 +1,126 @@
+
+plaintext
+Copy
+Edit
+Please fix the final set of issues in my modular Vite project (PaySavvy Pro) to make it 100% production-ready.
+
+---
+
+🔴 1. Fix Runtime Error: Cannot read properties of undefined (reading 'riskLevel')
+
+✅ Action:
+- This occurs in `displayScanHistory()` when accessing `.riskLevel` from a scan object
+- Add full null-safety to the code:
+```js
+const history = scanHistory.map(scan => {
+  const riskLevel = scan?.aiAnalysis?.riskLevel ?? "Unknown";
+  ...
+});
+Ensure every scan object returned from handleScan() contains:
+
+url, timestamp, aiAnalysis: { riskLevel }, and basicAnalysis fields
+
+✅ Bonus:
+
+If aiAnalysis is missing or failed, display: "AI scan failed — fallback used" in history
+
+🔴 2. Fix CSP Eval Warning (again showing in logs)
+
+✅ Action:
+
+Confirm eval(), new Function(), setTimeout("..."), or setInterval("...") are not used
+
+Scan entire project for:
+
+js
+Copy
+Edit
+eval
+new Function
+setTimeout('string')
+setInterval('string')
+If html5-qrcode or other libraries use unsafe logic:
+
+Replace with alternative or sandbox in an iframe
+
+Use dynamic import only on user interaction (import("./lib/qr-safe.js"))
+
+✅ Do not modify CSP headers to include unsafe-eval — keep security hardened
+
+🔴 3. Harden AI Response Handling
+
+✅ Action:
+
+In the part of the code where API returns data:
+
+js
+Copy
+Edit
+if (!response || !response.riskLevel) {
+   toast("AI analysis missing — fallback result shown", "warning");
+   scan.aiAnalysis = { riskLevel: "Unknown", reason: "AI failed" };
+}
+Never assume AI response is always populated
+
+Allow fallback scoring to show basicAnalysis.riskScore as a backup
+
+🔴 4. Harden Global Error Listener
+
+✅ Ensure this is included:
+
+js
+Copy
+Edit
+window.onerror = function(message, source, lineno, colno, error) {
+  toast(`System error: ${message}`, "error");
+};
+
+window.onunhandledrejection = function(event) {
+  toast("Unhandled Promise rejection", "error");
+};
+✅ After patching:
+
+Restart the server
+
+Test scanning a link with and without AI response
+
+Open scan history → should not break even if riskLevel is missing
+
+Open DevTools → no CSP errors, no uncaught exceptions
+
+Please apply these changes securely and commit a clean working version.
+
+yaml
+Copy
+Edit
+
+---
+
+## 🧪 What This Prompt Solves
+
+| Issue                             | Resolved by This Prompt? |
+|----------------------------------|---------------------------|
+| `riskLevel` TypeError            | ✅ Yes (adds null-safe map logic)  
+| `aiAnalysis` undefined fallback  | ✅ Yes (graceful fallback logic added)  
+| CSP eval violation               | ✅ Yes (removes unsafe patterns)  
+| QR fallback handling             | ✅ Yes (sandbox-safe fallback advised)  
+| API key validation               | ✅ Already secured in previous fix  
+| Global crash prevention          | ✅ Global error handlers ensured  
+
+---
+
+## ✅ Optional Enhancements You Can Request After This
+
+- Add UI message in scan history: "AI skipped, using local pattern analysis"
+- Log failed AI requests to Firebase (anonymous)
+- Reorder scan history to show most recent first
+- Export scan history to `.csv`
+
+---
+
+Let me know if you want:
+- This fix as a commit message for GitHub  
+- Final `README.md` with all features marked ✅  
+- Deployment checklist for Vercel and Replit
+
+You’re just one patch away from perfection. Let’s complete this 🚀

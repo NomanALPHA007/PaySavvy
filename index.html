@@ -595,7 +595,7 @@
     <div class="toast-container"></div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS removed to prevent import.meta errors in strict CSP mode -->
     
     <!-- Main Application Script -->
     <script>
@@ -1094,11 +1094,24 @@
                     const data = await response.json();
                     let aiResult;
                     try {
-                        aiResult = data.choices[0].message.content ? 
+                        aiResult = data.choices[0]?.message?.content ? 
                             JSON.parse(data.choices[0].message.content) : {};
                     } catch (parseError) {
                         console.warn('Failed to parse AI response:', parseError);
                         aiResult = { riskScore: 0, riskLevel: 'unknown', explanation: 'AI analysis unavailable' };
+                    }
+
+                    // Validate AI response structure
+                    if (!aiResult || !aiResult.riskLevel) {
+                        this.showToast('AI analysis missing — fallback result shown', '', 'warning');
+                        return {
+                            score: 0,
+                            riskLevel: 'unknown',
+                            explanation: 'AI analysis failed - using pattern analysis only',
+                            confidence: 0.5,
+                            threatType: 'unknown',
+                            available: false
+                        };
                     }
 
                     return {
@@ -2762,22 +2775,31 @@ Respond with JSON:
                 }
 
                 clearBtn.style.display = 'block';
-                historyDiv.innerHTML = this.scanHistory.map(scan => `
+                historyDiv.innerHTML = this.scanHistory.map(scan => {
+                    // Safe access with fallbacks
+                    const riskLevel = scan?.aiAnalysis?.riskLevel ?? scan?.basicAnalysis?.riskLevel ?? "Unknown";
+                    const timestamp = scan?.timestamp ? new Date(scan.timestamp).toLocaleString() : 'Unknown time';
+                    const url = scan?.url ?? 'Unknown URL';
+                    const aiFailedMessage = !scan?.aiAnalysis?.riskLevel ? '<br><small class="text-muted">AI scan failed — fallback used</small>' : '';
+                    
+                    return `
                     <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center mb-1">
-                                <span class="badge bg-${this.getRiskClass(scan.basicAnalysis.riskLevel)} me-2">
-                                    ${scan.basicAnalysis.riskLevel.toUpperCase()}
+                                <span class="badge bg-${this.getRiskClass(riskLevel)} me-2">
+                                    ${riskLevel.toUpperCase()}
                                 </span>
-                                <small class="text-muted">${new Date(scan.timestamp).toLocaleString()}</small>
+                                <small class="text-muted">${timestamp}</small>
                             </div>
-                            <small class="text-truncate d-block" style="max-width: 300px;">${scan.url}</small>
+                            <small class="text-truncate d-block" style="max-width: 300px;">${url}</small>
+                            ${aiFailedMessage}
                         </div>
-                        <button class="btn btn-outline-primary btn-sm" onclick="window.paysar.rescanUrl('${scan.url}')">
+                        <button class="btn btn-outline-primary btn-sm" onclick="window.paysar.rescanUrl('${url}')">
                             <i data-feather="refresh-cw" width="14" height="14"></i>
                         </button>
                     </div>
-                `).join('');
+                `;
+                }).join('');
                 feather.replace();
             }
 
