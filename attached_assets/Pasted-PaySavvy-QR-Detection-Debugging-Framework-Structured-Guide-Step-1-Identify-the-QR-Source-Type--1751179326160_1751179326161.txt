@@ -1,0 +1,162 @@
+PaySavvy QR Detection Debugging Framework (Structured Guide)
+✅ Step 1: Identify the QR Source Type
+🎯 Goal: Determine whether the content is a:
+
+✅ Scam/phishing URL
+
+✅ DuitNow EMV Payment Payload
+
+❌ Non-standard/invalid QR content
+
+🔍 Run This Diagnostic in Console:
+js
+Copy
+Edit
+console.log("📦 Detected QR Content:", qrContent);
+Then evaluate:
+
+Test Condition	Meaning
+qrContent.startsWith("http")	It’s a website URL — proceed with full scam detection
+qrContent.startsWith("000201") or contains "A000000677010111"	Likely a DuitNow QR
+Otherwise	Unknown format — show guidance message
+
+✅ Step 2: Verify QR Detection Success
+🎯 Goal: Confirm whether jsQR(...) detected valid QR content in any of the 10 preprocessing passes.
+
+📋 Check Log Output:
+Search for this in console:
+
+plaintext
+Copy
+Edit
+🧪 Attempt: Inverted → ✅ Detected
+🧪 Attempt: Scaled 0.5 → ❌ Not Detected
+You should see:
+
+Status	Meaning
+✅ At least 1 “Detected” log	QR decoding succeeded → move to Step 3
+❌ All attempts failed	QR is not machine-readable → try with clearer image
+
+✅ Step 3: Visual Diagnosis of File
+🎯 Goal: Check if image quality or structure is causing QR detection to fail.
+
+🔎 Checklist:
+✅ Question	Action
+Is the image blurry or low contrast?	Use binarization or contrast boost
+Is QR partially cropped or at an angle?	Use top/center smart cropping
+Is the image > 1800px?	Use scaled-down detection (e.g., 0.5x, 0.3x)
+Is there glare, shadows, or reflections?	Recommend retaking photo under soft light
+Is QR too small in the image?	Recommend closer zoom or cropping
+
+📦 Use this debug log:
+
+js
+Copy
+Edit
+console.log("🖼️ Image Resolution:", img.width + "x" + img.height);
+console.log("🎯 Final Attempt Summary:", attemptResults);
+✅ Step 4: EMV Parsing & Merchant Validation (For DuitNow QR)
+🎯 Goal: Decode EMV TLV structure and extract bank/e-wallet info.
+
+🔎 Check These TLV Fields:
+Tag	Field	Example
+59	Merchant Name	Maybank, TNG, etc.
+60	Merchant City	Johor, KL
+26, 27, 28	Merchant IDs / Proxy	E-wallet ID or FPX reference
+
+📦 Run:
+
+js
+Copy
+Edit
+const emvFields = parseEMVQR(qrContent);
+console.log("🧾 EMV Parsed Fields:", emvFields);
+Then validate:
+
+js
+Copy
+Edit
+const merchant = emvFields["59"];
+const match = verifiedBrands.find(b => merchant.includes(b.name));
+console.log("🏦 Merchant Verified:", match ? "✅ YES" : "❌ No match");
+✅ If match is found → assign Safe
+⚠️ If no match → assign Suspicious
+🚨 If match known as mimic → assign Dangerous
+
+✅ Step 5: Scam Risk Detection (URL-based QRs)
+🎯 Goal: Run full 4-layer scam detection pipeline.
+
+✅ Check Execution Chain:
+js
+Copy
+Edit
+console.log("🔗 URL Analysis Start:", qrContent);
+Confirm that each layer executes:
+
+Layer	What to Expect
+Layer 1: Heuristics	Check if TLD is .tk, suspicious keywords
+Layer 2: Brand Match	Domain whitelist/blacklist
+Layer 3: Redirect Chain	Check for bit.ly, tinyurl and end destination
+Layer 4: AI Analysis	GPT response + flags like “spoofed bank”
+
+📦 Sample log:
+
+plaintext
+Copy
+Edit
+🧠 AI Risk: Suspicious | Reason: URL mimics CIMB domain but is unverified
+✅ Step 6: Output Display Test
+🎯 Goal: Ensure front-end renders correct result after detection.
+
+📋 UI Should Show:
+QR Type	Result
+URL	Color-coded badge, Brand logo, Layer breakdown
+DuitNow QR	Merchant name, Location, Trust level
+Unknown	Manual input prompt and education note
+
+✅ Step 7: Final Risk Decision Flow
+📦 Run this in your result render function:
+
+js
+Copy
+Edit
+if (qrType === "URL") {
+  showScamAnalysis(qrContent, layers);
+} else if (qrType === "EMV") {
+  showMerchantResult(merchantName, matchStatus);
+} else {
+  showManualFallback("⚠️ QR format unrecognized. Try pasting content.");
+}
+🧪 Sample Diagnosis Report (After One Test)
+plaintext
+Copy
+Edit
+QR Detection Summary:
+• File: img_qr.png
+• Resolution: 1290x1825
+• Detected QR Type: EMV Payment
+• Detected Merchant: Maybank
+• Verified: ✅ Yes
+• Risk Level: Low (Safe)
+
+Preprocessing Logs:
+• Scaled (0.5x) → Detected
+• Inverted → Not Detected
+• Cropped Top → Detected
+• Final Content: EMV TLV, 18 fields
+• Parsed Merchant: Maybank
+• Match in verifiedBrands.json: ✅
+
+Output:
+✓ EMV parsed
+✓ Merchant validated
+✓ Risk Score: ✅ Safe
+✓ UX Render: ✅ Done
+🛠 Final Replit Developer Debugging Tip
+🔧 To quick test with real QR content:
+
+js
+Copy
+Edit
+const sampleQR = "00020101021126580016A0000006770101110113006600000000010208MyPay005802MY5910MyCafe JB6011JohorBahru61051058062540417MYR0108DuitNow0208A0000006";
+handleScannedQR(sampleQR);

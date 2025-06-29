@@ -1176,10 +1176,9 @@
             }
 
             initializeQRScanner() {
-                // QR scanner disabled to prevent import.meta errors - file upload only
-                this.qrScannerReady = false;
-                this.showToast('QR scanner fallback active. File upload only.', '', 'warning');
-                console.log('QR Scanner initialized in file-only mode');
+                // Initialize dual-mode QR scanner (camera + file upload)
+                this.qrScannerReady = true;
+                console.log('QR Scanner initialized in dual-mode (camera + file upload)');
             }
 
             setupEventListeners() {
@@ -3071,7 +3070,11 @@ Respond with JSON:
                     return null;
                 }
 
+                // Step 3: Visual image analysis
+                this.debugImageProcessing(img);
+                
                 // Execute all attempts with enhanced debugging
+                console.log("📋 Step 2: QR Detection Preprocessing Pipeline");
                 for (let i = 0; i < attempts.length; i++) {
                     try {
                         console.log(`🔄 Executing attempt ${i + 1}...`);
@@ -3088,25 +3091,26 @@ Respond with JSON:
                             
                             if (result.data && result.data.trim()) {
                                 const qrContent = result.data.trim();
-                                const qrType = this.isDuitNowQR(qrContent) ? 'DuitNow EMV' : 
-                                              this.isValidUrl(qrContent) ? 'URL' : 'Unknown';
+                                
+                                // Step 1: Run comprehensive QR type analysis
+                                const qrType = this.debugQRDetection(qrContent);
                                 
                                 console.log(`🎯 SUCCESS on attempt ${i + 1} (${qrType}): ${qrContent.substring(0, 50)}${qrContent.length > 50 ? '...' : ''}`);
                                 
-                                // Show success message with QR type identification
+                                // Step 6: Display appropriate UI based on QR type
                                 resultsDiv.innerHTML = `
                                     <div class="alert alert-success">
                                         <i data-feather="check-circle" class="me-2"></i>
                                         <strong>QR Code Detected!</strong>
                                         <p class="mb-2">Detection: <span class="badge bg-success">Attempt ${i + 1}</span> | Type: <span class="badge bg-info">${qrType}</span></p>
                                         <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 60 ? qrContent.substring(0, 60) + '...' : qrContent}</code></p>
-                                        <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running ${qrType === 'DuitNow EMV' ? 'EMV payment validation' : qrType === 'URL' ? '4-layer scam analysis' : 'content analysis'}...</p>
+                                        <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running ${qrType === 'EMV' ? 'EMV payment validation' : qrType === 'URL' ? '4-layer scam analysis' : 'content analysis'}...</p>
                                     </div>
                                 `;
                                 feather.replace();
                                 
                                 // Show appropriate toast based on QR type
-                                if (qrType === 'DuitNow EMV') {
+                                if (qrType === 'EMV') {
                                     this.showToast('DuitNow QR Detected', `EMV payment QR found on attempt ${i + 1}`, 'success');
                                 } else if (qrType === 'URL') {
                                     this.showToast('URL QR Detected', `Website QR found on attempt ${i + 1}`, 'success');
@@ -3410,14 +3414,142 @@ Respond with JSON:
                 await this.analyzeQRContent(content);
             }
 
-            // Test function for EMV QR parsing (for debugging)
-            testEMVQR() {
-                const testQR = "00020101021126580016A0000006770101110113006600000000010208MyPay005802MY5910MyCafe JB6011JohorBahru61051058062540417MYR0108DuitNow0208A0000006";
-                console.log('Testing EMV QR parsing:');
-                console.log('Input:', testQR);
-                console.log('isDuitNowQR:', this.isDuitNowQR(testQR));
-                console.log('Parsed fields:', this.parseEMVQR(testQR));
-                return testQR;
+            // Comprehensive QR debugging framework
+            debugQRDetection(qrContent) {
+                console.log("=== PaySavvy QR Detection Debugging Framework ===");
+                console.log("📦 Step 1: QR Source Type Analysis");
+                console.log("📦 Detected QR Content:", qrContent.substring(0, 100) + (qrContent.length > 100 ? '...' : ''));
+                console.log("📦 Content Length:", qrContent.length);
+                
+                // Step 1: Identify QR source type
+                const isURL = this.isValidUrl(qrContent);
+                const isDuitNow = this.isDuitNowQR(qrContent);
+                
+                console.log("🔍 QR Type Analysis:");
+                console.log("- Is URL (http/https):", isURL);
+                console.log("- Is DuitNow EMV:", isDuitNow);
+                console.log("- Starts with 000201:", qrContent.startsWith("000201"));
+                console.log("- Contains PayNet AID:", qrContent.includes("A000000677010111"));
+                
+                if (isURL) {
+                    console.log("🔗 Proceeding with URL scam detection pipeline");
+                    return "URL";
+                } else if (isDuitNow) {
+                    console.log("🏦 Proceeding with DuitNow EMV validation");
+                    this.debugEMVParsing(qrContent);
+                    return "EMV";
+                } else {
+                    console.log("❓ Unknown QR format - showing guidance");
+                    return "Unknown";
+                }
+            }
+
+            debugEMVParsing(qrContent) {
+                console.log("📋 Step 4: EMV TLV Parsing & Merchant Validation");
+                const emvFields = this.parseEMVQR(qrContent);
+                console.log("🧾 EMV Parsed Fields:", emvFields);
+                
+                // Extract key fields
+                const merchantName = emvFields['59'] || 'Unknown Merchant';
+                const merchantCity = emvFields['60'] || 'Unknown City';
+                const merchantAccount = emvFields['26'] || emvFields['02'] || '';
+                const countryCode = emvFields['58'] || 'MY';
+                const amount = emvFields['54'] || 'Not specified';
+                
+                console.log("🏪 Merchant Analysis:");
+                console.log("- Name (Tag 59):", merchantName);
+                console.log("- City (Tag 60):", merchantCity);
+                console.log("- Account Info (Tag 26/02):", merchantAccount);
+                console.log("- Country (Tag 58):", countryCode);
+                console.log("- Amount (Tag 54):", amount);
+                
+                // Validate against verified brands
+                const validation = this.validateDuitNowMerchant(merchantName, merchantAccount);
+                console.log("🏦 Merchant Verification:");
+                console.log("- Verified:", validation.isVerified ? "✅ YES" : "❌ No match");
+                console.log("- Risk Level:", validation.risk);
+                if (validation.brand) {
+                    console.log("- Matched Brand:", validation.brand.name);
+                    console.log("- Regulatory Body:", validation.brand.regulatoryBody);
+                }
+                if (validation.scamIndicators) {
+                    console.log("- Scam Indicators:", validation.scamIndicators);
+                }
+                
+                return validation;
+            }
+
+            debugImageProcessing(img) {
+                console.log("📋 Step 3: Visual Image Analysis");
+                console.log("🖼️ Image Resolution:", img.width + "x" + img.height);
+                console.log("📐 Image Analysis:");
+                console.log("- Is Large Image (>1200px):", img.width > 1200 || img.height > 1200);
+                console.log("- Requires Scaling:", img.width > 800 || img.height > 800);
+                console.log("- Aspect Ratio:", (img.width / img.height).toFixed(2));
+                
+                // Image quality recommendations
+                const recommendations = [];
+                if (img.width > 1800 || img.height > 1800) {
+                    recommendations.push("Image very large - will use aggressive scaling");
+                }
+                if (img.width / img.height > 3 || img.height / img.width > 3) {
+                    recommendations.push("Unusual aspect ratio - may need cropping");
+                }
+                
+                console.log("💡 Processing Recommendations:", recommendations);
+                return recommendations;
+            }
+
+            // Test function with comprehensive debugging
+            testQRSystem() {
+                console.log("🧪 Testing PaySavvy QR Detection System");
+                
+                // Test DuitNow EMV QR
+                const testEMV = "00020101021126580016A0000006770101110113006600000000010208MyPay005802MY5910MyCafe JB6011JohorBahru61051058062540417MYR0108DuitNow0208A0000006";
+                console.log("\n=== Testing DuitNow EMV QR ===");
+                this.debugQRDetection(testEMV);
+                
+                // Test URL QR
+                const testURL = "https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do";
+                console.log("\n=== Testing URL QR ===");
+                this.debugQRDetection(testURL);
+                
+                // Test suspicious URL
+                const testScam = "https://maybank-2u.com/login";
+                console.log("\n=== Testing Suspicious URL ===");
+                this.debugQRDetection(testScam);
+                
+                return { testEMV, testURL, testScam };
+            }
+
+            // Enhanced QR processing with debugging
+            async processQRImageFileWithDebug(file, resultsDiv) {
+                console.log("=== PaySavvy QR Processing Pipeline ===");
+                console.log(`📁 File: ${file.name} (${file.type}, ${(file.size / 1024).toFixed(1)}KB)`);
+                
+                return this.processQRImageFile(file, resultsDiv);
+            }
+
+            // Handle scanned QR content for testing
+            async handleScannedQR(qrContent) {
+                console.log("=== Testing QR Content Analysis ===");
+                await this.analyzeQRContent(qrContent);
+            }
+
+            // Quick test function callable from console
+            async quickTestDuitNowQR() {
+                const testEMV = "00020101021126580016A0000006770101110113006600000000010208MyPay005802MY5910MyCafe JB6011JohorBahru61051058062540417MYR0108DuitNow0208A0000006";
+                console.log("🧪 Quick Testing DuitNow EMV QR");
+                await this.handleScannedQR(testEMV);
+                return testEMV;
+            }
+
+            // Quick test function for URL QR
+            async quickTestURLQR() {
+                const testURL = "https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do";
+                console.log("🧪 Quick Testing URL QR");
+                await this.handleScannedQR(testURL);
+                return testURL;
             }
 
             showCommonQRFormats() {
