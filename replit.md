@@ -169,16 +169,18 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Created comprehensive coverage of digital banks, e-money issuers, payment system operators, and traditional banks
 - June 29, 2025: Expanded verifiedBrands.json with comprehensive international payment systems (v3.0)
 - June 29, 2025: Fixed critical color mapping bug - "DANGEROUS" results now display in red instead of green for proper user safety
-- June 29, 2025: Advanced QR Code Scanner with PhD-level image processing pipeline
+- June 29, 2025: Advanced dual-mode QR Code Scanner with EMV DuitNow support
   - Camera mode: Continuous scanning using requestAnimationFrame with 2 FPS throttling for optimal performance
   - Enhanced mobile compatibility: Added playsinline, muted attributes for iOS Safari compatibility
-  - File upload mode: 9-technique detection pipeline for high-resolution images (up to 1290x1825+)
-  - Advanced preprocessing: Original, inverted, multi-scale (0.7x, 0.5x, 0.3x), center crop, top crop, binarization
-  - Smart image analysis: Automatic file type validation, dimension detection, and processing optimization
-  - Comprehensive debugging: Detailed console logging with attempt-by-attempt results and success tracking
-  - Enhanced manual fallback: Advanced UX with file analysis, troubleshooting tips, and retry options
-  - Complete 4-layer integration: All detected QR codes trigger full scam analysis with unified result display
-  - Production-ready stability: Handles large images, corrupted files, and edge cases with graceful error handling
+  - File upload mode: 10-technique detection pipeline for high-resolution images (up to 1290x1825+)
+  - Advanced preprocessing: Original, inverted, multi-scale (0.7x, 0.5x, 0.3x, 0.2x), center crop, region analysis, enhanced binarization
+  - Dual QR format support: URL-based QR codes and Malaysian DuitNow EMV payment QR codes
+  - EMV TLV parser: Tag-Length-Value parsing for DuitNow payment QR codes with merchant validation
+  - Malaysian banking integration: Validates EMV QR merchants against 89 verified financial institutions
+  - Smart QR type detection: Automatically identifies URL vs DuitNow format and applies appropriate analysis
+  - Enhanced brand verification: Cross-references EMV merchant names with government-authorized institutions
+  - Complete scam protection: 4-layer analysis for URLs, EMV validation for payment QRs, scam pattern detection
+  - Production debugging: Comprehensive logging with QR format identification and parsing details
   - Added 11 major international payment providers: PayPal, Wise, Revolut, Payoneer, Stripe, Skrill, Neteller, Western Union, MoneyGram, Remitly
   - Total coverage now includes 100 government-authorized financial institutions globally
   - Enhanced with multi-jurisdictional regulatory oversight including FinCEN (US), FCA (UK), ACPR (France), BaFin (Germany), APRA (Australia)

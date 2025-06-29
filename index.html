@@ -3622,40 +3622,16 @@ Respond with JSON:
                 const resultsDiv = document.getElementById('qr-results');
                 
                 try {
-                    // Check if content is a URL
+                    // Determine QR type and handle appropriately
                     if (this.isValidUrl(content)) {
-                        this.showToast('Analyzing QR URL', 'Running 4-layer scam detection...', 'info');
-                        
-                        // Set loading state
-                        this.setLoadingState(true);
-                        
-                        // Run the exact same 4-layer analysis as URL scanner
-                        const redirectChain = await this.analyzeRedirects(content);
-                        const aiAssessment = await this.getAIAssessment(content);
-                        
-                        // Use centralized risk assessment with verified brands
-                        const analysis = assessRisk(content, this.verifiedBrands, redirectChain, aiAssessment);
-                        
-                        // Display results in QR section using same format as URL scanner
-                        this.displayQRScanResults(analysis, content);
-                        
-                        // Save to scan history
-                        this.saveScanResult(analysis, content);
-                        
-                        this.setLoadingState(false);
-                        
+                        // URL-based QR code - run full 4-layer scam detection
+                        await this.analyzeURLQR(content, resultsDiv);
+                    } else if (this.isDuitNowQR(content)) {
+                        // DuitNow EMV QR code - parse and validate merchant
+                        await this.analyzeDuitNowQR(content, resultsDiv);
                     } else {
-                        // Handle non-URL QR content
-                        resultsDiv.innerHTML = `
-                            <div class="alert alert-secondary">
-                                <i data-feather="info" class="me-2"></i>
-                                <strong>QR Content (Non-URL):</strong>
-                                <p class="mb-2"><code>${content}</code></p>
-                                <p class="small mb-0">This QR code contains text/data that is not a web link.</p>
-                            </div>
-                        `;
-                        feather.replace();
-                        this.showToast('QR Content', 'Non-URL content detected', 'info');
+                        // Unknown QR format
+                        this.handleUnknownQRFormat(content, resultsDiv);
                     }
                 } catch (error) {
                     console.error('QR analysis error:', error);
@@ -3666,12 +3642,274 @@ Respond with JSON:
                             <i data-feather="alert-circle" class="me-2"></i>
                             <strong>Analysis Error</strong>
                             <p class="mb-2">Failed to analyze QR content: ${error.message}</p>
-                            <p class="small mb-0">Content: <code>${content}</code></p>
+                            <p class="small mb-0">Content: <code>${content.substring(0, 100)}${content.length > 100 ? '...' : ''}</code></p>
                         </div>
                     `;
                     feather.replace();
                     this.showToast('Analysis Failed', 'Error analyzing QR content', 'error');
                 }
+            }
+
+            // Check if QR content is DuitNow EMV format
+            isDuitNowQR(content) {
+                return content.startsWith('000201') || content.includes('A000000677010111') || 
+                       (content.length > 50 && /^[0-9]{4,}/.test(content));
+            }
+
+            // Parse EMV TLV (Tag-Length-Value) format
+            parseEMVQR(data) {
+                let pos = 0;
+                const result = {};
+                
+                while (pos < data.length - 3) {
+                    try {
+                        const tag = data.substring(pos, pos + 2);
+                        const len = parseInt(data.substring(pos + 2, pos + 4), 10);
+                        
+                        if (isNaN(len) || len < 0 || pos + 4 + len > data.length) {
+                            break;
+                        }
+                        
+                        const value = data.substring(pos + 4, pos + 4 + len);
+                        result[tag] = value;
+                        pos += 4 + len;
+                    } catch (error) {
+                        console.error('EMV parsing error at position', pos, error);
+                        break;
+                    }
+                }
+                
+                return result;
+            }
+
+            // Analyze URL-based QR codes
+            async analyzeURLQR(content, resultsDiv) {
+                this.showToast('Analyzing QR URL', 'Running 4-layer scam detection...', 'info');
+                this.setLoadingState(true);
+                
+                // Run the exact same 4-layer analysis as URL scanner
+                const redirectChain = await this.analyzeRedirects(content);
+                const aiAssessment = await this.getAIAssessment(content);
+                
+                // Use centralized risk assessment with verified brands
+                const analysis = assessRisk(content, this.verifiedBrands, redirectChain, aiAssessment);
+                
+                // Display results in QR section using same format as URL scanner
+                this.displayQRScanResults(analysis, content);
+                
+                // Save to scan history
+                this.saveScanResult(analysis, content);
+                this.setLoadingState(false);
+            }
+
+            // Analyze DuitNow EMV QR codes
+            async analyzeDuitNowQR(content, resultsDiv) {
+                console.log('Analyzing DuitNow EMV QR code...');
+                this.showToast('Analyzing DuitNow QR', 'Parsing EMV payment data...', 'info');
+                
+                const emvFields = this.parseEMVQR(content);
+                console.log('Parsed EMV fields:', emvFields);
+                
+                // Extract key information
+                const merchantName = emvFields['59'] || 'Unknown Merchant';
+                const merchantCity = emvFields['60'] || 'Unknown City';
+                const payloadFormatIndicator = emvFields['00'] || '';
+                const merchantAccountInfo = emvFields['26'] || emvFields['02'] || '';
+                const countryCode = emvFields['58'] || 'MY';
+                const transactionAmount = emvFields['54'] || 'Not specified';
+                
+                // Validate against verified brands
+                const brandValidation = this.validateDuitNowMerchant(merchantName, merchantAccountInfo);
+                
+                this.displayDuitNowResults(emvFields, brandValidation, content, resultsDiv);
+            }
+
+            // Validate DuitNow merchant against verified brands
+            validateDuitNowMerchant(merchantName, accountInfo) {
+                if (!this.verifiedBrands) return { isVerified: false, risk: 'unknown' };
+                
+                const merchantLower = merchantName.toLowerCase();
+                const accountLower = accountInfo.toLowerCase();
+                
+                // Check against verified Malaysian brands
+                for (const [country, brands] of Object.entries(this.verifiedBrands)) {
+                    if (country !== 'Malaysia') continue;
+                    
+                    for (const brand of brands) {
+                        const brandName = brand.name.toLowerCase();
+                        const brandAliases = (brand.aliases || []).map(alias => alias.toLowerCase());
+                        
+                        // Check merchant name matches
+                        if (merchantLower.includes(brandName) || brandAliases.some(alias => merchantLower.includes(alias))) {
+                            return {
+                                isVerified: true,
+                                brand: brand,
+                                risk: 'safe',
+                                matchType: 'merchant_name'
+                            };
+                        }
+                        
+                        // Check account info for brand identifiers
+                        if (accountLower.includes(brandName) || brandAliases.some(alias => accountLower.includes(alias))) {
+                            return {
+                                isVerified: true,
+                                brand: brand,
+                                risk: 'safe', 
+                                matchType: 'account_info'
+                            };
+                        }
+                    }
+                }
+                
+                // Check for common scam patterns in merchant names
+                const scamPatterns = ['urgent', 'winner', 'prize', 'claim', 'verify account', 'suspended'];
+                const hasScamPattern = scamPatterns.some(pattern => merchantLower.includes(pattern));
+                
+                return {
+                    isVerified: false,
+                    risk: hasScamPattern ? 'dangerous' : 'unknown',
+                    scamIndicators: hasScamPattern ? scamPatterns.filter(pattern => merchantLower.includes(pattern)) : []
+                };
+            }
+
+            // Display DuitNow QR analysis results
+            displayDuitNowResults(emvFields, validation, content, resultsDiv) {
+                const merchantName = emvFields['59'] || 'Unknown Merchant';
+                const merchantCity = emvFields['60'] || 'Unknown City';
+                const amount = emvFields['54'] || 'Not specified';
+                const countryCode = emvFields['58'] || 'MY';
+                
+                let riskClass = 'secondary';
+                let riskIcon = 'help-circle';
+                let riskLevel = 'UNKNOWN';
+                
+                if (validation.isVerified) {
+                    riskClass = 'success';
+                    riskIcon = 'shield-check';
+                    riskLevel = 'VERIFIED';
+                } else if (validation.risk === 'dangerous') {
+                    riskClass = 'danger';
+                    riskIcon = 'alert-triangle';
+                    riskLevel = 'SUSPICIOUS';
+                }
+                
+                let brandInfo = '';
+                if (validation.isVerified && validation.brand) {
+                    const brand = validation.brand;
+                    brandInfo = `
+                        <div class="brand-info mt-3 p-3 bg-light rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="${brand.logo}" alt="${brand.name}" style="width: 32px; height: 32px; margin-right: 12px;">
+                                <div>
+                                    <strong>${brand.name}</strong>
+                                    <div class="small text-muted">${brand.country} • ${brand.type}</div>
+                                </div>
+                            </div>
+                            <div class="verification-badge">
+                                <i data-feather="shield-check" class="me-1"></i>
+                                <span class="badge bg-success">Government Authorized</span>
+                                <small class="text-muted ms-2">Licensed by ${brand.regulatoryBody}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                let warningInfo = '';
+                if (validation.scamIndicators && validation.scamIndicators.length > 0) {
+                    warningInfo = `
+                        <div class="alert alert-warning mt-3">
+                            <i data-feather="alert-triangle" class="me-2"></i>
+                            <strong>Scam Indicators Detected:</strong>
+                            <ul class="mb-0 mt-2">
+                                ${validation.scamIndicators.map(indicator => `<li>${indicator}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="scan-result ${riskClass}">
+                        <div class="result-header">
+                            <div class="risk-indicator">
+                                <i data-feather="${riskIcon}" class="risk-icon"></i>
+                                <span class="risk-level">${riskLevel}</span>
+                            </div>
+                            <div class="qr-type">
+                                <span class="badge bg-info">DuitNow QR</span>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-details mt-3">
+                            <h6><i data-feather="credit-card" class="me-2"></i>Payment Details</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Merchant:</strong> ${merchantName}<br>
+                                    <strong>City:</strong> ${merchantCity}<br>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Amount:</strong> ${amount}<br>
+                                    <strong>Country:</strong> ${countryCode}<br>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${brandInfo}
+                        ${warningInfo}
+                        
+                        <div class="emv-technical mt-3">
+                            <details>
+                                <summary class="small text-muted" style="cursor: pointer;">Technical EMV Data</summary>
+                                <div class="mt-2">
+                                    <small class="font-monospace">
+                                        Format: ${emvFields['00'] || 'Unknown'}<br>
+                                        Merchant Info: ${emvFields['26'] || emvFields['02'] || 'Not available'}<br>
+                                        QR Length: ${content.length} characters
+                                    </small>
+                                </div>
+                            </details>
+                        </div>
+                        
+                        <div class="scan-metadata mt-3">
+                            <small class="text-muted">
+                                <i data-feather="clock" class="me-1"></i>
+                                DuitNow QR Analysis • ${new Date().toLocaleString()}
+                            </small>
+                        </div>
+                    </div>
+                `;
+                
+                feather.replace();
+                
+                // Show appropriate toast notification
+                if (validation.isVerified) {
+                    this.showToast('Verified DuitNow QR', `Legitimate ${validation.brand.name} payment QR`, 'success');
+                } else if (validation.risk === 'dangerous') {
+                    this.showToast('Suspicious DuitNow QR', 'Contains potential scam indicators', 'warning');
+                } else {
+                    this.showToast('DuitNow QR Analyzed', 'Unknown merchant - exercise caution', 'info');
+                }
+            }
+
+            // Handle unknown QR formats
+            handleUnknownQRFormat(content, resultsDiv) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-secondary">
+                        <i data-feather="help-circle" class="me-2"></i>
+                        <strong>Unrecognized QR Format</strong>
+                        <p class="mb-2">This QR code doesn't appear to be a URL or DuitNow payment QR.</p>
+                        <p class="mb-2"><strong>Content preview:</strong> <code>${content.substring(0, 80)}${content.length > 80 ? '...' : ''}</code></p>
+                        <div class="mt-3">
+                            <strong>Supported QR Types:</strong>
+                            <ul class="small mt-2 mb-0">
+                                <li>Website URLs (http/https)</li>
+                                <li>DuitNow payment QR codes</li>
+                                <li>Malaysian banking QR codes</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+                this.showToast('Unknown QR Format', 'Please try scanning a payment or website QR code', 'info');
             }
 
             // Display QR scan results in the same format as URL scanner

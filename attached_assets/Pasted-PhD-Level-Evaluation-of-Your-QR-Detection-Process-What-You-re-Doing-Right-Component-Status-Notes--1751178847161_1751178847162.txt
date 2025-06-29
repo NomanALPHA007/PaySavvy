@@ -1,0 +1,91 @@
+PhD-Level Evaluation of Your QR Detection Process:
+✅ What You're Doing Right
+Component	Status	Notes
+QR decoding with jsQR	✅	You are using a standard open-source JS library for detecting and decoding QR codes from images/camera. Good choice for browser-based scanning.
+Camera + File Upload Modes	✅	Great for mobile and desktop users. Your fallback to manual input is also excellent.
+4-layer risk analysis on QR content	✅	Once a QR is decoded to a URL or payload, you're applying PaySavvy’s full scam detection logic — this is the right pipeline.
+Preprocessing (inversion, cropping)	🔶	You're on the right track by using preprocessing techniques. You just need to refine scaling + canvas size matching.
+Fallback UX for manual input	✅	Good practice when decoding fails.
+
+❌ Where the Detection Process Needs Improvement
+1. You're assuming QR codes always contain a clean URL
+🚫 Reality: Malaysian QR codes often encode DuitNow payment payloads, not just URLs.
+
+🔍 Example QR Code Content (decoded):
+
+plaintext
+Copy
+Edit
+00020101021126580016A0000006770101110113006600000000010208MyPay005802MY5910MyCafe JB6011JohorBahru61051058062540417MYR0108DuitNow0208A0000006
+🧠 This is a PayNet/DuitNow EMV QR payload — not a clickable URL.
+
+✅ What You Should Do:
+Detect if QR is EMV-compliant using the tag 000201 and AID (A000000677010111)
+
+Extract recipient info (name, city, amount)
+
+Then validate it against your verifiedBrands.json to confirm if it matches:
+
+Maybank
+
+CIMB
+
+Public Bank
+
+TNG eWallet, etc.
+
+2. Lack of EMV TLV Parser for DuitNow QRs
+💡 DuitNow & Bank Negara require Tag-Length-Value (TLV) parsing of QR content.
+
+✅ Add a TLV parser like this:
+
+js
+Copy
+Edit
+function parseEMVQR(data) {
+  let pos = 0;
+  const result = {};
+  while (pos < data.length) {
+    const tag = data.substring(pos, pos + 2);
+    const len = parseInt(data.substring(pos + 2, pos + 4), 10);
+    const value = data.substring(pos + 4, pos + 4 + len);
+    result[tag] = value;
+    pos += 4 + len;
+  }
+  return result;
+}
+🎯 Now you can check if:
+
+59 = Merchant name (e.g., "Maybank")
+
+60 = City (e.g., "Kuala Lumpur")
+
+01, 02, 26 contain eWallet or bank IDs
+
+3. You need to distinguish between URL QRs and DuitNow EMV QRs
+QR Type	How to Handle
+Starts with http:// or https://	→ Run full 4-layer PaySavvy analysis
+Starts with 0002 or contains A000000677010111	→ Parse as DuitNow QR
+Anything else	→ Show user as unknown QR format
+
+✅ Final Recommendation: Dual QR Mode Detection
+Update your analyzeQRCode(content) like this:
+
+js
+Copy
+Edit
+if (content.startsWith("http")) {
+  runFullScan(content); // Normal phishing detection
+} else if (content.startsWith("000201")) {
+  const qrFields = parseEMVQR(content);
+  const merchantName = qrFields["59"];
+  validateDuitNowMerchant(merchantName); // Against verifiedBrands.json
+} else {
+  toast("❓ Unrecognized QR format. Try scanning a DuitNow or bank QR.");
+}
+✅ Summary
+Question	Answer
+❓ Is your process wrong?	❌ No — you're close, but incomplete
+✅ What's missing?	Proper handling of DuitNow QR format, EMV TLV parsing, merchant validation
+✅ What to add?	TLV parser, merchant name extractor, brand validator
+✅ Real-world result?	Much higher true positive detection for Malaysian bank/eWallet QR codes
