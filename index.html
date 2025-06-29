@@ -6756,6 +6756,9 @@ Respond with JSON:
                 
                 feather.replace();
             }
+
+            // Validate DuitNow merchant against verified brands
+            validateDuitNowMerchant(merchantName, accountInfo) {
                 if (!this.verifiedBrands) return { isVerified: false, risk: 'unknown' };
                 
                 const merchantLower = merchantName.toLowerCase();
