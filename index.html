@@ -4117,38 +4117,42 @@ Consider:
                                 });
                             }
                             
-                            // Enhanced QR detection using multiple techniques for camera scanning
+                            // Enhanced QR detection using multiple techniques for mobile camera scanning
                             if (typeof jsQR !== 'undefined') {
                                 let qrResult = null;
                                 
-                                // Primary detection attempt
+                                // Primary detection attempt with mobile optimizations
                                 qrResult = jsQR(imageData.data, this.qrCanvas.width, this.qrCanvas.height, {
                                     inversionAttempts: "attemptBoth"
                                 });
                                 
-                                // If no QR found, try enhanced detection techniques
-                                if (!qrResult && this.scanAttempts % 5 === 0) {
-                                    // Try with enhanced contrast every 5 frames
-                                    const enhancedImageData = this.enhanceImageContrast(imageData);
-                                    qrResult = jsQR(enhancedImageData.data, this.qrCanvas.width, this.qrCanvas.height, {
-                                        inversionAttempts: "attemptBoth"
-                                    });
-                                    
+                                // Mobile-specific enhanced detection techniques
+                                if (!qrResult && this.scanAttempts % 3 === 0) {
+                                    // Try mobile-optimized contrast enhancement more frequently
+                                    qrResult = this.tryMobileCameraEnhancement(imageData);
                                     if (debugFrame) {
-                                        console.log('Tried enhanced contrast detection');
+                                        console.log('Mobile camera: Tried enhanced processing');
                                     }
                                 }
                                 
-                                // Try scaled detection every 10 frames
-                                if (!qrResult && this.scanAttempts % 10 === 0) {
-                                    qrResult = this.tryScaledDetection(imageData);
+                                // Try scaled detection for mobile cameras every 5 frames
+                                if (!qrResult && this.scanAttempts % 5 === 0) {
+                                    qrResult = this.tryMobileScaledDetection(imageData);
                                     if (debugFrame) {
-                                        console.log('Tried scaled detection');
+                                        console.log('Mobile camera: Tried scaled detection');
+                                    }
+                                }
+                                
+                                // Try rotation detection for mobile orientation issues
+                                if (!qrResult && this.scanAttempts % 8 === 0) {
+                                    qrResult = this.tryRotationDetection(imageData);
+                                    if (debugFrame) {
+                                        console.log('Mobile camera: Tried rotation detection');
                                     }
                                 }
                                 
                                 if (debugFrame) {
-                                    console.log(`jsQR Result Frame ${this.scanAttempts}:`, qrResult ? 'QR_DETECTED' : 'NO_QR_FOUND');
+                                    console.log(`Mobile Camera QR Frame ${this.scanAttempts}:`, qrResult ? 'QR_DETECTED' : 'NO_QR_FOUND');
                                 }
                                 
                                 if (qrResult && qrResult.data && qrResult.data.trim()) {
@@ -7114,6 +7118,115 @@ Respond with JSON:
                 } catch (error) {
                     console.error('❌ Mobile enhanced detection error:', error);
                     resolve(null);
+                }
+            }
+
+            // Mobile camera-specific QR enhancement
+            tryMobileCameraEnhancement(imageData) {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = imageData.width;
+                    canvas.height = imageData.height;
+                    
+                    context.putImageData(imageData, 0, 0);
+                    
+                    // Mobile camera optimizations: higher contrast, sharpening
+                    context.filter = 'contrast(180%) brightness(110%) saturate(0%)';
+                    context.drawImage(canvas, 0, 0);
+                    
+                    const enhancedData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    return jsQR(enhancedData.data, enhancedData.width, enhancedData.height, {
+                        inversionAttempts: "attemptBoth"
+                    });
+                } catch (error) {
+                    console.error('Mobile camera enhancement failed:', error);
+                    return null;
+                }
+            }
+
+            // Mobile-optimized scaled detection
+            tryMobileScaledDetection(imageData) {
+                try {
+                    const scales = [0.8, 1.2, 0.6, 1.5]; // Mobile-friendly scales
+                    
+                    for (const scale of scales) {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        const scaledWidth = Math.floor(imageData.width * scale);
+                        const scaledHeight = Math.floor(imageData.height * scale);
+                        
+                        canvas.width = scaledWidth;
+                        canvas.height = scaledHeight;
+                        
+                        // Create temporary canvas with original image
+                        const tempCanvas = document.createElement('canvas');
+                        const tempContext = tempCanvas.getContext('2d');
+                        tempCanvas.width = imageData.width;
+                        tempCanvas.height = imageData.height;
+                        tempContext.putImageData(imageData, 0, 0);
+                        
+                        // Scale and enhance for mobile
+                        context.imageSmoothingEnabled = false;
+                        context.drawImage(tempCanvas, 0, 0, scaledWidth, scaledHeight);
+                        
+                        const scaledData = context.getImageData(0, 0, scaledWidth, scaledHeight);
+                        const result = jsQR(scaledData.data, scaledData.width, scaledData.height);
+                        
+                        if (result) {
+                            console.log('Mobile scaled detection success at scale:', scale);
+                            return result;
+                        }
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('Mobile scaled detection failed:', error);
+                    return null;
+                }
+            }
+
+            // Rotation detection for mobile orientation issues
+            tryRotationDetection(imageData) {
+                try {
+                    const rotations = [90, 180, 270]; // Common mobile rotation issues
+                    
+                    for (const rotation of rotations) {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        
+                        // Handle rotation dimensions
+                        if (rotation === 90 || rotation === 270) {
+                            canvas.width = imageData.height;
+                            canvas.height = imageData.width;
+                        } else {
+                            canvas.width = imageData.width;
+                            canvas.height = imageData.height;
+                        }
+                        
+                        // Create temporary canvas with original image
+                        const tempCanvas = document.createElement('canvas');
+                        const tempContext = tempCanvas.getContext('2d');
+                        tempCanvas.width = imageData.width;
+                        tempCanvas.height = imageData.height;
+                        tempContext.putImageData(imageData, 0, 0);
+                        
+                        // Apply rotation
+                        context.translate(canvas.width / 2, canvas.height / 2);
+                        context.rotate((rotation * Math.PI) / 180);
+                        context.drawImage(tempCanvas, -imageData.width / 2, -imageData.height / 2);
+                        
+                        const rotatedData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const result = jsQR(rotatedData.data, rotatedData.width, rotatedData.height);
+                        
+                        if (result) {
+                            console.log('Mobile rotation detection success at:', rotation, 'degrees');
+                            return result;
+                        }
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('Mobile rotation detection failed:', error);
+                    return null;
                 }
             }
 
