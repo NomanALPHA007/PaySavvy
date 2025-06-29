@@ -2488,6 +2488,11 @@
                 this.brandValidator = null;
                 this.verifiedBrands = null;
                 this.brandList = null;
+                this.qrProcessing = false;
+                this.qrScanningActive = false;
+                this.videoStream = null;
+                this.currentAnalysis = false;
+                this.lastQRResult = null;
                 this.loadBrandData();
                 this.init();
             }
@@ -3301,19 +3306,29 @@ Consider:
                 const file = event.target.files[0];
                 if (!file) return;
                 
+                // Prevent multiple simultaneous processing
+                if (this.qrProcessing) {
+                    console.log('🔄 QR processing already in progress, ignoring duplicate request');
+                    return;
+                }
+                
+                this.qrProcessing = true;
                 const resultsDiv = document.getElementById('qr-results');
                 
-                // Show beautiful Japanese anime loading
-                this.showAnimeLoading(resultsDiv, file.name);
-                
-                // Add processing delay to show the beautiful animation
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
                 try {
+                    // Show beautiful Japanese anime loading
+                    this.showAnimeLoading(resultsDiv, file.name);
+                    
+                    // Add processing delay to show the beautiful animation
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
                     console.log(`📁 Processing QR file: ${file.name} (${file.type}, ${(file.size / 1024).toFixed(1)}KB)`);
                     
                     // Process the image file with comprehensive QR detection
-                    await this.processQRImageFile(file, resultsDiv);
+                    const qrContent = await this.processQRImageFile(file, resultsDiv);
+                    
+                    // Ensure results persist by preventing further processing
+                    console.log('✅ QR processing completed, results should persist');
                     
                 } catch (error) {
                     console.error('QR file processing failed:', error);
@@ -3326,10 +3341,12 @@ Consider:
                     `;
                     feather.replace();
                     this.showToast('Upload Failed', 'Unable to process QR image', 'error');
+                } finally {
+                    // Always reset processing flag
+                    this.qrProcessing = false;
+                    // Reset file input
+                    event.target.value = '';
                 }
-                
-                // Reset file input
-                event.target.value = '';
             }
 
             // Stop QR scanning
@@ -3391,13 +3408,15 @@ Consider:
                                         console.log(`🎯 Analyzing QR content: ${qrContent.substring(0, 100)}...`);
                                         try {
                                             await this.analyzeQRContent(qrContent, resultsDiv);
-                                            console.log('✅ QR analysis completed successfully');
+                                            console.log('✅ QR analysis completed successfully - stopping further detection');
+                                            // Stop all further processing to prevent interference
                                             resolve(qrContent);
                                             return;
                                         } catch (analysisError) {
                                             console.error('QR analysis failed:', analysisError);
                                             // Show fallback success result to prevent error display
                                             this.showQRSuccessResult(resultsDiv, qrContent);
+                                            console.log('✅ Fallback result displayed - stopping further detection');
                                             resolve(qrContent);
                                             return;
                                         }
@@ -7235,6 +7254,36 @@ Respond with JSON:
                         feather.replace();
                     }
                 }
+                
+                // Store last result to prevent disappearing
+                this.lastQRAnalysis = {
+                    analysis: safeAnalysis,
+                    content: qrContent,
+                    timestamp: Date.now()
+                };
+                
+                // Prevent results from disappearing by refreshing periodically
+                this.maintainQRResults();
+            }
+            
+            // Maintain QR results to prevent disappearing
+            maintainQRResults() {
+                if (!this.lastQRAnalysis) return;
+                
+                // Refresh results every 3 seconds for 30 seconds
+                const refreshInterval = setInterval(() => {
+                    const age = Date.now() - this.lastQRAnalysis.timestamp;
+                    if (age > 30000) {
+                        clearInterval(refreshInterval);
+                        return;
+                    }
+                    
+                    const resultsDiv = document.getElementById('qr-results');
+                    if (resultsDiv && resultsDiv.innerHTML === '') {
+                        console.log('Restoring disappeared QR results');
+                        this.displayQRScanResults(this.lastQRAnalysis.analysis, this.lastQRAnalysis.content, resultsDiv);
+                    }
+                }, 3000);
             }
 
             // Validate DuitNow merchant against verified brands
