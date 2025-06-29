@@ -6535,39 +6535,47 @@ Respond with JSON:
                 return result;
             }
 
-            // Analyze URL-based QR codes
+            // Analyze URL-based QR codes - simplified bank/e-wallet detection
             async analyzeURLQR(content, resultsDiv) {
-                this.showToast('Analyzing QR URL', 'Running 4-layer scam detection...', 'info');
+                this.showToast('Analyzing QR Code', 'Checking for verified financial institutions...', 'info');
                 this.setLoadingState(true);
                 
-                // Run the exact same 4-layer analysis as URL scanner
-                const redirectChain = await this.analyzeRedirects(content);
-                const aiAssessment = await this.getAIAssessment(content);
+                // Load verified brands if not already loaded
+                if (!this.verifiedBrands) {
+                    await this.loadVerifiedBrands();
+                }
                 
-                // Use centralized risk assessment with verified brands
+                // Check if this is a verified bank or e-wallet
+                const verifiedBrand = this.detectVerifiedBrand(content);
+                
                 let analysis;
-                try {
-                    // Ensure all parameters are properly structured before calling assessRisk
-                    const safeVerifiedBrands = this.verifiedBrands || {};
-                    const safeRedirectChain = redirectChain || [];
-                    const safeAiAssessment = aiAssessment || { riskLevel: 'unknown', confidence: 0.5 };
-                    
-                    analysis = assessRisk(content, safeVerifiedBrands, safeRedirectChain, safeAiAssessment);
-                } catch (assessError) {
-                    console.error('assessRisk function error:', assessError);
-                    // Fallback analysis if assessRisk fails
+                if (verifiedBrand) {
+                    // Verified financial institution found
                     analysis = {
-                        trustLevel: 'SUSPICIOUS',
-                        score: 3,
-                        reason: ['QR analysis completed with limited data', 'Full assessment unavailable'],
-                        confidence: 0.6,
-                        brandAnalysis: { status: 'unknown' },
-                        redirectAnalysis: { redirectCount: 0, finalUrl: content },
-                        aiAnalysis: { riskLevel: 'unknown' }
+                        trustLevel: 'VERIFIED',
+                        riskScore: 0,
+                        explanation: `This is an official ${verifiedBrand.brand} website - safe to use.`,
+                        verifiedBrand: verifiedBrand,
+                        detectionDetails: [
+                            `Verified ${verifiedBrand.institution}`, 
+                            `Regulated by ${verifiedBrand.regulatoryBody || 'Financial Authority'}`,
+                            `Established: ${verifiedBrand.establishedYear || 'Licensed institution'}`
+                        ],
+                        isScamMimic: false
+                    };
+                } else {
+                    // Not a verified financial institution
+                    analysis = {
+                        trustLevel: 'UNKNOWN',
+                        riskScore: 3,
+                        explanation: 'This website is not recognized as a verified financial institution. Please verify the source before proceeding.',
+                        verifiedBrand: null,
+                        detectionDetails: ['Not found in verified financial institutions database'],
+                        isScamMimic: false
                     };
                 }
                 
-                // Display results in QR section using same format as URL scanner
+                // Display results in QR section
                 this.displayQRScanResults(analysis, content);
                 
                 // Save to scan history
@@ -6575,62 +6583,119 @@ Respond with JSON:
                 this.setLoadingState(false);
             }
 
-            // Analyze DuitNow EMV QR codes with comprehensive business owner extraction
+            // Analyze DuitNow EMV QR codes - simplified merchant detection
             async analyzeDuitNowQR(content, resultsDiv) {
                 console.log('Analyzing DuitNow EMV QR code...');
-                this.showToast('Analyzing DuitNow QR', 'Parsing EMV payment data and validating merchant...', 'info');
+                this.showToast('Analyzing DuitNow QR', 'Checking merchant information...', 'info');
                 
                 const emvFields = this.parseEMVQR(content);
                 console.log('Parsed EMV fields:', emvFields);
                 
-                // Extract comprehensive business information
+                // Extract basic merchant information
                 const merchantName = emvFields['59'] || 'Unknown Merchant';
                 const merchantCity = emvFields['60'] || 'Unknown City';
-                const payloadFormatIndicator = emvFields['00'] || '';
-                const merchantAccountInfo = emvFields['26'] || emvFields['02'] || '';
-                const countryCode = emvFields['58'] || 'MY';
                 const transactionAmount = emvFields['54'] || 'Not specified';
                 const merchantCategoryCode = emvFields['52'] || 'Unknown';
-                const merchantIdentifier = emvFields['27'] || emvFields['28'] || '';
-                const additionalInfo = emvFields['62'] || '';
-                const transactionCurrency = emvFields['53'] || '458'; // 458 = MYR
+                const countryCode = emvFields['58'] || 'MY';
                 
-                // Validate against verified Malaysian financial institutions
-                const validation = this.validateDuitNowMerchant(merchantName, merchantAccountInfo, merchantIdentifier);
+                // Load verified brands if not already loaded  
+                if (!this.verifiedBrands) {
+                    await this.loadVerifiedBrands();
+                }
                 
-                // Determine if QR is legitimate or suspicious
-                const riskAssessment = this.assessDuitNowRisk(emvFields, validation);
+                // Check if merchant matches any verified financial institution
+                const verifiedBrand = this.findVerifiedMerchant(merchantName);
                 
-                // Extract business type and ownership information
-                const businessInfo = this.extractBusinessInformation(merchantName, merchantCity, merchantCategoryCode, validation);
+                let analysis;
+                if (verifiedBrand) {
+                    // Verified financial institution
+                    analysis = {
+                        trustLevel: 'VERIFIED',
+                        riskScore: 0,
+                        explanation: `This is a verified ${verifiedBrand.brand} DuitNow payment QR - safe to use.`,
+                        verifiedBrand: verifiedBrand,
+                        merchantInfo: {
+                            name: merchantName,
+                            city: merchantCity,
+                            amount: transactionAmount,
+                            category: merchantCategoryCode,
+                            country: countryCode
+                        },
+                        detectionDetails: [
+                            `Verified merchant: ${merchantName}`,
+                            `Institution: ${verifiedBrand.institution}`,
+                            `Location: ${merchantCity}`,
+                            `Amount: ${transactionAmount === 'Not specified' ? 'Variable amount' : 'RM ' + transactionAmount}`
+                        ],
+                        isScamMimic: false
+                    };
+                } else {
+                    // Unknown merchant
+                    analysis = {
+                        trustLevel: 'UNKNOWN',
+                        riskScore: 2,
+                        explanation: `DuitNow payment QR for ${merchantName}. This merchant is not in our verified database.`,
+                        verifiedBrand: null,
+                        merchantInfo: {
+                            name: merchantName,
+                            city: merchantCity,
+                            amount: transactionAmount,
+                            category: merchantCategoryCode,
+                            country: countryCode
+                        },
+                        detectionDetails: [
+                            `Merchant: ${merchantName}`,
+                            `Location: ${merchantCity}`,
+                            `Amount: ${transactionAmount === 'Not specified' ? 'Variable amount' : 'RM ' + transactionAmount}`,
+                            'Not found in verified merchants database'
+                        ],
+                        isScamMimic: false
+                    };
+                }
                 
-                console.log('DuitNow Analysis Results:', {
-                    merchant: merchantName,
-                    validation: validation.isVerified,
-                    riskLevel: riskAssessment.riskLevel,
-                    businessType: businessInfo.businessType
-                });
+                // Display results
+                this.displayQRScanResults(analysis, content);
                 
-                this.displayDuitNowResults({
-                    qrContent: content,
-                    merchantInfo: {
-                        name: merchantName,
-                        city: merchantCity,
-                        categoryCode: merchantCategoryCode,
-                        accountInfo: merchantAccountInfo,
-                        identifier: merchantIdentifier,
-                        amount: transactionAmount,
-                        currency: transactionCurrency === '458' ? 'MYR' : 'Unknown'
-                    },
-                    validation,
-                    riskAssessment,
-                    businessInfo,
-                    emvFields
-                });
+                // Save to scan history
+                this.saveScanResult(analysis, content);
+                this.setLoadingState(false);
+            }
+            
+            // Find verified merchant by name matching
+            findVerifiedMerchant(merchantName) {
+                if (!this.verifiedBrands || !merchantName) return null;
                 
-                this.showToast('DuitNow Analysis Complete', 
-                    validation.isVerified ? 'Verified merchant detected' : 'Merchant validation completed', 
-                    validation.isVerified ? 'success' : 'warning');
+                const searchName = merchantName.toLowerCase();
+                
+                // Search through all regions
+                for (const region in this.verifiedBrands) {
+                    if (region === 'metadata') continue;
+                    
+                    for (const brandKey in this.verifiedBrands[region]) {
+                        const brand = this.verifiedBrands[region][brandKey];
+                        
+                        // Check brand name
+                        if (brand.brand && brand.brand.toLowerCase().includes(searchName)) {
+                            return { ...brand, region };
+                        }
+                        
+                        // Check institution name
+                        if (brand.institution && brand.institution.toLowerCase().includes(searchName)) {
+                            return { ...brand, region };
+                        }
+                        
+                        // Check alternative names
+                        if (brand.alternativeNames) {
+                            for (const altName of brand.alternativeNames) {
+                                if (altName.toLowerCase().includes(searchName)) {
+                                    return { ...brand, region };
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return null;
             }
 
             // Validate DuitNow merchant against verified Malaysian financial institutions
