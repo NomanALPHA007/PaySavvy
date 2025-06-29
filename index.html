@@ -657,6 +657,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
+            text-align: center;
         }
 
         .coffee-tip-section::before {
@@ -805,6 +806,7 @@
 
         .tip-buttons {
             display: flex;
+            justify-content: center;
             gap: 15px;
             margin-bottom: 20px;
             flex-wrap: wrap;
@@ -865,6 +867,129 @@
             align-items: center;
         }
 
+        /* Japanese Style Middle Section */
+        .japanese-middle-section {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #ffffff 100%);
+            padding: 60px 20px;
+            margin: 40px 0;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .japanese-middle-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M20,20 Q30,10 40,20 T60,20" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none"/><path d="M10,50 Q25,40 40,50 T70,50" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/><circle cx="80" cy="30" r="3" fill="rgba(255,255,255,0.4)"/><circle cx="15" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
+            animation: japaneseWave 8s ease-in-out infinite;
+        }
+
+        @keyframes japaneseWave {
+            0%, 100% { opacity: 0.4; transform: translateX(0px); }
+            50% { opacity: 0.8; transform: translateX(10px); }
+        }
+
+        .japanese-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .japanese-title {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            animation: titleFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .japanese-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .zen-circle {
+            width: 120px;
+            height: 120px;
+            border: 4px solid rgba(255,255,255,0.6);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            position: relative;
+            animation: zenSpin 12s linear infinite;
+        }
+
+        @keyframes zenSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .zen-circle::before {
+            content: '🌸';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            animation: petalFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes petalFloat {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .protection-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+            animation: statPulse 2s ease-in-out infinite;
+        }
+
+        .stat-item:nth-child(1) { animation-delay: 0s; }
+        .stat-item:nth-child(2) { animation-delay: 0.5s; }
+        .stat-item:nth-child(3) { animation-delay: 1s; }
+
+        @keyframes statPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,255,255,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 5px;
+        }
+
         @media (max-width: 768px) {
             .welcome-content, .tip-container {
                 flex-direction: column;
@@ -882,6 +1007,23 @@
             
             .tip-buttons {
                 justify-content: center;
+            }
+
+            .japanese-title {
+                font-size: 2rem;
+            }
+
+            .protection-stats {
+                gap: 20px;
+            }
+
+            .zen-circle {
+                width: 80px;
+                height: 80px;
+            }
+
+            .zen-circle::before {
+                font-size: 2rem;
             }
         }
     </style>
@@ -1056,6 +1198,32 @@
                 <button id="clearHistory" class="btn btn-outline-danger btn-sm mt-2" style="display: none;">
                     <i data-feather="trash-2" class="me-1"></i>Clear History
                 </button>
+            </div>
+        </div>
+
+        <!-- Japanese Style Middle Section -->
+        <div class="japanese-middle-section">
+            <div class="japanese-content">
+                <div class="zen-circle"></div>
+                <h2 class="japanese-title">Protecting Malaysia Together</h2>
+                <p class="japanese-subtitle">
+                    Advanced AI technology meets traditional values of community protection.
+                    Every scan helps build a safer digital future for all Malaysians.
+                </p>
+                <div class="protection-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">89</span>
+                        <div class="stat-label">Verified Banks</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">4-Layer</span>
+                        <div class="stat-label">AI Detection</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">Real-time</span>
+                        <div class="stat-label">Protection</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -4064,6 +4232,7 @@ Respond with JSON:
             // Coffee tip payment functionality
             async tipDeveloper(amountCents) {
                 try {
+                    console.log('Starting tip payment for amount:', amountCents);
                     this.showToast('Processing Payment', 'Creating secure payment session...', 'info');
                     
                     // Create payment intent
@@ -4079,16 +4248,23 @@ Respond with JSON:
                         }),
                     });
 
+                    console.log('Payment response status:', response.status);
+                    
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Payment setup failed');
+                        const errorText = await response.text();
+                        console.error('Payment error response:', errorText);
+                        throw new Error('Payment setup failed');
                     }
 
-                    const { checkoutUrl } = await response.json();
+                    const data = await response.json();
+                    console.log('Payment data received:', data);
                     
-                    // Redirect to Stripe Checkout
-                    this.showToast('Redirecting to Payment', 'Opening secure Stripe checkout...', 'success');
-                    window.open(checkoutUrl, '_blank');
+                    if (data.checkoutUrl) {
+                        this.showToast('Redirecting to Payment', 'Opening secure Stripe checkout...', 'success');
+                        window.open(data.checkoutUrl, '_blank');
+                    } else {
+                        throw new Error('No checkout URL received');
+                    }
                     
                 } catch (error) {
                     console.error('Tip payment error:', error);
