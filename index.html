@@ -341,6 +341,59 @@
             color: #2c5aa0;
         }
 
+        /* QR Scanner Enhanced Styling */
+        .qr-analysis-result {
+            margin-top: 1rem;
+        }
+
+        .payment-info {
+            background: rgba(0, 123, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .risk-assessment {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .warnings {
+            background: rgba(220, 53, 69, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #dc3545;
+        }
+
+        .recommendations {
+            background: rgba(25, 135, 84, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #198754;
+        }
+
+        .warnings ul, .recommendations ul {
+            margin: 6px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .warnings li, .recommendations li {
+            margin-bottom: 4px;
+        }
+
+        #qr-reader {
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        #qr-reader video {
+            border-radius: 10px;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 0.5rem;
@@ -1065,9 +1118,32 @@ Respond with JSON:
                 try {
                     if (typeof Html5Qrcode !== 'undefined') {
                         this.qrScanner = new Html5Qrcode("qr-reader");
+                        console.log('QR Scanner initialized successfully');
+                    } else {
+                        console.warn('Html5Qrcode library not loaded');
+                        // Try to load the library if not available
+                        this.loadQRLibrary();
                     }
                 } catch (error) {
                     console.warn('QR Scanner initialization failed:', error);
+                    this.loadQRLibrary();
+                }
+            }
+
+            loadQRLibrary() {
+                // Fallback to load QR library if not already loaded
+                if (!document.querySelector('script[src*="html5-qrcode"]')) {
+                    const script = document.createElement('script');
+                    script.src = 'https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js';
+                    script.onload = () => {
+                        console.log('QR Scanner library loaded');
+                        this.qrScanner = new Html5Qrcode("qr-reader");
+                    };
+                    script.onerror = () => {
+                        console.error('Failed to load QR Scanner library');
+                        this.showToast('Error', 'QR Scanner library failed to load. Please refresh the page.', 'error');
+                    };
+                    document.head.appendChild(script);
                 }
             }
 
@@ -1093,18 +1169,69 @@ Respond with JSON:
             }
 
             async startQRCamera() {
-                if (!this.qrScanner) return;
+                if (!this.qrScanner) {
+                    this.initializeQRScanner();
+                    if (!this.qrScanner) {
+                        this.showToast('Error', 'QR Scanner not available. Please use file upload mode.', 'error');
+                        return;
+                    }
+                }
 
                 try {
-                    await this.qrScanner.start(
-                        { facingMode: "environment" },
-                        { fps: 10, qrbox: { width: 250, height: 250 } },
-                        (decodedText) => this.handleQRResult(decodedText),
-                        (error) => { /* ignore errors */ }
-                    );
+                    // Stop any existing scanner first
+                    if (this.qrScanner.isScanning) {
+                        await this.qrScanner.stop();
+                    }
+
+                    // Get available cameras
+                    const cameras = await Html5Qrcode.getCameras();
+                    if (cameras && cameras.length > 0) {
+                        // Try to use back camera first, then any available camera
+                        const backCamera = cameras.find(camera => 
+                            camera.label.toLowerCase().includes('back') || 
+                            camera.label.toLowerCase().includes('rear')
+                        );
+                        const cameraId = backCamera ? backCamera.id : cameras[0].id;
+
+                        await this.qrScanner.start(
+                            cameraId,
+                            { 
+                                fps: 10, 
+                                qrbox: { width: 250, height: 250 },
+                                aspectRatio: 1.0
+                            },
+                            (decodedText) => {
+                                console.log('QR Code detected:', decodedText);
+                                this.handleQRResult(decodedText);
+                            },
+                            (errorMessage) => {
+                                // Ignore frequent scanning errors
+                                if (!errorMessage.includes('No QR code found')) {
+                                    console.log('QR Scanner error:', errorMessage);
+                                }
+                            }
+                        );
+
+                        this.showToast('Success', 'Camera started successfully. Point at a QR code to scan.', 'success');
+                    } else {
+                        throw new Error('No cameras found');
+                    }
                 } catch (error) {
-                    console.warn('Camera access failed:', error);
-                    this.showToast('Warning', 'Camera access denied. Please use file upload mode.', 'warning');
+                    console.error('Camera access failed:', error);
+                    let errorMessage = 'Camera access failed. Please use file upload mode.';
+                    
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage = 'Camera permission denied. Please allow camera access and try again.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage = 'No camera found on this device. Please use file upload mode.';
+                    } else if (error.name === 'NotSupportedError') {
+                        errorMessage = 'Camera not supported on this device. Please use file upload mode.';
+                    }
+                    
+                    this.showToast('Warning', errorMessage, 'warning');
+                    
+                    // Switch to file mode automatically
+                    this.switchQRMode('file');
                 }
             }
 
@@ -1133,25 +1260,249 @@ Respond with JSON:
             handleQRResult(decodedText) {
                 const resultsDiv = document.getElementById('qr-results');
                 
-                if (this.isValidUrl(decodedText)) {
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-info">
-                            <h6><i data-feather="link" class="me-2"></i>QR Code Contains URL</h6>
-                            <p class="small mb-2">${decodedText}</p>
-                            <button class="btn btn-primary btn-sm" onclick="window.paysar.scanQRUrl('${decodedText}')">
-                                <i data-feather="shield-check" class="me-1"></i>Analyze This URL
-                            </button>
-                        </div>
-                    `;
+                // Analyze QR code for payment and security threats
+                const qrAnalysis = this.analyzeQRCode(decodedText);
+                
+                resultsDiv.innerHTML = `
+                    <div class="qr-analysis-result">
+                        ${this.renderQRAnalysis(qrAnalysis)}
+                    </div>
+                `;
+                feather.replace();
+                
+                // If it's a URL, also perform link analysis
+                if (qrAnalysis.isUrl) {
+                    this.scanQRUrl(decodedText);
+                }
+            }
+
+            analyzeQRCode(content) {
+                const analysis = {
+                    content: content,
+                    isUrl: false,
+                    isPayment: false,
+                    paymentType: null,
+                    riskLevel: 'safe',
+                    riskScore: 0,
+                    warnings: [],
+                    details: {}
+                };
+
+                // Check if it's a URL
+                if (this.isValidUrl(content)) {
+                    analysis.isUrl = true;
+                    analysis.details.url = content;
+                    
+                    // Check for payment-related URLs
+                    const paymentPatterns = [
+                        { pattern: /pay\./, type: 'Generic Payment' },
+                        { pattern: /duitnow/i, type: 'DuitNow' },
+                        { pattern: /maybank/i, type: 'Maybank' },
+                        { pattern: /cimb/i, type: 'CIMB Bank' },
+                        { pattern: /publicbank/i, type: 'Public Bank' },
+                        { pattern: /rhb/i, type: 'RHB Bank' },
+                        { pattern: /grabpay/i, type: 'GrabPay' },
+                        { pattern: /boost\.my/i, type: 'Boost' },
+                        { pattern: /tng\.digital/i, type: 'Touch n Go' }
+                    ];
+
+                    for (const { pattern, type } of paymentPatterns) {
+                        if (pattern.test(content)) {
+                            analysis.isPayment = true;
+                            analysis.paymentType = type;
+                            break;
+                        }
+                    }
+                }
+
+                // Check for Malaysian payment QR formats
+                if (!analysis.isUrl) {
+                    // DuitNow QR format detection
+                    if (content.includes('MY.') || content.includes('DUITNOW')) {
+                        analysis.isPayment = true;
+                        analysis.paymentType = 'DuitNow QR';
+                        analysis.details.format = 'Malaysian Payment Standard';
+                    }
+                    
+                    // Bank transfer format
+                    if (content.match(/^\d{10,12}$/)) {
+                        analysis.isPayment = true;
+                        analysis.paymentType = 'Bank Account';
+                        analysis.details.accountNumber = content.substring(0, 4) + '****';
+                    }
+                }
+
+                // Risk assessment
+                if (analysis.isPayment) {
+                    analysis.riskScore += this.assessPaymentRisk(content, analysis.paymentType);
+                }
+
+                if (analysis.isUrl) {
+                    analysis.riskScore += this.assessUrlRisk(content);
+                }
+
+                // Determine risk level
+                if (analysis.riskScore >= 5) {
+                    analysis.riskLevel = 'high';
+                } else if (analysis.riskScore >= 3) {
+                    analysis.riskLevel = 'medium';
                 } else {
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-secondary">
-                            <h6><i data-feather="info" class="me-2"></i>QR Code Content</h6>
-                            <p class="small mb-0">${decodedText}</p>
+                    analysis.riskLevel = 'safe';
+                }
+
+                return analysis;
+            }
+
+            assessPaymentRisk(content, paymentType) {
+                let risk = 0;
+                const warnings = [];
+
+                // Check for suspicious payment characteristics
+                if (content.includes('urgent') || content.includes('limited time')) {
+                    risk += 2;
+                    warnings.push('Contains urgency keywords');
+                }
+
+                // Check for non-standard domains in payment URLs
+                if (this.isValidUrl(content)) {
+                    const domain = this.extractDomain(content);
+                    const trustedDomains = [
+                        'maybank.com', 'cimb.com', 'publicbank.com.my', 
+                        'rhbgroup.com', 'grab.com', 'boost.my', 'touchngo.com.my'
+                    ];
+                    
+                    if (!trustedDomains.some(trusted => domain.includes(trusted))) {
+                        risk += 3;
+                        warnings.push('Unknown payment domain');
+                    }
+                }
+
+                return risk;
+            }
+
+            assessUrlRisk(url) {
+                let risk = 0;
+                
+                // Use existing URL risk assessment
+                const domain = this.extractDomain(url);
+                
+                // Check for suspicious TLDs
+                const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf'];
+                if (suspiciousTlds.some(tld => domain.endsWith(tld))) {
+                    risk += 2;
+                }
+
+                // Check for URL shorteners
+                if (this.isUrlShortener(url)) {
+                    risk += 1;
+                }
+
+                return risk;
+            }
+
+            renderQRAnalysis(analysis) {
+                const riskColors = {
+                    safe: 'success',
+                    medium: 'warning', 
+                    high: 'danger'
+                };
+
+                const riskIcons = {
+                    safe: 'shield-check',
+                    medium: 'alert-triangle',
+                    high: 'alert-octagon'
+                };
+
+                let html = `
+                    <div class="alert alert-${riskColors[analysis.riskLevel]}">
+                        <h6>
+                            <i data-feather="${riskIcons[analysis.riskLevel]}" class="me-2"></i>
+                            QR Code Security Analysis
+                        </h6>
+                `;
+
+                if (analysis.isPayment) {
+                    html += `
+                        <div class="payment-info mb-3">
+                            <strong>Payment QR Detected: ${analysis.paymentType}</strong>
+                            ${analysis.details.format ? `<br><small>Format: ${analysis.details.format}</small>` : ''}
+                            ${analysis.details.accountNumber ? `<br><small>Account: ${analysis.details.accountNumber}</small>` : ''}
                         </div>
                     `;
                 }
-                feather.replace();
+
+                html += `
+                    <div class="risk-assessment">
+                        <span class="badge bg-${riskColors[analysis.riskLevel]} me-2">
+                            Risk Level: ${analysis.riskLevel.toUpperCase()}
+                        </span>
+                        <span class="badge bg-secondary">Score: ${analysis.riskScore}/10</span>
+                    </div>
+                `;
+
+                if (analysis.warnings.length > 0) {
+                    html += `
+                        <div class="warnings mt-2">
+                            <small><strong>Security Warnings:</strong></small>
+                            <ul class="small mb-0">
+                                ${analysis.warnings.map(warning => `<li>${warning}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                if (analysis.isUrl) {
+                    html += `
+                        <div class="mt-3">
+                            <button class="btn btn-primary btn-sm" onclick="window.paysar.scanQRUrl('${analysis.content}')">
+                                <i data-feather="search" class="me-1"></i>Analyze URL Details
+                            </button>
+                        </div>
+                    `;
+                }
+
+                // Security recommendations
+                const recommendations = this.getQRSecurityRecommendations(analysis);
+                if (recommendations.length > 0) {
+                    html += `
+                        <div class="recommendations mt-3">
+                            <small><strong>Security Recommendations:</strong></small>
+                            <ul class="small mb-0">
+                                ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+                return html;
+            }
+
+            getQRSecurityRecommendations(analysis) {
+                const recommendations = [];
+
+                if (analysis.riskLevel === 'high') {
+                    recommendations.push('Do not proceed with this payment - high security risk detected');
+                    recommendations.push('Report this QR code to relevant authorities');
+                }
+
+                if (analysis.riskLevel === 'medium') {
+                    recommendations.push('Verify the payment recipient through alternative means');
+                    recommendations.push('Double-check the payment amount before confirming');
+                }
+
+                if (analysis.isPayment) {
+                    recommendations.push('Always verify payment details before scanning');
+                    recommendations.push('Only scan QR codes from trusted sources');
+                    recommendations.push('Check your bank statements regularly');
+                }
+
+                if (analysis.isUrl && !analysis.isPayment) {
+                    recommendations.push('Be cautious when visiting URLs from QR codes');
+                    recommendations.push('Verify the website authenticity before entering personal information');
+                }
+
+                return recommendations;
             }
 
             scanQRUrl(url) {
