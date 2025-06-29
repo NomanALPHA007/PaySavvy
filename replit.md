@@ -169,11 +169,14 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Created comprehensive coverage of digital banks, e-money issuers, payment system operators, and traditional banks
 - June 29, 2025: Expanded verifiedBrands.json with comprehensive international payment systems (v3.0)
 - June 29, 2025: Fixed critical color mapping bug - "DANGEROUS" results now display in red instead of green for proper user safety
-- June 29, 2025: Implemented working QR Code Scanner with camera access and file upload functionality
-  - Camera mode: Requests proper camera permissions and displays live video feed
-  - File upload mode: Validates image files and provides manual input interface
-  - Both modes integrate seamlessly with 4-layer scam detection system
-  - Added clear user instructions for manual QR content entry when automatic detection unavailable
+- June 29, 2025: Fully hardened QR Code Scanner with production-ready detection capabilities
+  - Camera mode: Continuous scanning using requestAnimationFrame with 2 FPS throttling for optimal performance
+  - Enhanced mobile compatibility: Added playsinline, muted attributes for iOS Safari compatibility
+  - File upload mode: Triple-attempt QR detection (normal, inverted, both) for dark mode QR compatibility
+  - Robust error handling: Comprehensive toast notifications and graceful fallback to manual input
+  - Auto-canvas resizing: Dynamic canvas dimensions matching video resolution for accurate detection
+  - Full 4-layer integration: Detected QR codes automatically trigger complete scam analysis pipeline
+  - Production debugging: Comprehensive console logging for scan attempts and detection status
   - Added 11 major international payment providers: PayPal, Wise, Revolut, Payoneer, Stripe, Skrill, Neteller, Western Union, MoneyGram, Remitly
   - Total coverage now includes 100 government-authorized financial institutions globally
   - Enhanced with multi-jurisdictional regulatory oversight including FinCEN (US), FCA (UK), ACPR (France), BaFin (Germany), APRA (Australia)

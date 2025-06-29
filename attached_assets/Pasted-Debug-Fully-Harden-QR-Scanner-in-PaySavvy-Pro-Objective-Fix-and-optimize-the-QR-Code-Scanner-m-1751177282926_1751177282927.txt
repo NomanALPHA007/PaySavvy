@@ -1,0 +1,146 @@
+Debug & Fully Harden QR Scanner in PaySavvy Pro
+🎯 Objective: Fix and optimize the QR Code Scanner module so that:
+
+Camera mode scans and decodes QR codes continuously without freezing
+
+File upload mode reliably detects and analyzes QR codes
+
+Both modes auto-run PaySavvy’s 4-layer scam link detection
+
+Display matches the URL scanner (risk level, breakdown, brand match)
+
+Errors fallback to manual entry with helpful user messages
+
+✅ Technical Steps to Instruct Replit AI
+🔹 Step 1: Fix jsQR Integration & Canvas Rendering
+📦 Validate that jsQR is properly loaded:
+
+html
+Copy
+Edit
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+🧪 Ask Replit AI to:
+
+Ensure canvas properly renders video stream per frame
+
+Auto-resize canvas to match video resolution
+
+Draw rectangle when QR is detected for debugging
+
+🔹 Step 2: Implement Robust Camera Loop
+Use requestAnimationFrame for non-blocking continuous scan.
+
+js
+Copy
+Edit
+function scanCameraLoop() {
+  if (!video.readyState === video.HAVE_ENOUGH_DATA) {
+    requestAnimationFrame(scanCameraLoop);
+    return;
+  }
+
+  canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+  const qrResult = jsQR(imageData.data, canvas.width, canvas.height);
+
+  if (qrResult) {
+    stopCamera(); // auto stop
+    analyzeQRCode(qrResult.data); // trigger full PaySavvy analysis
+  } else {
+    requestAnimationFrame(scanCameraLoop); // continue scanning
+  }
+}
+🔁 Throttle scans using setTimeout(scanCameraLoop, 500) for performance
+
+🔹 Step 3: Enhance File Upload QR Scanning
+js
+Copy
+Edit
+function handleQRFileUpload(file) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    const img = new Image();
+    img.onload = () => {
+      canvasContext.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+      const qrResult = jsQR(imageData.data, canvas.width, canvas.height);
+      if (qrResult) {
+        analyzeQRCode(qrResult.data);
+      } else {
+        alert("❌ QR code not detected. Try uploading a clearer image.");
+      }
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+🧠 Tip: Add 2–3 inversion attempts (flipping white/black) for dark-mode QR compatibility
+
+🔹 Step 4: Auto-Trigger Full 4-Layer Analysis
+Connect analyzeQRCode(content) to PaySavvy pipeline:
+
+js
+Copy
+Edit
+function analyzeQRCode(content) {
+  document.getElementById("qrInput").value = content;
+  runFullScan(content); // handles all 4 layers: regex + brand + redirect + GPT
+}
+Show result in same UI format as URL scanner:
+
+🔴 Dangerous / 🟡 Suspicious / 🟢 Safe
+
+Brand metadata
+
+Redirect chain
+
+Risk breakdown
+
+🔹 Step 5: Add User Feedback & Toast Notifications
+✅ Toast examples:
+
+"✅ QR scanned successfully: analyzing now..."
+
+"⚠️ No QR code detected. Please adjust camera or upload another image."
+
+✅ Use:
+
+js
+Copy
+Edit
+showToast("QR scanned successfully!", "success");
+showToast("QR code not found. Try again.", "warning");
+🔹 Step 6: Debug Mode (Optional)
+Enable logging for each frame detection:
+
+js
+Copy
+Edit
+console.log("Scanning frame...");
+if (qrResult) console.log("QR content:", qrResult.data);
+📂 File Structure Update (Optional)
+bash
+Copy
+Edit
+📂 /components
+├── QRScanner.js ✅
+├── QRFileUpload.js ✅
+├── QRCamera.js ✅
+Use modular component files if project grows.
+
+📌 Edge Case Handling
+Case	Fix
+QR visible but not scanned	Canvas too small → auto-scale canvas to video resolution
+Camera loads but no result	Add requestAnimationFrame + async error handling
+Mobile devices (iOS Safari)	Use playsinline in <video> tag: no fullscreen interruption
+Slow scan after multiple tries	Add a throttle/delay with feedback UI
+
+✅ Final Checklist
+Component	Status
+📷 Camera QR scan	✅ Working
+📁 File upload scan	✅ Working
+🔁 Throttle control	✅ Added
+🧠 4-layer analysis	✅ Triggered
+✅ UI result matching	✅ Consistent
+📢 Error fallbacks	✅ Toast + Manual entry
+🧪 Logs for debug	✅ Enabled
