@@ -3679,12 +3679,26 @@ Consider:
 
             // Initialize camera scanning
             async initCameraScanning() {
-                console.log('🎥 Initializing camera QR scanning...');
+                console.log('Initializing camera QR scanning...');
                 const videoElement = document.getElementById('qr-reader');
                 const resultsDiv = document.getElementById('qr-results');
                 
                 if (!videoElement) {
                     console.error('Video element not found');
+                    return;
+                }
+
+                // Check for camera support
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i data-feather="camera-off" class="me-2"></i>
+                            <strong>Camera Not Supported</strong>
+                            <p class="mb-0">Your browser doesn't support camera access. Please use file upload mode instead.</p>
+                        </div>
+                    `;
+                    feather.replace();
+                    this.switchQRMode('file');
                     return;
                 }
                 
@@ -3693,35 +3707,78 @@ Consider:
                     this.stopQRScanning();
                     console.log('🛑 Stopped existing camera streams');
                     
-                    // Request camera access with enhanced settings
+                    // Request camera access with fallback constraints
                     console.log('📷 Requesting camera access...');
-                    this.videoStream = await navigator.mediaDevices.getUserMedia({
+                    let cameraConstraints = {
                         video: {
-                            facingMode: 'environment', // Use back camera if available
+                            facingMode: 'environment',
                             width: { ideal: 1280, min: 640 },
                             height: { ideal: 720, min: 480 }
                         }
-                    });
-
-                    console.log('✅ Camera access granted');
-                    videoElement.srcObject = this.videoStream;
+                    };
                     
-                    // Enhanced video initialization for mobile compatibility
+                    try {
+                        this.videoStream = await navigator.mediaDevices.getUserMedia(cameraConstraints);
+                    } catch (firstError) {
+                        console.warn('Environment camera failed, trying front camera:', firstError);
+                        // Fallback to front camera
+                        cameraConstraints.video.facingMode = 'user';
+                        try {
+                            this.videoStream = await navigator.mediaDevices.getUserMedia(cameraConstraints);
+                        } catch (secondError) {
+                            console.warn('Front camera failed, using basic constraints:', secondError);
+                            // Final fallback - basic video only
+                            this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        }
+                    }
+
+                    console.log('✅ Camera access granted, stream tracks:', this.videoStream.getTracks().length);
+                    
+                    // Set video source and attributes before play
+                    videoElement.srcObject = this.videoStream;
                     videoElement.setAttribute('playsinline', true);
                     videoElement.setAttribute('muted', true);
                     videoElement.setAttribute('autoplay', true);
+                    videoElement.style.display = 'block';
+                    videoElement.style.width = '100%';
+                    videoElement.style.height = 'auto';
                     
-                    await videoElement.play();
-                    console.log('▶️ Video playback started');
+                    // Force video to play with error handling
+                    try {
+                        await videoElement.play();
+                        console.log('▶️ Video playback started successfully');
+                    } catch (playError) {
+                        console.warn('Video play failed, retrying:', playError);
+                        // Retry play after a brief delay
+                        setTimeout(async () => {
+                            try {
+                                await videoElement.play();
+                                console.log('▶️ Video playback started on retry');
+                            } catch (retryError) {
+                                console.error('Video play failed on retry:', retryError);
+                            }
+                        }, 500);
+                    }
                     
                     // Wait for video to be ready, then start scanning
                     const startScanningWhenReady = () => {
+                        console.log('Video readiness check:', {
+                            readyState: videoElement.readyState,
+                            videoWidth: videoElement.videoWidth,
+                            videoHeight: videoElement.videoHeight,
+                            srcObject: !!videoElement.srcObject
+                        });
+                        
                         if (videoElement.readyState >= 2 && videoElement.videoWidth > 0) {
                             console.log(`📺 Video ready: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
                             this.startQRScanLoop(videoElement);
+                            
+                            // Ensure video is visible
+                            videoElement.style.display = 'block';
+                            videoElement.style.visibility = 'visible';
                         } else {
                             console.log('⏳ Waiting for video to be ready...');
-                            setTimeout(startScanningWhenReady, 100);
+                            setTimeout(startScanningWhenReady, 200);
                         }
                     };
                     
@@ -3740,17 +3797,36 @@ Consider:
                     // Immediate check if video is already ready
                     setTimeout(startScanningWhenReady, 200);
 
-                    // Show scanning status
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-success">
-                            <i data-feather="camera" class="me-2"></i>
-                            <strong>QR Scanner Active</strong>
-                            <p class="mb-0">Point your camera at a QR code. It will be automatically detected and analyzed.</p>
-                        </div>
-                    `;
-                    feather.replace();
+                    // Update status based on video state
+                    const updateCameraStatus = () => {
+                        if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                            resultsDiv.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i data-feather="camera" class="me-2"></i>
+                                    <strong>Camera Active - Scanning for QR Codes</strong>
+                                    <p class="mb-0">Point your camera at a QR code. Detection is active at ${videoElement.videoWidth}x${videoElement.videoHeight}.</p>
+                                </div>
+                            `;
+                            feather.replace();
+                            this.showToast('Camera Ready', 'QR code detection is now active', 'success');
+                        } else {
+                            resultsDiv.innerHTML = `
+                                <div class="alert alert-info">
+                                    <i data-feather="camera" class="me-2"></i>
+                                    <strong>Initializing Camera...</strong>
+                                    <p class="mb-0">Camera stream starting, please wait...</p>
+                                </div>
+                            `;
+                            feather.replace();
+                        }
+                    };
                     
-                    this.showToast('QR Scanner Active', 'Point camera at QR code for automatic detection', 'success');
+                    // Initial status update
+                    updateCameraStatus();
+                    
+                    // Update status when video is ready
+                    videoElement.addEventListener('loadedmetadata', updateCameraStatus);
+                    videoElement.addEventListener('canplay', updateCameraStatus);
 
                 } catch (error) {
                     console.error('Camera access failed:', error);
