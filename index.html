@@ -1132,8 +1132,12 @@ Respond with JSON:
                 this.addChatMessage(message, 'user');
                 input.value = '';
 
-                if (!this.apiKey) {
-                    this.addChatMessage('I need an OpenAI API key to provide AI-powered assistance. Please configure your API key in the environment variables (OPENAI_API_KEY or VITE_OPENAI_API_KEY).', 'bot');
+                // Debug API key
+                console.log('API Key available:', this.apiKey ? 'Yes' : 'No');
+                console.log('API Key length:', this.apiKey ? this.apiKey.length : 0);
+
+                if (!this.apiKey || this.apiKey.length < 20) {
+                    this.addChatMessage('I need a valid OpenAI API key to provide AI-powered assistance. Please check your API key configuration.', 'bot');
                     return;
                 }
 
@@ -1141,16 +1145,22 @@ Respond with JSON:
                     const response = await this.getChatResponse(message);
                     this.addChatMessage(response, 'bot');
                 } catch (error) {
-                    this.addChatMessage('Sorry, I encountered an error. Please check your API key configuration.', 'bot');
+                    console.error('Chat error:', error);
+                    this.addChatMessage(`Sorry, I encountered an error: ${error.message}. Please check your API key and try again.`, 'bot');
                 }
             }
 
             async getChatResponse(message) {
+                // Ensure we have a clean API key
+                const cleanApiKey = this.apiKey.trim();
+                console.log('Making API request with key starting with:', cleanApiKey.substring(0, 10) + '...');
+
                 const response = await fetch(this.baseUrl, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${this.apiKey}`,
-                        'Content-Type': 'application/json'
+                        'Authorization': `Bearer ${cleanApiKey}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'gpt-4o',
@@ -1166,8 +1176,12 @@ Respond with JSON:
                     })
                 });
 
+                console.log('Response status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error('Chat API request failed');
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('API Error:', errorData);
+                    throw new Error(`Chat API request failed: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
                 }
 
                 const data = await response.json();
