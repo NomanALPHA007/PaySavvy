@@ -243,6 +243,12 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Structured GPT-4o responses using mandatory professional format template for consistency
   - Implemented hover effects and visual feedback for enhanced user engagement
   - Added support for large user structures with scalable formatting system
+- June 29, 2025: Fixed Stripe payment integration for Vercel deployment
+  - Created Vercel serverless function (api/create-tip-payment.js) for Stripe Checkout sessions
+  - Updated vercel.json configuration to support both static files and serverless functions
+  - Added proper CORS handling and environment variable validation for payment processing
+  - Fixed coffee tip payment buttons (RM 3, RM 5, RM 10) to work on Vercel hosting
+  - Ensured secure payment processing with proper success/cancel URL handling
 - June 28, 2025: Complete production compatibility fixes applied
   - Fixed import.meta module errors by consolidating all JavaScript into single HTML file
   - Replaced invalid 'fingerprint' Feather icons with valid alternatives (shield, check-circle, etc.)

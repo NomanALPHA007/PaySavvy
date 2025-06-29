@@ -1,7 +1,14 @@
 {
-  "buildCommand": "echo 'No build needed - static files'",
-  "outputDirectory": ".",
+  "functions": {
+    "api/create-tip-payment.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/create-tip-payment",
+      "destination": "/api/create-tip-payment.js"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
@@ -31,7 +38,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.openai.com; media-src 'self' blob:; worker-src 'self' blob:;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.openai.com https://api.stripe.com; media-src 'self' blob:; worker-src 'self' blob:;"
         }
       ]
     }
