@@ -3700,20 +3700,25 @@ Consider:
                 }
             }
 
-            // Handle QR file upload
+            // Handle QR file upload with mobile optimization
             async handleQRFile(event) {
-                console.log('🎯 handleQRFile called with event:', event);
+                console.log('🎯 Enhanced handleQRFile called');
+                console.log('📱 Event details:', !!event, event.target.files.length);
+                
                 const file = event.target.files[0];
                 if (!file) {
                     console.log('❌ No file selected in handleQRFile');
                     return;
                 }
                 
-                console.log('📂 File selected:', {
+                // Confirm mobile change event fires and file object is valid
+                console.log('✅ Change event fired successfully');
+                console.log('📂 File object details:', {
                     name: file.name,
                     size: file.size,
                     type: file.type,
-                    lastModified: new Date(file.lastModified)
+                    lastModified: new Date(file.lastModified),
+                    isNull: file === null
                 });
                 
                 // Prevent multiple simultaneous processing with global flag
@@ -3724,12 +3729,25 @@ Consider:
                 
                 this.qrProcessing = true;
                 window.fileProcessingInProgress = true;
-                console.log('QR processing lock acquired');
+                console.log('🔒 QR processing lock acquired');
+                
                 const resultsDiv = document.getElementById('qr-results');
                 console.log('📍 Results div found:', !!resultsDiv);
                 
+                // Show immediate processing feedback
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <i data-feather="upload" class="me-2"></i>
+                            <strong>Processing Started</strong>
+                            <p class="mb-0">Loading ${file.name} (${(file.size/1024).toFixed(1)}KB)...</p>
+                        </div>
+                    `;
+                    feather.replace();
+                }
+                
                 try {
-                    console.log('🎬 Starting QR file processing pipeline...');
+                    console.log('🎬 Starting enhanced QR file processing pipeline...');
                     
                     // Show beautiful Japanese anime loading
                     this.showAnimeLoading(resultsDiv, file.name);
@@ -3741,38 +3759,155 @@ Consider:
                     
                     console.log(`📁 Processing QR file: ${file.name} (${file.type}, ${(file.size / 1024).toFixed(1)}KB)`);
                     
-                    // Process the image file with comprehensive QR detection
-                    console.log('🔍 Calling processQRImageFile...');
-                    const qrContent = await this.processQRImageFile(file, resultsDiv);
-                    console.log('📊 processQRImageFile returned:', qrContent ? 'SUCCESS' : 'NO_CONTENT');
+                    // Enhanced mobile-compatible QR processing
+                    console.log('🔍 Starting enhanced QR detection...');
+                    const qrContent = await this.processQRImageFileEnhanced(file, resultsDiv);
+                    console.log('📊 Enhanced processing returned:', qrContent ? 'SUCCESS' : 'NO_CONTENT');
                     
                     // Ensure results persist by preventing further processing
                     console.log('✅ QR processing completed, results should persist');
                     
                 } catch (error) {
-                    console.error('QR file processing failed:', error);
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i data-feather="alert-circle" class="me-2"></i>
-                            <strong>Processing Failed</strong>
-                            <p class="mb-0">Unable to process the image file. Please try a different image or use camera mode.</p>
-                        </div>
-                    `;
-                    feather.replace();
+                    console.error('❌ QR file processing failed:', error);
+                    if (resultsDiv) {
+                        resultsDiv.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i data-feather="alert-circle" class="me-2"></i>
+                                <strong>Processing Failed</strong>
+                                <p class="mb-0">Unable to process the image file: ${error.message}</p>
+                            </div>
+                        `;
+                        feather.replace();
+                    }
                     this.showToast('Upload Failed', 'Unable to process QR image', 'error');
                 } finally {
                     // Reset processing flags with delay to ensure completion
                     setTimeout(() => {
                         this.qrProcessing = false;
                         window.fileProcessingInProgress = false;
-                        console.log('QR processing flags reset');
+                        console.log('🔓 QR processing flags reset');
                         
                         // Clear file input to allow re-upload of same file
                         if (event.target) {
                             event.target.value = '';
                         }
-                    }, 1000);
+                    }, 2000); // Longer delay to prevent premature reset
                 }
+            }
+
+            // Enhanced mobile-compatible QR image processing
+            async processQRImageFileEnhanced(file, resultsDiv) {
+                console.log('🔍 Starting enhanced mobile QR processing');
+                
+                return new Promise((resolve, reject) => {
+                    try {
+                        // Use URL.createObjectURL for mobile compatibility
+                        const imageUrl = URL.createObjectURL(file);
+                        console.log('🔗 Object URL created for mobile:', imageUrl.substring(0, 50) + '...');
+                        
+                        const img = new Image();
+                        
+                        // Set up timeout to detect if img.onload never fires
+                        const imageLoadTimeout = setTimeout(() => {
+                            console.error('⏰ Image load timeout in enhanced processing');
+                            if (resultsDiv) {
+                                resultsDiv.innerHTML = `
+                                    <div class="alert alert-warning">
+                                        <i data-feather="clock" class="me-2"></i>
+                                        <strong>Image Load Timeout</strong>
+                                        <p class="mb-0">Image failed to load within 10 seconds. Please try a different image.</p>
+                                    </div>
+                                `;
+                                feather.replace();
+                            }
+                            URL.revokeObjectURL(imageUrl);
+                            reject(new Error('Image load timeout'));
+                        }, 10000);
+                        
+                        img.onload = () => {
+                            clearTimeout(imageLoadTimeout);
+                            console.log(`✅ Enhanced image loaded: ${img.width}x${img.height}px`);
+                            
+                            // Add 300ms delay for mobile processing
+                            setTimeout(() => {
+                                try {
+                                    // Create canvas for QR detection
+                                    const canvas = document.createElement('canvas');
+                                    const context = canvas.getContext('2d');
+                                    canvas.width = img.width;
+                                    canvas.height = img.height;
+                                    
+                                    console.log('🖼️ Enhanced canvas created:', canvas.width, 'x', canvas.height);
+                                    
+                                    // Draw image to canvas
+                                    context.drawImage(img, 0, 0);
+                                    console.log('✅ Enhanced image drawn to canvas');
+                                    
+                                    // Get image data and log dimensions
+                                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                                    console.log('📊 Enhanced ImageData obtained:', {
+                                        width: imageData.width,
+                                        height: imageData.height,
+                                        dataLength: imageData.data.length,
+                                        firstPixel: `rgba(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]}, ${imageData.data[3]})`
+                                    });
+                                    
+                                    // Enhanced QR detection
+                                    let qrResult = null;
+                                    if (typeof jsQR !== 'undefined') {
+                                        console.log('🔍 Starting enhanced jsQR detection...');
+                                        qrResult = jsQR(imageData.data, canvas.width, canvas.height);
+                                        console.log('🎯 Enhanced jsQR result:', qrResult ? qrResult.data : 'No QR detected');
+                                    } else {
+                                        console.error('❌ jsQR library not available in enhanced processing');
+                                    }
+                                    
+                                    if (qrResult && qrResult.data) {
+                                        console.log('✅ QR detected in enhanced processing:', qrResult.data);
+                                        this.displayQRScanResults(qrResult.data, resultsDiv);
+                                        resolve(qrResult.data);
+                                    } else {
+                                        console.log('⚠️ No QR detected in enhanced processing');
+                                        if (resultsDiv) {
+                                            resultsDiv.innerHTML = `
+                                                <div class="alert alert-warning">
+                                                    <i data-feather="search" class="me-2"></i>
+                                                    <strong>No QR Code Found</strong>
+                                                    <p class="mb-0">Could not detect a QR code in this image. Please ensure the QR code is clear and well-lit.</p>
+                                                </div>
+                                            `;
+                                            feather.replace();
+                                        }
+                                        resolve(null);
+                                    }
+                                    
+                                    // Clean up object URL
+                                    URL.revokeObjectURL(imageUrl);
+                                    
+                                } catch (canvasError) {
+                                    console.error('❌ Enhanced canvas processing error:', canvasError);
+                                    URL.revokeObjectURL(imageUrl);
+                                    reject(canvasError);
+                                }
+                            }, 300); // 300ms delay for mobile processing
+                        };
+                        
+                        img.onerror = (error) => {
+                            clearTimeout(imageLoadTimeout);
+                            console.error('❌ Enhanced image load failed:', error);
+                            URL.revokeObjectURL(imageUrl);
+                            reject(new Error('Enhanced image load failed'));
+                        };
+                        
+                        // Start image loading
+                        console.log('🔄 Setting enhanced image src...');
+                        img.src = imageUrl;
+                        
+                    } catch (error) {
+                        console.error('❌ Enhanced processing setup error:', error);
+                        reject(error);
+                    }
+                });
             }
 
             // Stop QR scanning
@@ -9544,20 +9679,43 @@ Respond with JSON:
             }
         }
 
-        // Direct QR file processing fallback
+        // Enhanced mobile QR file processing
         async function handleQRFileDirectly(event) {
-            console.log('Direct QR file processing started');
+            console.log('🔍 Mobile QR file processing started');
+            console.log('📱 Event triggered:', !!event);
+            console.log('📁 Files available:', event.target.files.length);
+            
             const file = event.target.files[0];
             if (!file) {
-                console.log('No file selected');
+                console.log('❌ No file selected in mobile handler');
                 return;
             }
 
+            // Confirm mobile change event fires and file object is valid
+            console.log('✅ Mobile change event fired successfully');
+            console.log('📋 File object details:', {
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                lastModified: file.lastModified,
+                isNull: file === null
+            });
+
             const resultsDiv = document.getElementById('qr-results');
             if (!resultsDiv) {
-                console.error('QR results div not found');
+                console.error('❌ QR results div not found');
                 return;
             }
+
+            // Show immediate mobile feedback
+            resultsDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <i data-feather="smartphone" class="me-2"></i>
+                    <strong>Mobile Processing Started</strong>
+                    <p class="mb-0">Loading ${file.name} (${(file.size/1024).toFixed(1)}KB)...</p>
+                </div>
+            `;
+            feather.replace();
 
             // Show beautiful Japanese anime loading
             showAnimeLoadingDirect(resultsDiv, file.name);
@@ -9566,48 +9724,115 @@ Respond with JSON:
             await new Promise(resolve => setTimeout(resolve, 2500));
             
             try {
-                console.log(`Processing QR file: ${file.name}`);
+                console.log(`🎯 Processing mobile QR file: ${file.name}`);
+                
+                // Use URL.createObjectURL for mobile compatibility
+                const imageUrl = URL.createObjectURL(file);
+                console.log('🔗 Object URL created:', imageUrl.substring(0, 50) + '...');
                 
                 // Create image for processing
                 const img = new Image();
-                img.onload = async function() {
-                    console.log(`Image loaded: ${img.width}x${img.height}px`);
+                
+                // Set up timeout to detect if img.onload never fires
+                const imageLoadTimeout = setTimeout(() => {
+                    console.error('⏰ Image load timeout on mobile');
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i data-feather="clock" class="me-2"></i>
+                            <strong>Mobile Image Load Timeout</strong>
+                            <p class="mb-0">Image failed to load within 10 seconds. Please try a different image.</p>
+                        </div>
+                    `;
+                    feather.replace();
+                }, 10000);
+                
+                img.onload = function() {
+                    clearTimeout(imageLoadTimeout);
+                    console.log(`✅ Mobile image loaded successfully: ${img.width}x${img.height}px`);
                     
-                    // Simple QR detection attempt
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    context.drawImage(img, 0, 0);
-                    
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                    
-                    let qrResult = null;
-                    if (typeof jsQR !== 'undefined') {
-                        qrResult = jsQR(imageData.data, canvas.width, canvas.height);
-                    }
-                    
-                    if (qrResult && qrResult.data) {
-                        console.log('QR detected:', qrResult.data);
-                        showQRResultDirect(resultsDiv, qrResult.data);
-                    } else {
-                        // Show demo result for testing
-                        console.log('No QR detected, showing demo result');
-                        const demoQR = "https://maybank2u.com.my/mbb_info/m2u/public/personalDetail01.do";
-                        showQRResultDirect(resultsDiv, demoQR);
-                    }
+                    // Add mobile-specific processing delay
+                    setTimeout(() => {
+                        try {
+                            // Create canvas for QR detection
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            
+                            console.log('🖼️ Canvas created:', canvas.width, 'x', canvas.height);
+                            
+                            // Draw image to canvas
+                            context.drawImage(img, 0, 0);
+                            console.log('✅ Image drawn to canvas');
+                            
+                            // Get image data
+                            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                            console.log('📊 ImageData obtained:', {
+                                width: imageData.width,
+                                height: imageData.height,
+                                dataLength: imageData.data.length
+                            });
+                            
+                            // Mobile QR detection with delay
+                            let qrResult = null;
+                            if (typeof jsQR !== 'undefined') {
+                                console.log('🔍 Starting jsQR detection...');
+                                qrResult = jsQR(imageData.data, canvas.width, canvas.height);
+                                console.log('🎯 jsQR result:', qrResult ? qrResult.data : 'No QR detected');
+                            } else {
+                                console.error('❌ jsQR library not available');
+                            }
+                            
+                            if (qrResult && qrResult.data) {
+                                console.log('✅ QR detected on mobile:', qrResult.data);
+                                showQRResultDirect(resultsDiv, qrResult.data);
+                            } else {
+                                console.log('⚠️ No QR detected in mobile image');
+                                resultsDiv.innerHTML = `
+                                    <div class="alert alert-warning">
+                                        <i data-feather="search" class="me-2"></i>
+                                        <strong>No QR Code Found</strong>
+                                        <p class="mb-0">Could not detect a QR code in this image. Please ensure the QR code is clear and well-lit.</p>
+                                    </div>
+                                `;
+                                feather.replace();
+                            }
+                            
+                            // Clean up object URL
+                            URL.revokeObjectURL(imageUrl);
+                            
+                        } catch (canvasError) {
+                            console.error('❌ Canvas processing error:', canvasError);
+                            showErrorResult(resultsDiv, 'Canvas processing failed: ' + canvasError.message);
+                        }
+                    }, 300); // 300ms delay for mobile processing
                 };
                 
                 img.onerror = function() {
-                    console.error('Failed to load image');
-                    showErrorResult(resultsDiv, 'Failed to load image file');
+                    clearTimeout(imageLoadTimeout);
+                    console.error('❌ Failed to load image on mobile');
+                    console.error('🔍 Image URL:', imageUrl);
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i data-feather="x-circle" class="me-2"></i>
+                            <strong>Mobile Image Load Failed</strong>
+                            <p class="mb-0">Could not load the selected image. Please try a different image format (JPG, PNG).</p>
+                        </div>
+                    `;
+                    feather.replace();
+                    
+                    // Clean up object URL
+                    URL.revokeObjectURL(imageUrl);
                 };
                 
-                img.src = URL.createObjectURL(file);
+                // Start image loading
+                console.log('🔄 Setting image src for mobile...');
+                img.src = imageUrl;
                 
             } catch (error) {
-                console.error('QR processing error:', error);
-                showErrorResult(resultsDiv, error.message);
+                console.error('❌ Mobile QR processing error:', error);
+                showErrorResult(resultsDiv, 'Mobile processing failed: ' + error.message);
             }
         }
 
