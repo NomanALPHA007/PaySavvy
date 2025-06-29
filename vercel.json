@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/create-tip-payment.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/create-tip-payment",

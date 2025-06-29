@@ -1,5 +1,7 @@
 // Vercel serverless function for Stripe payments
-export default async function handler(req, res) {
+const Stripe = require('stripe');
+
+module.exports = async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,8 +25,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Import Stripe dynamically
-    const Stripe = require('stripe');
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     
     // Create Stripe Checkout Session
