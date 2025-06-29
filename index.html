@@ -55,7 +55,8 @@
     <!-- Chart.js removed to fix import.meta errors -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
     
-    <!-- QR Code Scanner - Removed to fix import.meta errors -->
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
     <!-- <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script> -->
     
     <style>
@@ -2732,48 +2733,49 @@ Respond with JSON:
             }
 
             async startQRCamera() {
-
                 try {
                     const videoElement = document.getElementById('qr-reader');
                     if (!videoElement) {
                         throw new Error('Video element not found');
                     }
 
-                    // Stop any existing stream
+                    // Stop any existing stream and scanner
                     if (this.videoStream) {
                         this.videoStream.getTracks().forEach(track => track.stop());
                     }
+                    if (this.qrScanner) {
+                        this.qrScanner.destroy();
+                    }
 
-                    // Get camera access
-                    this.videoStream = await navigator.mediaDevices.getUserMedia({
-                        video: { 
-                            facingMode: 'environment',
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
+                    // Initialize QR Scanner
+                    this.qrScanner = new QrScanner(
+                        videoElement,
+                        (result) => {
+                            console.log('QR Code detected:', result.data);
+                            this.handleAutoDetectedQR(result.data);
+                        },
+                        {
+                            returnDetailedScanResult: true,
+                            highlightScanRegion: true,
+                            highlightCodeOutline: true,
                         }
-                    });
+                    );
 
-                    videoElement.srcObject = this.videoStream;
-                    videoElement.play();
+                    // Start camera and scanner
+                    await this.qrScanner.start();
 
-                    // Show camera instructions
+                    // Show scanning status
                     const resultsDiv = document.getElementById('qr-results');
                     resultsDiv.innerHTML = `
-                        <div class="alert alert-info">
+                        <div class="alert alert-success">
                             <i data-feather="camera" class="me-2"></i>
-                            <strong>Camera Active</strong>
-                            <p class="mb-2">Point your camera at a QR code. When you see the QR code clearly, manually enter its content below:</p>
-                            <div class="input-group">
-                                <input type="text" id="camera-qr-input" class="form-control" placeholder="Enter QR code content (URL) here...">
-                                <button class="btn btn-success" onclick="payApp.analyzeQRContent(document.getElementById('camera-qr-input').value)">
-                                    <i data-feather="search" class="me-1"></i>Analyze
-                                </button>
-                            </div>
+                            <strong>QR Scanner Active</strong>
+                            <p class="mb-0">Point your camera at a QR code. It will be automatically detected and analyzed.</p>
                         </div>
                     `;
                     feather.replace();
                     
-                    this.showToast('Camera Started', 'Point camera at QR code, then enter content manually', 'success');
+                    this.showToast('QR Scanner Active', 'Point camera at QR code for automatic detection', 'success');
 
                 } catch (error) {
                     console.error('Camera access failed:', error);
@@ -2812,6 +2814,12 @@ Respond with JSON:
             }
 
             async stopQRCamera() {
+                // Stop QR Scanner
+                if (this.qrScanner) {
+                    this.qrScanner.destroy();
+                    this.qrScanner = null;
+                }
+
                 // Stop scanning interval
                 if (this.scanInterval) {
                     clearInterval(this.scanInterval);
@@ -2829,6 +2837,28 @@ Respond with JSON:
                 if (videoElement) {
                     videoElement.srcObject = null;
                 }
+            }
+
+            // Handle automatically detected QR codes
+            async handleAutoDetectedQR(qrData) {
+                console.log('Auto-detected QR code:', qrData);
+                
+                // Show detection success
+                const resultsDiv = document.getElementById('qr-results');
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i data-feather="check-circle" class="me-2"></i>
+                        <strong>QR Code Detected!</strong>
+                        <p class="mb-2"><strong>Content:</strong> <code>${qrData}</code></p>
+                        <p class="small mb-0">Running 4-layer scam analysis...</p>
+                    </div>
+                `;
+                feather.replace();
+
+                this.showToast('QR Detected', 'Analyzing content for scams...', 'success');
+                
+                // Automatically analyze the detected QR content
+                await this.analyzeQRContent(qrData);
             }
 
             async handleQRFile(event) {
@@ -2851,25 +2881,46 @@ Respond with JSON:
                     return;
                 }
 
-                // Since QR detection library isn't available, provide manual input
-                resultsDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        <i data-feather="check-circle" class="me-2"></i>
-                        QR image uploaded successfully!
-                    </div>
-                    <div class="mt-3">
-                        <h6>Manual QR Code Input</h6>
-                        <p class="small text-muted">Please look at your QR code image and enter the URL/text it contains below:</p>
-                        <div class="input-group">
-                            <input type="text" id="manual-qr-input" class="form-control" placeholder="Paste QR code content (URL) here...">
-                            <button class="btn btn-success" onclick="payApp.analyzeQRContent(document.getElementById('manual-qr-input').value)">
-                                <i data-feather="search" class="me-1"></i>Analyze
-                            </button>
+                // Use QR Scanner library to automatically detect QR codes from image files
+                try {
+                    const qrResult = await QrScanner.scanImage(file);
+                    
+                    // QR code detected automatically
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i data-feather="check-circle" class="me-2"></i>
+                            <strong>QR Code Detected!</strong>
+                            <p class="mb-2"><strong>Content:</strong> <code>${qrResult}</code></p>
+                            <p class="small mb-0">Running 4-layer scam analysis...</p>
                         </div>
-                    </div>
-                `;
-                feather.replace();
-                this.showToast('Upload Success', 'Please enter the QR code content manually', 'success');
+                    `;
+                    feather.replace();
+                    
+                    this.showToast('QR Detected', 'Analyzing content for scams...', 'success');
+                    
+                    // Automatically analyze the detected QR content
+                    await this.analyzeQRContent(qrResult);
+                    
+                } catch (error) {
+                    console.log('Automatic QR detection failed, showing manual input:', error);
+                    
+                    // Fallback to manual input if automatic detection fails
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i data-feather="upload" class="me-2"></i>
+                            <strong>Image Uploaded</strong>
+                            <p class="mb-2">Could not automatically detect QR code. Please enter the content manually:</p>
+                            <div class="input-group">
+                                <input type="text" id="manual-qr-input" class="form-control" placeholder="Enter QR code content (URL) here...">
+                                <button class="btn btn-success" onclick="payApp.analyzeQRContent(document.getElementById('manual-qr-input').value)">
+                                    <i data-feather="search" class="me-1"></i>Analyze
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    feather.replace();
+                    this.showToast('Manual Input', 'Please enter QR code content manually', 'info');
+                }
             }
 
             async scanImageFile(file) {
