@@ -2499,6 +2499,13 @@
             };
         }
 
+        // Failsafe wrapper function to force sanitization
+        function safeDisplayQRResults(app, result, qrContent) {
+            const safeResult = sanitizeAnalysisObject(result);
+            console.log("🔐 Wrapped safeDisplayQRResults() with:", safeResult);
+            app.displayQRScanResults(safeResult, qrContent);
+        }
+
         // PaySavvy Pro - Refactored with Centralized Risk Scoring
         class PaySavvyPro {
             constructor() {
@@ -6598,12 +6605,8 @@ Respond with JSON:
                     };
                 }
                 
-                // Use sanitizer function to prevent map errors
-                const safeAnalysis = sanitizeAnalysisObject(analysis);
-                console.log('✅ Safe Result Object for Display:', safeAnalysis);
-                
-                // Display results in QR section
-                this.displayQRScanResults(safeAnalysis, content);
+                // Use failsafe wrapper to ensure sanitization
+                safeDisplayQRResults(this, analysis, content);
                 
                 // Save to scan history
                 this.saveScanResult(analysis, content);
@@ -6680,15 +6683,11 @@ Respond with JSON:
                     };
                 }
                 
-                // Use sanitizer function to prevent map errors
-                const safeAnalysis = sanitizeAnalysisObject(analysis);
-                console.log('✅ Safe DuitNow Result Object for Display:', safeAnalysis);
-                
-                // Display results
-                this.displayQRScanResults(safeAnalysis, content);
+                // Use failsafe wrapper to ensure sanitization
+                safeDisplayQRResults(this, analysis, content);
                 
                 // Save to scan history
-                this.saveScanResult(safeAnalysis, content);
+                this.saveScanResult(analysis, content);
                 this.setLoadingState(false);
             }
             
@@ -7251,17 +7250,32 @@ Respond with JSON:
             // Enhanced QR results display for URL scanning
             displayQRScanResults(analysis, qrContent) {
                 try {
+                    // Strong runtime assertion to prevent undefined errors
+                    if (!analysis || typeof analysis !== "object") {
+                        console.error("❌ Invalid analysis object passed:", analysis);
+                        this.showToast('Display Error', 'Invalid analysis result', 'error');
+                        return;
+                    }
+
+                    if (!Array.isArray(analysis.detectionDetails)) {
+                        console.error("❌ detectionDetails is not an array. Analysis was:", analysis);
+                        this.showToast('Display Error', 'Detection details missing or invalid', 'error');
+                        return;
+                    }
+
+                    console.trace("📍 displayQRScanResults called from:");
+                    
                     const resultsDiv = document.getElementById('qr-results');
                     if (!resultsDiv) {
                         console.error('QR results div not found');
                         return;
                     }
 
-                    // Analysis object is already sanitized, validate final structure
+                    // Analysis object is validated, proceed with rendering
                     const safeAnalysis = analysis;
                     
                     // Final safety confirmation before rendering
-                    console.log('✅ Final sanitized analysis structure:', {
+                    console.log('✅ Validated analysis structure before rendering:', {
                         trustLevel: safeAnalysis.trustLevel,
                         riskScore: safeAnalysis.riskScore,
                         detectionDetailsLength: safeAnalysis.detectionDetails.length,
@@ -7378,7 +7392,7 @@ Respond with JSON:
                     const resultsDiv = document.getElementById('qr-results');
                     if (resultsDiv && resultsDiv.innerHTML === '') {
                         console.log('Restoring disappeared QR results');
-                        this.displayQRScanResults(this.lastQRAnalysis.analysis, this.lastQRAnalysis.content, resultsDiv);
+                        safeDisplayQRResults(this, this.lastQRAnalysis.analysis, this.lastQRAnalysis.content);
                     }
                 }, 3000);
             }

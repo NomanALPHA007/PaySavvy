@@ -1,0 +1,127 @@
+implemented the sanitizeAnalysisObject() function and removed redundant checks—but the TypeError: Cannot read properties of undefined (reading 'map') still occurs—this points to one of two possibilities:
+
+🚨 Likely Root Cause (Advanced Diagnosis)
+✅ Possibility #1: You’re Sanitizing the Wrong Object
+Your log says:
+
+rust
+Copy
+Edit
+✅ Safe Result Ready for Rendering: Object
+But the error trace still shows:
+
+js
+Copy
+Edit
+QR analysis error: TypeError: Cannot read properties of undefined (reading 'map')
+    at PaySavvyPro.displayQRScanResults ((index):7689:48)
+This suggests:
+
+Somewhere in the flow, the raw, unsanitized object is still being passed to displayQRScanResults() — possibly as a fallback path or in an async callback.
+
+✅ Possibility #2: The display function is called more than once
+For example: first with a safe object, then a second time with the raw result (from a previous then() or img.onload()).
+
+✅ Fix: Final PhD-Level Diagnostic + Enforcement
+✅ Step 1: Add a Strong Runtime Assertion
+At the very top of displayQRScanResults(result), insert:
+
+js
+Copy
+Edit
+function displayQRScanResults(result) {
+  if (!result || typeof result !== "object") {
+    console.error("❌ Invalid result object passed:", result);
+    toast("Display error: invalid result.");
+    return;
+  }
+
+  if (!Array.isArray(result.detectionDetails)) {
+    console.error("❌ detectionDetails is not an array. Result was:", result);
+    toast("Display error: detection details missing.");
+    return;
+  }
+✅ Step 2: Lock ALL calls to use sanitizer
+Do a global search for:
+
+js
+Copy
+Edit
+displayQRScanResults(
+Then ensure each one is surrounded by:
+
+js
+Copy
+Edit
+const safe = sanitizeAnalysisObject(rawResult);
+displayQRScanResults(safe);
+✅ Step 3: Add Replit Test Function in Console
+Paste this in the browser console in Replit’s DevTools:
+
+js
+Copy
+Edit
+const testUnsafe = {
+  url: "https://malicious.site",
+  riskLevel: "Dangerous"
+  // ❌ missing detectionDetails
+};
+displayQRScanResults(testUnsafe);  // ⛔ Should now trigger a toast, not crash
+Expected output:
+
+✅ Toast: “Display error: detection details missing.”
+
+✅ Log: detectionDetails is not an array...
+
+✅ Step 4: Log Caller Location (for rogue path)
+Inside displayQRScanResults() temporarily add:
+
+js
+Copy
+Edit
+console.trace("📍 displayQRScanResults called from:");
+This prints the call stack and shows which path called it with invalid input.
+
+✅ Step 5: Create a Failsafe Wrapper Function
+Replace every direct call to the display function with:
+
+js
+Copy
+Edit
+function safeDisplayResult(result) {
+  const safe = sanitizeAnalysisObject(result);
+  console.log("🔐 Wrapped safeDisplayResult() with:", safe);
+  displayQRScanResults(safe);
+}
+Then replace:
+
+js
+Copy
+Edit
+displayQRScanResults(result);
+with:
+
+js
+Copy
+Edit
+safeDisplayResult(result);
+✅ Step 6: Watch for Async Race Conditions
+Inside img.onload, double-check this line:
+
+js
+Copy
+Edit
+displayQRScanResults(result);  // ❌ might still use old ref
+Change to:
+
+js
+Copy
+Edit
+safeDisplayResult(result);
+✅ Summary Table
+Step	Purpose
+Runtime assertion	Prevents crash
+Global .trace()	Finds rogue caller
+Failsafe wrapper	Forces sanitization everywhere
+Toast fallback	Keeps UI stable
+Console tests	Confirms behavior manually
