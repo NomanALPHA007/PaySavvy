@@ -2422,7 +2422,376 @@
             initializeQRScanner() {
                 // Initialize dual-mode QR scanner (camera + file upload)
                 this.qrScannerReady = true;
+                this.qrScanningActive = false;
+                this.videoStream = null;
+                this.scanAttempts = 0;
+                this.qrCanvas = null;
+                this.qrContext = null;
                 console.log('QR Scanner initialized in dual-mode (camera + file upload)');
+                
+                // Start with camera mode by default
+                this.switchQRMode('camera');
+            }
+
+            // Switch between camera and file upload modes
+            switchQRMode(mode) {
+                const cameraBtn = document.getElementById('cameraMode');
+                const fileBtn = document.getElementById('fileMode');
+                const videoElement = document.getElementById('qr-reader');
+                const fileButton = document.getElementById('qr-file-button');
+                const resultsDiv = document.getElementById('qr-results');
+                
+                // Stop any active scanning
+                this.stopQRScanning();
+                
+                if (mode === 'camera') {
+                    cameraBtn.classList.add('active');
+                    fileBtn.classList.remove('active');
+                    videoElement.style.display = 'block';
+                    fileButton.style.display = 'none';
+                    resultsDiv.innerHTML = '';
+                    
+                    // Start camera scanning
+                    this.initCameraScanning();
+                } else if (mode === 'file') {
+                    fileBtn.classList.add('active');
+                    cameraBtn.classList.remove('active');
+                    videoElement.style.display = 'none';
+                    fileButton.style.display = 'block';
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <i data-feather="upload" class="me-2"></i>
+                            <strong>File Upload Mode</strong>
+                            <p class="mb-0">Click "Choose QR Image" to upload a QR code image for analysis.</p>
+                        </div>
+                    `;
+                    feather.replace();
+                }
+            }
+
+            // Handle QR file upload
+            async handleQRFile(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const resultsDiv = document.getElementById('qr-results');
+                
+                // Show loading state
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div>
+                                <strong>Processing QR Image...</strong>
+                                <div class="small">Analyzing ${file.name} with advanced detection</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                try {
+                    console.log(`📁 Processing QR file: ${file.name} (${file.type}, ${(file.size / 1024).toFixed(1)}KB)`);
+                    
+                    // Process the image file with comprehensive QR detection
+                    await this.processQRImageFile(file, resultsDiv);
+                    
+                } catch (error) {
+                    console.error('QR file processing failed:', error);
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i data-feather="alert-circle" class="me-2"></i>
+                            <strong>Processing Failed</strong>
+                            <p class="mb-0">Unable to process the image file. Please try a different image or use camera mode.</p>
+                        </div>
+                    `;
+                    feather.replace();
+                    this.showToast('Upload Failed', 'Unable to process QR image', 'error');
+                }
+                
+                // Reset file input
+                event.target.value = '';
+            }
+
+            // Stop QR scanning
+            stopQRScanning() {
+                this.qrScanningActive = false;
+                
+                if (this.videoStream) {
+                    this.videoStream.getTracks().forEach(track => track.stop());
+                    this.videoStream = null;
+                }
+                
+                const videoElement = document.getElementById('qr-reader');
+                if (videoElement.srcObject) {
+                    videoElement.srcObject = null;
+                }
+            }
+
+            // Process QR image file with comprehensive detection pipeline
+            async processQRImageFile(file, resultsDiv) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    
+                    img.onload = async () => {
+                        try {
+                            console.log(`🖼️ Image loaded: ${img.width}x${img.height}px`);
+                            
+                            // Create canvas for image processing
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            
+                            // 10-technique detection pipeline for maximum accuracy
+                            const techniques = [
+                                { name: 'Original', scale: 1.0, invert: false, enhance: false },
+                                { name: 'Inverted', scale: 1.0, invert: true, enhance: false },
+                                { name: 'Large Scale (0.7x)', scale: 0.7, invert: false, enhance: false },
+                                { name: 'Medium Scale (0.5x)', scale: 0.5, invert: false, enhance: false },
+                                { name: 'Small Scale (0.3x)', scale: 0.3, invert: false, enhance: false },
+                                { name: 'Tiny Scale (0.2x)', scale: 0.2, invert: false, enhance: false },
+                                { name: 'Center Crop', scale: 1.0, invert: false, enhance: false, centerCrop: true },
+                                { name: 'Enhanced Contrast', scale: 1.0, invert: false, enhance: true },
+                                { name: 'Region Analysis (Top)', scale: 1.0, invert: false, enhance: false, region: 'top' },
+                                { name: 'Region Analysis (Center)', scale: 1.0, invert: false, enhance: false, region: 'center' }
+                            ];
+                            
+                            console.log(`🔍 Starting 10-technique QR detection pipeline...`);
+                            
+                            for (let i = 0; i < techniques.length; i++) {
+                                const technique = techniques[i];
+                                console.log(`📋 Technique ${i + 1}/10: ${technique.name}`);
+                                
+                                try {
+                                    const qrResult = await this.processImageWithTechnique(img, canvas, context, technique);
+                                    
+                                    if (qrResult && qrResult.data && qrResult.data.trim()) {
+                                        const qrContent = qrResult.data.trim();
+                                        console.log(`✅ QR Code detected with ${technique.name}: ${qrContent.substring(0, 50)}...`);
+                                        
+                                        // Analyze the detected QR content
+                                        await this.analyzeQRContent(qrContent, resultsDiv);
+                                        resolve(qrContent);
+                                        return;
+                                    }
+                                } catch (error) {
+                                    console.warn(`❌ Technique ${technique.name} failed:`, error.message);
+                                }
+                            }
+                            
+                            // No QR code detected with any technique
+                            console.log('❌ No QR code detected with any technique');
+                            resultsDiv.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <i data-feather="search" class="me-2"></i>
+                                    <strong>No QR Code Detected</strong>
+                                    <p class="mb-2">Advanced 10-technique detection pipeline completed without finding a QR code.</p>
+                                    <div class="small">
+                                        <strong>Suggestions:</strong>
+                                        <ul class="mb-0">
+                                            <li>Ensure the QR code is clearly visible and well-lit</li>
+                                            <li>Try cropping the image to focus on just the QR code</li>
+                                            <li>Use a higher resolution image if available</li>
+                                            <li>Check if the image contains a valid QR code format</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            `;
+                            feather.replace();
+                            this.showToast('No QR Found', 'Try a clearer image or camera mode', 'warning');
+                            reject(new Error('No QR code detected'));
+                            
+                        } catch (error) {
+                            console.error('Image processing failed:', error);
+                            reject(error);
+                        }
+                    };
+                    
+                    img.onerror = () => {
+                        console.error('Failed to load image');
+                        reject(new Error('Invalid image file'));
+                    };
+                    
+                    // Load the image
+                    img.src = URL.createObjectURL(file);
+                });
+            }
+
+            // Process image with specific technique
+            async processImageWithTechnique(img, canvas, context, technique) {
+                return new Promise((resolve) => {
+                    try {
+                        let { width, height } = this.calculateDimensions(img, technique);
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        // Clear canvas
+                        context.clearRect(0, 0, width, height);
+                        
+                        // Apply technique-specific processing
+                        if (technique.centerCrop) {
+                            this.applyCenterCrop(img, context, width, height);
+                        } else if (technique.region) {
+                            this.applyRegionAnalysis(img, context, width, height, technique.region);
+                        } else {
+                            context.drawImage(img, 0, 0, width, height);
+                        }
+                        
+                        // Apply post-processing
+                        if (technique.invert || technique.enhance) {
+                            this.applyImageFilters(context, width, height, technique);
+                        }
+                        
+                        // Get image data and attempt QR detection
+                        const imageData = context.getImageData(0, 0, width, height);
+                        
+                        if (typeof jsQR !== 'undefined') {
+                            const qrResult = jsQR(imageData.data, width, height, {
+                                inversionAttempts: "attemptBoth"
+                            });
+                            resolve(qrResult);
+                        } else {
+                            console.warn('jsQR library not available');
+                            resolve(null);
+                        }
+                        
+                    } catch (error) {
+                        console.warn(`Technique ${technique.name} processing error:`, error);
+                        resolve(null);
+                    }
+                });
+            }
+
+            // Calculate optimal dimensions for processing
+            calculateDimensions(img, technique) {
+                let width = Math.round(img.width * technique.scale);
+                let height = Math.round(img.height * technique.scale);
+                
+                // Ensure minimum size for QR detection
+                const minSize = 100;
+                if (width < minSize || height < minSize) {
+                    const scaleFactor = minSize / Math.min(width, height);
+                    width = Math.round(width * scaleFactor);
+                    height = Math.round(height * scaleFactor);
+                }
+                
+                // Limit maximum size for performance
+                const maxSize = 1200;
+                if (width > maxSize || height > maxSize) {
+                    const scaleFactor = maxSize / Math.max(width, height);
+                    width = Math.round(width * scaleFactor);
+                    height = Math.round(height * scaleFactor);
+                }
+                
+                return { width, height };
+            }
+
+            // Apply center crop to focus on central QR code
+            applyCenterCrop(img, context, width, height) {
+                const cropSize = Math.min(img.width, img.height) * 0.8;
+                const startX = (img.width - cropSize) / 2;
+                const startY = (img.height - cropSize) / 2;
+                
+                context.drawImage(img, startX, startY, cropSize, cropSize, 0, 0, width, height);
+            }
+
+            // Apply region-based analysis
+            applyRegionAnalysis(img, context, width, height, region) {
+                let sx = 0, sy = 0, sw = img.width, sh = img.height;
+                
+                if (region === 'top') {
+                    sh = img.height / 2;
+                } else if (region === 'center') {
+                    sy = img.height * 0.25;
+                    sh = img.height * 0.5;
+                }
+                
+                context.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
+            }
+
+            // Apply image filters for enhanced detection
+            applyImageFilters(context, width, height, technique) {
+                const imageData = context.getImageData(0, 0, width, height);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    let r = data[i];
+                    let g = data[i + 1];
+                    let b = data[i + 2];
+                    
+                    // Convert to grayscale
+                    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                    
+                    if (technique.invert) {
+                        data[i] = data[i + 1] = data[i + 2] = 255 - gray;
+                    } else if (technique.enhance) {
+                        // Enhanced contrast
+                        const enhanced = gray > 128 ? 255 : 0;
+                        data[i] = data[i + 1] = data[i + 2] = enhanced;
+                    } else {
+                        data[i] = data[i + 1] = data[i + 2] = gray;
+                    }
+                }
+                
+                context.putImageData(imageData, 0, 0);
+            }
+
+            // Show QR format help
+            showQRFormatHelp() {
+                const resultsDiv = document.getElementById('qr-results');
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-feather="info" class="me-2"></i>
+                            <strong>Supported QR Code Formats</strong>
+                            <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="location.reload()">
+                                <i data-feather="refresh-cw" class="me-1"></i>New Scan
+                            </button>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong class="small">Payment QR Codes:</strong>
+                                <ul class="small mt-1 mb-3">
+                                    <li><strong>DuitNow EMV:</strong> Malaysian payment QR codes</li>
+                                    <li><strong>Banking URLs:</strong> Direct bank payment links</li>
+                                    <li><strong>E-wallet URLs:</strong> TNG, Grab, Boost, etc.</li>
+                                    <li><strong>Merchant QR:</strong> Business payment codes</li>
+                                </ul>
+                                
+                                <strong class="small">Web Links:</strong>
+                                <ul class="small mt-1 mb-3">
+                                    <li>HTTP/HTTPS URLs</li>
+                                    <li>Secure payment gateways</li>
+                                    <li>Official banking portals</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="small">Other Formats:</strong>
+                                <ul class="small mt-1 mb-3">
+                                    <li>WiFi configuration</li>
+                                    <li>Contact information (vCard)</li>
+                                    <li>Email addresses</li>
+                                    <li>Phone numbers</li>
+                                    <li>Geographic locations</li>
+                                    <li>Plain text messages</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <strong>PaySavvy Pro Protection:</strong>
+                            <ul class="small mb-0">
+                                <li>✓ Validates Malaysian DuitNow QR codes against 89 verified financial institutions</li>
+                                <li>✓ Extracts business owner information and merchant details</li>
+                                <li>✓ Runs 4-layer scam detection on payment URLs</li>
+                                <li>✓ Identifies fake vs real QR codes using government databases</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                feather.replace();
             }
 
             setupEventListeners() {
