@@ -2903,218 +2903,40 @@ Respond with JSON:
                 }
             }
 
-            // Enhanced file upload QR processing with multiple detection attempts
+            // Advanced QR image processing with comprehensive debugging
             async processQRImageFile(file, resultsDiv) {
-                this.showToast('Processing', 'Analyzing uploaded image for QR codes...', 'info');
+                console.log('🧪 Starting QR image processing pipeline...');
+                console.log(`📁 Detected file: ${file.name} (${file.type}, ${(file.size / 1024).toFixed(1)}KB)`);
+                
+                // Validate file type
+                if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+                    this.showToast('Unsupported Format', 'Please upload JPEG or PNG images only', 'error');
+                    return;
+                }
+                
+                this.showToast('Processing', 'Running advanced QR detection pipeline...', 'info');
                 
                 try {
                     const reader = new FileReader();
                     reader.onload = async (event) => {
                         const img = new Image();
                         img.onload = async () => {
-                            try {
-                                // Create canvas with proper dimensions
-                                const canvas = document.createElement('canvas');
-                                const context = canvas.getContext('2d');
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                context.drawImage(img, 0, 0);
-                                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                                
-                                console.log(`Processing uploaded QR image: ${canvas.width}x${canvas.height}`);
-                                
-                                // Enhanced QR detection with multiple attempts
-                                let qrResult = null;
-                                
-                                if (typeof jsQR !== 'undefined') {
-                                    console.log('Attempting QR detection on uploaded image...');
-                                    
-                                    // Attempt 1: Normal scanning with high precision
-                                    qrResult = jsQR(imageData.data, canvas.width, canvas.height, {
-                                        inversionAttempts: "dontInvert"
-                                    });
-                                    console.log('Normal scan result:', qrResult ? 'SUCCESS' : 'FAILED');
-                                    
-                                    // Attempt 2: Inverted scanning for dark mode QR codes
-                                    if (!qrResult) {
-                                        qrResult = jsQR(imageData.data, canvas.width, canvas.height, {
-                                            inversionAttempts: "onlyInvert"
-                                        });
-                                        console.log('Inverted scan result:', qrResult ? 'SUCCESS' : 'FAILED');
-                                    }
-                                    
-                                    // Attempt 3: Both normal and inverted with all options
-                                    if (!qrResult) {
-                                        qrResult = jsQR(imageData.data, canvas.width, canvas.height, {
-                                            inversionAttempts: "attemptBoth"
-                                        });
-                                        console.log('Both attempts scan result:', qrResult ? 'SUCCESS' : 'FAILED');
-                                    }
-                                    
-                                    // Attempt 4: Scale down large images for better detection
-                                    if (!qrResult && (canvas.width > 800 || canvas.height > 800)) {
-                                        console.log('Attempting scaled down detection...');
-                                        const scaledCanvas = document.createElement('canvas');
-                                        const scaledContext = scaledCanvas.getContext('2d');
-                                        const scale = Math.min(800 / canvas.width, 800 / canvas.height);
-                                        scaledCanvas.width = Math.floor(canvas.width * scale);
-                                        scaledCanvas.height = Math.floor(canvas.height * scale);
-                                        
-                                        scaledContext.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
-                                        const scaledImageData = scaledContext.getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
-                                        
-                                        qrResult = jsQR(scaledImageData.data, scaledCanvas.width, scaledCanvas.height, {
-                                            inversionAttempts: "attemptBoth"
-                                        });
-                                        console.log('Scaled scan result:', qrResult ? 'SUCCESS' : 'FAILED');
-                                    }
-                                    
-                                    // Attempt 5: Multiple scaling factors for very large images
-                                    if (!qrResult && (canvas.width > 1200 || canvas.height > 1200)) {
-                                        const scales = [0.5, 0.3, 0.7];
-                                        console.log('Attempting multiple scale factors for large image...');
-                                        
-                                        for (const scale of scales) {
-                                            const scaledCanvas = document.createElement('canvas');
-                                            const scaledContext = scaledCanvas.getContext('2d');
-                                            scaledCanvas.width = Math.floor(canvas.width * scale);
-                                            scaledCanvas.height = Math.floor(canvas.height * scale);
-                                            
-                                            scaledContext.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
-                                            const scaledImageData = scaledContext.getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
-                                            
-                                            qrResult = jsQR(scaledImageData.data, scaledCanvas.width, scaledCanvas.height, {
-                                                inversionAttempts: "attemptBoth"
-                                            });
-                                            
-                                            console.log(`Scale ${scale} scan result:`, qrResult ? 'SUCCESS' : 'FAILED');
-                                            if (qrResult) break;
-                                        }
-                                    }
-                                    
-                                    // Attempt 6: Smart cropping for large images with QR regions
-                                    if (!qrResult && (canvas.width > 1000 || canvas.height > 1000)) {
-                                        console.log('Attempting smart cropping for large image...');
-                                        const cropSizes = [
-                                            { w: 600, h: 600 },  // Standard crop
-                                            { w: 800, h: 600 },  // Wide crop
-                                            { w: 400, h: 400 },  // Small crop
-                                        ];
-                                        
-                                        for (const cropSize of cropSizes) {
-                                            // Try center crop
-                                            const startX = Math.max(0, (canvas.width - cropSize.w) / 2);
-                                            const startY = Math.max(0, (canvas.height - cropSize.h) / 2);
-                                            
-                                            const cropCanvas = document.createElement('canvas');
-                                            const cropContext = cropCanvas.getContext('2d');
-                                            cropCanvas.width = cropSize.w;
-                                            cropCanvas.height = cropSize.h;
-                                            
-                                            cropContext.drawImage(canvas, startX, startY, cropSize.w, cropSize.h, 0, 0, cropSize.w, cropSize.h);
-                                            const cropImageData = cropContext.getImageData(0, 0, cropSize.w, cropSize.h);
-                                            
-                                            qrResult = jsQR(cropImageData.data, cropSize.w, cropSize.h, {
-                                                inversionAttempts: "attemptBoth"
-                                            });
-                                            
-                                            console.log(`Center crop ${cropSize.w}x${cropSize.h} result:`, qrResult ? 'SUCCESS' : 'FAILED');
-                                            if (qrResult) break;
-                                            
-                                            // Try top crop (common for phone screenshots)
-                                            cropContext.clearRect(0, 0, cropSize.w, cropSize.h);
-                                            cropContext.drawImage(canvas, 0, 0, cropSize.w, cropSize.h, 0, 0, cropSize.w, cropSize.h);
-                                            const topCropData = cropContext.getImageData(0, 0, cropSize.w, cropSize.h);
-                                            
-                                            qrResult = jsQR(topCropData.data, cropSize.w, cropSize.h, {
-                                                inversionAttempts: "attemptBoth"
-                                            });
-                                            
-                                            console.log(`Top crop ${cropSize.w}x${cropSize.h} result:`, qrResult ? 'SUCCESS' : 'FAILED');
-                                            if (qrResult) break;
-                                        }
-                                    }
-                                    
-                                    // Attempt 7: Contrast enhancement for difficult images
-                                    if (!qrResult) {
-                                        console.log('Attempting contrast enhancement...');
-                                        const enhancedCanvas = document.createElement('canvas');
-                                        const enhancedContext = enhancedCanvas.getContext('2d');
-                                        const workingSize = Math.min(500, Math.min(canvas.width, canvas.height));
-                                        const scale = workingSize / Math.max(canvas.width, canvas.height);
-                                        
-                                        enhancedCanvas.width = Math.floor(canvas.width * scale);
-                                        enhancedCanvas.height = Math.floor(canvas.height * scale);
-                                        
-                                        enhancedContext.drawImage(canvas, 0, 0, enhancedCanvas.width, enhancedCanvas.height);
-                                        
-                                        // Apply contrast enhancement
-                                        const enhancedImageData = enhancedContext.getImageData(0, 0, enhancedCanvas.width, enhancedCanvas.height);
-                                        const data = enhancedImageData.data;
-                                        
-                                        for (let i = 0; i < data.length; i += 4) {
-                                            // Convert to grayscale and enhance contrast
-                                            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-                                            const enhanced = gray > 128 ? 255 : 0;
-                                            data[i] = data[i + 1] = data[i + 2] = enhanced;
-                                        }
-                                        
-                                        enhancedContext.putImageData(enhancedImageData, 0, 0);
-                                        const finalImageData = enhancedContext.getImageData(0, 0, enhancedCanvas.width, enhancedCanvas.height);
-                                        
-                                        qrResult = jsQR(finalImageData.data, enhancedCanvas.width, enhancedCanvas.height, {
-                                            inversionAttempts: "attemptBoth"
-                                        });
-                                        console.log('Contrast enhanced scan result:', qrResult ? 'SUCCESS' : 'FAILED');
-                                    }
-                                    
-                                    if (qrResult && qrResult.data && qrResult.data.trim()) {
-                                        console.log('✅ QR Code detected from uploaded file:', qrResult.data.trim());
-                                        
-                                        // Show detection success with content preview
-                                        const qrContent = qrResult.data.trim();
-                                        resultsDiv.innerHTML = `
-                                            <div class="alert alert-success">
-                                                <i data-feather="check-circle" class="me-2"></i>
-                                                <strong>QR Code Successfully Detected!</strong>
-                                                <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 100 ? qrContent.substring(0, 100) + '...' : qrContent}</code></p>
-                                                <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running complete 4-layer scam analysis...</p>
-                                            </div>
-                                        `;
-                                        feather.replace();
-                                        
-                                        this.showToast('QR Successfully Detected', 'Running 4-layer scam analysis...', 'success');
-                                        
-                                        // Trigger full PaySavvy 4-layer analysis
-                                        await this.analyzeQRContent(qrContent);
-                                        return;
-                                    }
-                                }
-                                
-                                // No QR code detected - show enhanced manual input with helpful guidance
-                                console.log('❌ No QR code detected in uploaded image after all attempts');
-                                this.showToast('QR Not Detected', 'Could not detect QR code. Please try manual input or upload a clearer image.', 'warning');
-                                this.showEnhancedManualQRInput(canvas.width, canvas.height);
-                        
-                        // Show detection summary in console for debugging
-                        console.log('QR Detection Summary:');
-                        console.log('- Image size:', canvas.width + 'x' + canvas.height);
-                        console.log('- Normal scan: FAILED');
-                        console.log('- Inverted scan: FAILED'); 
-                        console.log('- Both attempts: FAILED');
-                        console.log('- Scaled detection: FAILED');
-                        console.log('- Multiple scales: FAILED');
-                        console.log('- Contrast enhancement: FAILED');
-                                
-                            } catch (error) {
-                                console.error('QR processing error:', error);
-                                this.showToast('Processing Error', 'Failed to process image. Please try again.', 'error');
-                                this.showManualQRInput();
+                            console.log(`📐 Image loaded: ${img.width}x${img.height} pixels`);
+                            
+                            // Initialize detection pipeline
+                            const qrContent = await this.runQRDetectionPipeline(img, resultsDiv);
+                            
+                            if (qrContent) {
+                                console.log('✅ QR Detection Pipeline: SUCCESS');
+                                await this.analyzeQRContent(qrContent);
+                            } else {
+                                console.log('❌ QR Detection Pipeline: ALL ATTEMPTS FAILED');
+                                this.showAdvancedManualFallback(img.width, img.height, file.name);
                             }
                         };
                         
                         img.onerror = () => {
-                            this.showToast('Image Error', 'Invalid image file. Please select a valid image.', 'error');
+                            this.showToast('Image Error', 'Invalid or corrupted image file', 'error');
                             this.showManualQRInput();
                         };
                         
@@ -3122,17 +2944,256 @@ Respond with JSON:
                     };
                     
                     reader.onerror = () => {
-                        this.showToast('File Error', 'Failed to read file. Please try again.', 'error');
+                        this.showToast('File Error', 'Failed to read uploaded file', 'error');
                         this.showManualQRInput();
                     };
                     
                     reader.readAsDataURL(file);
                     
                 } catch (error) {
-                    console.error('File upload error:', error);
-                    this.showToast('Upload Error', 'Failed to process uploaded file.', 'error');
+                    console.error('🚨 File upload error:', error);
+                    this.showToast('Upload Error', 'Failed to process uploaded file', 'error');
                     this.showManualQRInput();
                 }
+            }
+
+            // Comprehensive QR detection pipeline with 9 advanced techniques
+            async runQRDetectionPipeline(img, resultsDiv) {
+                console.log('🔬 Running comprehensive QR detection pipeline...');
+                
+                // Helper function for logging attempts
+                const logAttempt = (label, result) => {
+                    console.log(`🧪 Attempt: ${label} → ${result ? '✅ DETECTED' : '❌ Not Detected'}`);
+                    return result;
+                };
+
+                // Create base canvas
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                context.drawImage(img, 0, 0);
+                
+                const attempts = [
+                    // Attempt 1: Original image
+                    () => {
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        return logAttempt('Original Image', jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: "dontInvert" }));
+                    },
+                    
+                    // Attempt 2: Inverted colors
+                    () => {
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        return logAttempt('Inverted Colors', jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: "onlyInvert" }));
+                    },
+                    
+                    // Attempt 3: Both normal and inverted
+                    () => {
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        return logAttempt('Both Inversions', jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: "attemptBoth" }));
+                    },
+                    
+                    // Attempt 4-6: Multiple scales
+                    ...([0.7, 0.5, 0.3].map(scale => () => {
+                        const scaledCanvas = this.createScaledCanvas(img, scale);
+                        const imageData = scaledCanvas.getContext('2d').getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
+                        return logAttempt(`Scale ${scale}x`, jsQR(imageData.data, scaledCanvas.width, scaledCanvas.height, { inversionAttempts: "attemptBoth" }));
+                    })),
+                    
+                    // Attempt 7: Center crop
+                    () => {
+                        const cropCanvas = this.createCenterCrop(img, 0.6);
+                        const imageData = cropCanvas.getContext('2d').getImageData(0, 0, cropCanvas.width, cropCanvas.height);
+                        return logAttempt('Center Crop 60%', jsQR(imageData.data, cropCanvas.width, cropCanvas.height, { inversionAttempts: "attemptBoth" }));
+                    },
+                    
+                    // Attempt 8: Top crop
+                    () => {
+                        const cropCanvas = this.createTopCrop(img, 0.7);
+                        const imageData = cropCanvas.getContext('2d').getImageData(0, 0, cropCanvas.width, cropCanvas.height);
+                        return logAttempt('Top Crop 70%', jsQR(imageData.data, cropCanvas.width, cropCanvas.height, { inversionAttempts: "attemptBoth" }));
+                    },
+                    
+                    // Attempt 9: Binarized (high contrast)
+                    () => {
+                        const binarizedCanvas = this.createBinarizedImage(img);
+                        const imageData = binarizedCanvas.getContext('2d').getImageData(0, 0, binarizedCanvas.width, binarizedCanvas.height);
+                        return logAttempt('Binarized', jsQR(imageData.data, binarizedCanvas.width, binarizedCanvas.height, { inversionAttempts: "attemptBoth" }));
+                    }
+                ];
+
+                // Execute all attempts
+                for (let i = 0; i < attempts.length; i++) {
+                    try {
+                        const result = attempts[i]();
+                        if (result && result.data && result.data.trim()) {
+                            const qrContent = result.data.trim();
+                            console.log(`🎯 SUCCESS on attempt ${i + 1}: ${qrContent.substring(0, 50)}${qrContent.length > 50 ? '...' : ''}`);
+                            
+                            // Show success message
+                            resultsDiv.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i data-feather="check-circle" class="me-2"></i>
+                                    <strong>QR Code Detected!</strong>
+                                    <p class="mb-2">Detection method: <span class="badge bg-success">Attempt ${i + 1}</span></p>
+                                    <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 80 ? qrContent.substring(0, 80) + '...' : qrContent}</code></p>
+                                    <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running 4-layer scam analysis...</p>
+                                </div>
+                            `;
+                            feather.replace();
+                            
+                            this.showToast('QR Detected', `Success on attempt ${i + 1}`, 'success');
+                            return qrContent;
+                        }
+                    } catch (error) {
+                        console.error(`🚨 Error in attempt ${i + 1}:`, error);
+                    }
+                }
+
+                return null; // All attempts failed
+            }
+
+            // Image preprocessing helper functions
+            createScaledCanvas(img, scale) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = Math.floor(img.width * scale);
+                canvas.height = Math.floor(img.height * scale);
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                return canvas;
+            }
+
+            createCenterCrop(img, cropPercent) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const cropWidth = Math.floor(img.width * cropPercent);
+                const cropHeight = Math.floor(img.height * cropPercent);
+                const startX = Math.floor((img.width - cropWidth) / 2);
+                const startY = Math.floor((img.height - cropHeight) / 2);
+                
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+                context.drawImage(img, startX, startY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                return canvas;
+            }
+
+            createTopCrop(img, cropPercent) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const cropWidth = Math.floor(img.width * cropPercent);
+                const cropHeight = Math.floor(img.height * cropPercent);
+                
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+                context.drawImage(img, 0, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                return canvas;
+            }
+
+            createBinarizedImage(img) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const workingSize = Math.min(600, Math.max(img.width, img.height));
+                const scale = workingSize / Math.max(img.width, img.height);
+                
+                canvas.width = Math.floor(img.width * scale);
+                canvas.height = Math.floor(img.height * scale);
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Apply binarization
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                    const binary = gray > 128 ? 255 : 0;
+                    data[i] = data[i + 1] = data[i + 2] = binary;
+                }
+                
+                context.putImageData(imageData, 0, 0);
+                return canvas;
+            }
+
+            // Advanced manual fallback with detailed guidance
+            showAdvancedManualFallback(imgWidth, imgHeight, fileName) {
+                const resultsDiv = document.getElementById('qr-results');
+                const fileSize = `${imgWidth}x${imgHeight}`;
+                const isLarge = imgWidth > 1200 || imgHeight > 1200;
+                
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-feather="search" class="me-2"></i>
+                            <strong>QR Detection Complete</strong>
+                            <span class="badge bg-secondary ms-auto">9 attempts</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>File Analysis:</strong>
+                            <ul class="small mt-2 mb-0">
+                                <li>File: ${fileName}</li>
+                                <li>Resolution: ${fileSize} pixels</li>
+                                <li>Processing: ${isLarge ? 'Large image detected' : 'Standard processing'}</li>
+                                <li>Detection attempts: Original, Inverted, Scaled (0.7x, 0.5x, 0.3x), Center crop, Top crop, Binarized</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Manual Input Required:</strong>
+                            <div class="input-group mt-2">
+                                <input type="text" id="manual-qr-input" class="form-control" 
+                                       placeholder="Paste or type QR code content here...">
+                                <button class="btn btn-success" onclick="app.analyzeManualQRInput()">
+                                    <i data-feather="search" class="me-1"></i>Analyze
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <details class="mb-2">
+                            <summary class="small text-muted" style="cursor: pointer;">Possible Issues & Solutions</summary>
+                            <div class="mt-2">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong class="small">Common Issues:</strong>
+                                        <ul class="small mt-1 mb-2">
+                                            <li>QR code too small or blurry</li>
+                                            <li>Low contrast or poor lighting</li>
+                                            <li>QR code rotated or distorted</li>
+                                            <li>Multiple QR codes in image</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong class="small">Try Again With:</strong>
+                                        <ul class="small mt-1 mb-2">
+                                            <li>Crop image to show only QR code</li>
+                                            <li>Increase image brightness/contrast</li>
+                                            <li>Take a closer, clearer photo</li>
+                                            <li>Ensure QR code is straight</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-outline-secondary btn-sm me-2" onclick="document.getElementById('qr-file-input').click()">
+                                        <i data-feather="upload" class="me-1"></i>Try Another Image
+                                    </button>
+                                    <small class="text-muted">Or enter the QR content manually above</small>
+                                </div>
+                            </div>
+                        </details>
+                        
+                        <div class="small text-muted">
+                            Detection pipeline processed ${isLarge ? 'large' : 'standard'} image with 9 advanced techniques including scaling, cropping, and binarization.
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+                
+                this.showToast('Manual Input Required', 'QR detection completed - please enter content manually', 'info');
+                
+                // Focus the input field
+                setTimeout(() => {
+                    const input = document.getElementById('manual-qr-input');
+                    if (input) input.focus();
+                }, 100);
             }
 
             showManualQRInput() {

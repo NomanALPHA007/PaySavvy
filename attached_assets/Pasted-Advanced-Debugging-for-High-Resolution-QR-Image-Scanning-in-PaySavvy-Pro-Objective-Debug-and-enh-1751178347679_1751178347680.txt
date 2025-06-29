@@ -1,0 +1,146 @@
+Advanced Debugging for High-Resolution QR Image Scanning in PaySavvy Pro
+🎯 Objective: Debug and enhance the QR Code file upload detection system so it can reliably extract QR codes from large images, like 1290x1825 screenshots or photos, and automatically run PaySavvy's 4-layer risk analysis.
+
+Ensure:
+
+QR content is detected even in cropped, inverted, or poorly lit images
+
+High-res photos (e.g., 1290x1825) are preprocessed properly
+
+All 7 detection attempts are actually triggered and working
+
+Image is not just scanned — it's enhanced, cropped, resized, and passed to jsQR
+
+After all attempts fail, provide better manual fallback UX and logging
+
+✅ What to Scan, Detect, and Fix:
+🧪 1. Verify Preprocessing Pipeline Execution
+Ensure the following steps run in sequence per upload, and include debug logs:
+
+plaintext
+Copy
+Edit
+[✔] Detected file: name + resolution
+[✔] Resized image to multiple dimensions (0.7x, 0.5x, 0.3x)
+[✔] Applied inverted image analysis
+[✔] Applied center crop at 50%, 70%, 30%
+[✔] Applied top crop if QR likely near top edge
+[✔] Applied grayscale and binarization
+[✔] Passed final image buffer to jsQR
+[✔] jsQR output: [detected/not detected]
+📌 Request Replit AI to add a logAttempt(label) helper:
+
+js
+Copy
+Edit
+function logAttempt(label, result) {
+  console.log(`🧪 Attempt: ${label} → ${result ? '✅ Detected' : '❌ Not Detected'}`);
+}
+Use this to wrap every jsQR(...) call in each attempt.
+
+🔍 2. Image Resize & Canvas Draw Must Match
+Bug to fix: jsQR only works if canvas width and height match actual image size.
+
+✅ In Replit, ask AI to:
+
+js
+Copy
+Edit
+canvas.width = img.width;
+canvas.height = img.height;
+context.drawImage(img, 0, 0);
+Then extract:
+
+js
+Copy
+Edit
+const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+📌 Do this in every scale/crop attempt to avoid false negatives.
+
+🧪 3. Ensure Image Type Is Supported
+Photos often come as HEIC, JPEG, or large PNG.
+
+✅ Confirm:
+
+File type is one of ["image/jpeg", "image/png"]
+
+Convert to canvas-friendly Image via reader.onload
+
+🧠 4. Add Multi-Crop and Inversion Attempts Properly
+📌 Replit should implement this:
+
+js
+Copy
+Edit
+const attempts = [
+  { label: "Original", transform: img => img },
+  { label: "Inverted", transform: invertColors },
+  { label: "Scale 0.5", transform: scaleImage(0.5) },
+  { label: "Scale 0.3", transform: scaleImage(0.3) },
+  { label: "Center Crop", transform: centerCrop },
+  { label: "Top Crop", transform: topCrop },
+  { label: "Binarized", transform: binarize }
+];
+Loop through these:
+
+js
+Copy
+Edit
+for (const attempt of attempts) {
+  const processed = attempt.transform(originalImage);
+  context.drawImage(processed, 0, 0);
+  const data = context.getImageData(...);
+  const result = jsQR(data.data, width, height);
+  logAttempt(attempt.label, result);
+  if (result) return result.data;
+}
+⚙️ 5. Enhance Manual Mode UX if Detection Fails
+“Could not detect QR code in uploaded image.”
+
+✅ Add:
+
+Better explanation (file too blurry? low contrast?)
+
+Button to retry with another image
+
+Option to paste QR content directly
+
+js
+Copy
+Edit
+toast("❌ QR not detected. Try clearer image or use manual input", "warning");
+🧑‍💻 6. Optional: Use Offscreen Canvas or Web Worker (Advanced)
+If image is > 2000px wide or tall, browser crashes or slows.
+
+✅ Replit AI should:
+
+Use <canvas style="display:none"> or offscreen canvas for preprocessing
+
+Load jsQR in Web Worker if app becomes heavy
+
+✅ Final Replit Instructions
+📌 AI should:
+
+Refactor the file upload function into a modular processQRImage(file)
+
+Add preprocessing helpers: scaleImage(), invertColors(), binarize(), cropImage()
+
+Ensure canvas size always matches the image
+
+Log every attempt result
+
+Auto-run PaySavvy runFullScan(qrContent) once valid content detected
+
+✅ Commit Message
+bash
+Copy
+Edit
+git commit -m "fix: enhanced QR image detection for high-res uploads using multi-scale preprocessing, cropping, and fallback"
+📦 Test Cases
+Test Image Type	Expected Result
+PNG 1290x1825	✅ QR auto-detected
+iPhone screenshot	✅ Center crop detects
+Dark QR (white text)	✅ Inversion detects
+Blurry QR	❌ Manual input fallback
+QR top-left corner	✅ Top crop catches it
