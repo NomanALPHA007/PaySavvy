@@ -158,7 +158,7 @@ app.get('/', (req, res) => {
     'Expires': '0',
     'Last-Modified': new Date().toUTCString(),
     'ETag': `"${Date.now()}"`,
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://api.openai.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self';",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' https: data: blob:; connect-src 'self' https://api.openai.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self';",
     'Vary': '*'
   });
   
