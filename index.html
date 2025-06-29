@@ -3694,11 +3694,13 @@ Consider:
                         <div class="alert alert-danger">
                             <i data-feather="camera-off" class="me-2"></i>
                             <strong>Camera Not Supported</strong>
-                            <p class="mb-0">Your browser doesn't support camera access. Please use file upload mode instead.</p>
+                            <p class="mb-2">Your browser doesn't support camera access.</p>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="window.app.switchQRMode('file')">
+                                <i data-feather="upload" class="me-1"></i>Switch to File Upload
+                            </button>
                         </div>
                     `;
                     feather.replace();
-                    this.switchQRMode('file');
                     return;
                 }
                 
@@ -3841,7 +3843,7 @@ Consider:
                     }
                     
                     this.showToast('Warning', errorMessage, 'warning');
-                    this.switchQRMode('file');
+                    // this.switchQRMode('file');
                 }
             }
 
