@@ -305,6 +305,42 @@
             min-width: 300px;
         }
 
+        /* Professional AI Chat Formatting */
+        .scam-item {
+            margin: 12px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .scam-item:last-child {
+            border-bottom: none;
+        }
+
+        .scam-item strong {
+            color: #dc3545;
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .message-section {
+            margin-bottom: 16px;
+        }
+
+        .message-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .message.bot .message-content {
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .message.bot .message-content strong {
+            font-weight: 600;
+            color: #2c5aa0;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 0.5rem;
@@ -1193,14 +1229,35 @@ Respond with JSON:
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${sender}`;
                 
+                // Format bot messages professionally
+                const formattedMessage = sender === 'bot' ? this.formatBotMessage(message) : message;
+                
                 messageDiv.innerHTML = `
                     <div class="message-content">
-                        ${message}
+                        ${formattedMessage}
                     </div>
                 `;
                 
                 chatMessages.appendChild(messageDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            formatBotMessage(message) {
+                return message
+                    // Convert numbered lists to HTML
+                    .replace(/(\d+\.\s\*\*[^*]+\*\*:)/g, '<div class="scam-item"><strong>$1</strong>')
+                    .replace(/(\d+\.\s)([^:]+:)/g, '<div class="scam-item"><strong>$1$2</strong>')
+                    // Convert bold text
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    // Handle paragraphs and line breaks
+                    .replace(/\n\n/g, '</div><div class="message-section">')
+                    .replace(/\n/g, '<br>')
+                    // Wrap in sections
+                    .replace(/^/, '<div class="message-section">')
+                    .replace(/$/, '</div>')
+                    // Clean up list items
+                    .replace(/<div class="scam-item"><strong>([^<]+)<\/strong>([^<]*?)(?=<div class="scam-item">|<\/div>|$)/g, 
+                            '<div class="scam-item"><strong>$1</strong>$2</div>');
             }
 
             showWelcomeMessage() {
