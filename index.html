@@ -457,7 +457,7 @@
         <div id="advancedResults" style="display: none;">
             <div class="collapsible-card">
                 <div class="collapsible-header" data-target="fingerprintAnalysis">
-                    <span><i data-feather="shield-check" class="me-2"></i>Scam DNA Fingerprinting</span>
+                    <span><i data-feather="shield" class="me-2"></i>Scam DNA Fingerprinting</span>
                     <i data-feather="chevron-down"></i>
                 </div>
                 <div id="fingerprintAnalysis" class="collapsible-content">
@@ -522,17 +522,11 @@
     
     <!-- Environment Configuration for Vercel -->
     <script>
-        // Vercel Environment Configuration
+        // Clean Vercel Environment Configuration - No import.meta usage
         window.VERCEL_ENV = {
             OPENAI_API_KEY: '',
             VITE_OPENAI_API_KEY: ''
         };
-        
-        // Try to get from process.env (Node.js) or fallback to window globals
-        if (typeof process !== 'undefined' && process.env) {
-            window.VERCEL_ENV.OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || '';
-            window.VERCEL_ENV.VITE_OPENAI_API_KEY = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '';
-        }
         
         console.log('PaySavvy Pro - Vercel Deployment Ready');
     </script>
