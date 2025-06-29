@@ -923,24 +923,7 @@
                 this.setLoadingState(true);
 
                 try {
-                    // Check for verified brand first
-                    const brandMatch = this.detectVerifiedBrand(url);
-                    
-                    if (brandMatch.match) {
-                        this.showToast(`✅ Verified brand detected: ${brandMatch.brand} (${brandMatch.region})`, '', 'success');
-                        this.displayBrandDetails(brandMatch);
-                    } else if (brandMatch.scamMimic) {
-                        this.showToast(`🚨 This link matches a known scam mimic of ${brandMatch.brand}`, '', 'error');
-                        this.displayBrandDetails(brandMatch);
-                    } else {
-                        this.showToast('⚠️ Unverified domain — use caution', '', 'warning');
-                        this.displayBrandDetails({ match: false });
-                    }
-                    
                     const results = await this.analyzeUrl(url);
-                    
-                    // Add brand analysis to results
-                    results.brandAnalysis = brandMatch;
                     
                     this.displayResults(results);
                     this.saveScanResult(results);
@@ -1142,6 +1125,118 @@
                 }
 
                 return { score: 0, flags: ['Domain not in whitelist'], status: 'unknown' };
+            }
+
+            // Enhanced Brand Verification and Scam Mimic Detection
+            performBrandAnalysis(url) {
+                const domain = this.extractDomain(url);
+                const urlLower = url.toLowerCase();
+                
+                // Check verified brands from comprehensive ASEAN dataset
+                const verifiedBrand = this.detectVerifiedBrand(url);
+                if (verifiedBrand) {
+                    return {
+                        score: -5,
+                        flags: [`✓ Verified ${verifiedBrand.region} financial institution: ${verifiedBrand.brand}`],
+                        status: 'verified',
+                        brandData: verifiedBrand,
+                        confidence: 0.95
+                    };
+                }
+
+                // Check for scam mimics (fraudulent sites impersonating verified brands)
+                const scamMimic = this.detectScamMimic(url);
+                if (scamMimic) {
+                    return {
+                        score: 8,
+                        flags: [`⚠️ SCAM MIMIC: Impersonating ${scamMimic.targetBrand}`],
+                        status: 'scam_mimic',
+                        scamMimic: true,
+                        targetBrand: scamMimic.targetBrand,
+                        mimicPattern: scamMimic.pattern,
+                        confidence: 0.9
+                    };
+                }
+
+                // Fallback to legacy brand checking
+                return this.checkBrandWhitelist(url);
+            }
+
+            // Detect verified brands from comprehensive ASEAN dataset
+            detectVerifiedBrand(url) {
+                if (!this.verifiedBrands) {
+                    // Load verified brands dataset synchronously for immediate detection
+                    return null;
+                }
+
+                const domain = this.extractDomain(url).toLowerCase();
+                const cleanDomain = domain.replace(/^www\./, ''); // Remove www subdomain
+
+                // Search through all ASEAN countries and their financial institutions
+                for (const [country, institutions] of Object.entries(this.verifiedBrands)) {
+                    if (country === 'metadata') continue;
+
+                    for (const [brandName, brandData] of Object.entries(institutions)) {
+                        // Check if URL domain matches any of the verified domains
+                        const matchesDomain = brandData.domains?.some(verifiedDomain => {
+                            const cleanVerifiedDomain = verifiedDomain.toLowerCase().replace(/^www\./, '');
+                            return cleanDomain === cleanVerifiedDomain || 
+                                   cleanDomain.endsWith('.' + cleanVerifiedDomain) ||
+                                   cleanVerifiedDomain.endsWith('.' + cleanDomain);
+                        });
+
+                        if (matchesDomain) {
+                            return {
+                                brand: brandName,
+                                institution: brandData.institution,
+                                logo: brandData.logo,
+                                services: brandData.services,
+                                region: brandData.region,
+                                regulatoryLicense: brandData.regulatoryLicense,
+                                establishedYear: brandData.establishedYear,
+                                headquarters: brandData.headquarters,
+                                aseanPresence: brandData.aseanPresence,
+                                countryCode: brandData.countryCode
+                            };
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            // Detect scam mimics (fraudulent sites impersonating verified brands)
+            detectScamMimic(url) {
+                if (!this.verifiedBrands) return null;
+
+                const domain = this.extractDomain(url).toLowerCase();
+                const cleanDomain = domain.replace(/^www\./, '');
+
+                // Check against known scam mimic patterns
+                for (const [country, institutions] of Object.entries(this.verifiedBrands)) {
+                    if (country === 'metadata') continue;
+
+                    for (const [brandName, brandData] of Object.entries(institutions)) {
+                        if (brandData.commonScamMimics) {
+                            const isScamMimic = brandData.commonScamMimics.some(scamPattern => {
+                                const cleanScamPattern = scamPattern.toLowerCase().replace(/^www\./, '');
+                                return cleanDomain === cleanScamPattern ||
+                                       cleanDomain.includes(cleanScamPattern) ||
+                                       this.calculateSimilarity(cleanDomain, cleanScamPattern) > 0.8;
+                            });
+
+                            if (isScamMimic) {
+                                return {
+                                    targetBrand: brandName,
+                                    legitimateDomains: brandData.domains,
+                                    pattern: cleanDomain
+                                };
+                            }
+                        }
+                    }
+                }
+
+                return null;
             }
 
             // Layer 3: Redirect Chain Analysis
@@ -1887,7 +1982,12 @@ Respond with JSON:
                                 </div>
                                 <div class="col-md-3">
                                     <small><strong>Layer 2:</strong> Brand Check</small><br>
-                                    <span class="badge bg-${results.brandAnalysis?.score > 0 ? 'warning' : 'success'}">${results.brandAnalysis?.status || 'unknown'}</span>
+                                    <span class="badge bg-${results.brandAnalysis?.status === 'verified' ? 'success' : results.brandAnalysis?.status === 'scam_mimic' ? 'danger' : 'secondary'}">${
+                                        results.brandAnalysis?.status === 'verified' ? 'Verified' : 
+                                        results.brandAnalysis?.status === 'scam_mimic' ? 'Scam Mimic' : 
+                                        results.brandAnalysis?.status === 'whitelisted' ? 'Trusted' : 
+                                        'Unknown'
+                                    }</span>
                                 </div>
                                 <div class="col-md-3">
                                     <small><strong>Layer 3:</strong> Redirects</small><br>
