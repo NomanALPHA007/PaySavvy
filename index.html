@@ -2951,14 +2951,14 @@ Respond with JSON:
                                         console.log('Both attempts scan result:', qrResult ? 'SUCCESS' : 'FAILED');
                                     }
                                     
-                                    // Attempt 4: Scale down image for better detection if still no result
+                                    // Attempt 4: Scale down large images for better detection
                                     if (!qrResult && (canvas.width > 800 || canvas.height > 800)) {
                                         console.log('Attempting scaled down detection...');
                                         const scaledCanvas = document.createElement('canvas');
                                         const scaledContext = scaledCanvas.getContext('2d');
                                         const scale = Math.min(800 / canvas.width, 800 / canvas.height);
-                                        scaledCanvas.width = canvas.width * scale;
-                                        scaledCanvas.height = canvas.height * scale;
+                                        scaledCanvas.width = Math.floor(canvas.width * scale);
+                                        scaledCanvas.height = Math.floor(canvas.height * scale);
                                         
                                         scaledContext.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
                                         const scaledImageData = scaledContext.getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
@@ -2967,6 +2967,105 @@ Respond with JSON:
                                             inversionAttempts: "attemptBoth"
                                         });
                                         console.log('Scaled scan result:', qrResult ? 'SUCCESS' : 'FAILED');
+                                    }
+                                    
+                                    // Attempt 5: Multiple scaling factors for very large images
+                                    if (!qrResult && (canvas.width > 1200 || canvas.height > 1200)) {
+                                        const scales = [0.5, 0.3, 0.7];
+                                        console.log('Attempting multiple scale factors for large image...');
+                                        
+                                        for (const scale of scales) {
+                                            const scaledCanvas = document.createElement('canvas');
+                                            const scaledContext = scaledCanvas.getContext('2d');
+                                            scaledCanvas.width = Math.floor(canvas.width * scale);
+                                            scaledCanvas.height = Math.floor(canvas.height * scale);
+                                            
+                                            scaledContext.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+                                            const scaledImageData = scaledContext.getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
+                                            
+                                            qrResult = jsQR(scaledImageData.data, scaledCanvas.width, scaledCanvas.height, {
+                                                inversionAttempts: "attemptBoth"
+                                            });
+                                            
+                                            console.log(`Scale ${scale} scan result:`, qrResult ? 'SUCCESS' : 'FAILED');
+                                            if (qrResult) break;
+                                        }
+                                    }
+                                    
+                                    // Attempt 6: Smart cropping for large images with QR regions
+                                    if (!qrResult && (canvas.width > 1000 || canvas.height > 1000)) {
+                                        console.log('Attempting smart cropping for large image...');
+                                        const cropSizes = [
+                                            { w: 600, h: 600 },  // Standard crop
+                                            { w: 800, h: 600 },  // Wide crop
+                                            { w: 400, h: 400 },  // Small crop
+                                        ];
+                                        
+                                        for (const cropSize of cropSizes) {
+                                            // Try center crop
+                                            const startX = Math.max(0, (canvas.width - cropSize.w) / 2);
+                                            const startY = Math.max(0, (canvas.height - cropSize.h) / 2);
+                                            
+                                            const cropCanvas = document.createElement('canvas');
+                                            const cropContext = cropCanvas.getContext('2d');
+                                            cropCanvas.width = cropSize.w;
+                                            cropCanvas.height = cropSize.h;
+                                            
+                                            cropContext.drawImage(canvas, startX, startY, cropSize.w, cropSize.h, 0, 0, cropSize.w, cropSize.h);
+                                            const cropImageData = cropContext.getImageData(0, 0, cropSize.w, cropSize.h);
+                                            
+                                            qrResult = jsQR(cropImageData.data, cropSize.w, cropSize.h, {
+                                                inversionAttempts: "attemptBoth"
+                                            });
+                                            
+                                            console.log(`Center crop ${cropSize.w}x${cropSize.h} result:`, qrResult ? 'SUCCESS' : 'FAILED');
+                                            if (qrResult) break;
+                                            
+                                            // Try top crop (common for phone screenshots)
+                                            cropContext.clearRect(0, 0, cropSize.w, cropSize.h);
+                                            cropContext.drawImage(canvas, 0, 0, cropSize.w, cropSize.h, 0, 0, cropSize.w, cropSize.h);
+                                            const topCropData = cropContext.getImageData(0, 0, cropSize.w, cropSize.h);
+                                            
+                                            qrResult = jsQR(topCropData.data, cropSize.w, cropSize.h, {
+                                                inversionAttempts: "attemptBoth"
+                                            });
+                                            
+                                            console.log(`Top crop ${cropSize.w}x${cropSize.h} result:`, qrResult ? 'SUCCESS' : 'FAILED');
+                                            if (qrResult) break;
+                                        }
+                                    }
+                                    
+                                    // Attempt 7: Contrast enhancement for difficult images
+                                    if (!qrResult) {
+                                        console.log('Attempting contrast enhancement...');
+                                        const enhancedCanvas = document.createElement('canvas');
+                                        const enhancedContext = enhancedCanvas.getContext('2d');
+                                        const workingSize = Math.min(500, Math.min(canvas.width, canvas.height));
+                                        const scale = workingSize / Math.max(canvas.width, canvas.height);
+                                        
+                                        enhancedCanvas.width = Math.floor(canvas.width * scale);
+                                        enhancedCanvas.height = Math.floor(canvas.height * scale);
+                                        
+                                        enhancedContext.drawImage(canvas, 0, 0, enhancedCanvas.width, enhancedCanvas.height);
+                                        
+                                        // Apply contrast enhancement
+                                        const enhancedImageData = enhancedContext.getImageData(0, 0, enhancedCanvas.width, enhancedCanvas.height);
+                                        const data = enhancedImageData.data;
+                                        
+                                        for (let i = 0; i < data.length; i += 4) {
+                                            // Convert to grayscale and enhance contrast
+                                            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                                            const enhanced = gray > 128 ? 255 : 0;
+                                            data[i] = data[i + 1] = data[i + 2] = enhanced;
+                                        }
+                                        
+                                        enhancedContext.putImageData(enhancedImageData, 0, 0);
+                                        const finalImageData = enhancedContext.getImageData(0, 0, enhancedCanvas.width, enhancedCanvas.height);
+                                        
+                                        qrResult = jsQR(finalImageData.data, enhancedCanvas.width, enhancedCanvas.height, {
+                                            inversionAttempts: "attemptBoth"
+                                        });
+                                        console.log('Contrast enhanced scan result:', qrResult ? 'SUCCESS' : 'FAILED');
                                     }
                                     
                                     if (qrResult && qrResult.data && qrResult.data.trim()) {
@@ -2996,6 +3095,16 @@ Respond with JSON:
                                 console.log('❌ No QR code detected in uploaded image after all attempts');
                                 this.showToast('QR Not Detected', 'Could not detect QR code. Please try manual input or upload a clearer image.', 'warning');
                                 this.showEnhancedManualQRInput(canvas.width, canvas.height);
+                        
+                        // Show detection summary in console for debugging
+                        console.log('QR Detection Summary:');
+                        console.log('- Image size:', canvas.width + 'x' + canvas.height);
+                        console.log('- Normal scan: FAILED');
+                        console.log('- Inverted scan: FAILED'); 
+                        console.log('- Both attempts: FAILED');
+                        console.log('- Scaled detection: FAILED');
+                        console.log('- Multiple scales: FAILED');
+                        console.log('- Contrast enhancement: FAILED');
                                 
                             } catch (error) {
                                 console.error('QR processing error:', error);
