@@ -7277,19 +7277,24 @@ Respond with JSON:
             }
 
             // Enhanced QR results display for URL scanning
-            displayQRScanResults(rawAnalysis, qrContent) {
+            displayQRScanResults(result, qrContent) {
                 try {
                     // FORCE sanitization at entry point to guarantee shape
-                    const analysis = sanitizeAnalysisObject(rawAnalysis);
+                    result = sanitizeAnalysisObject(result);
                     
                     // Detailed structure logging for debugging
                     console.log("🔍 displayQRScanResults received:", {
-                        rawType: typeof rawAnalysis,
-                        rawDetectionDetails: rawAnalysis?.detectionDetails,
-                        sanitizedType: typeof analysis,
-                        sanitizedDetectionDetailsType: Array.isArray(analysis.detectionDetails) ? 'array' : typeof analysis.detectionDetails,
-                        sanitizedDetectionDetailsLength: analysis.detectionDetails?.length || 0
+                        sanitizedType: typeof result,
+                        sanitizedDetectionDetailsType: Array.isArray(result.detectionDetails) ? 'array' : typeof result.detectionDetails,
+                        sanitizedDetectionDetailsLength: result.detectionDetails?.length || 0
                     });
+
+                    // Defensive check after sanitization
+                    if (!Array.isArray(result.detectionDetails)) {
+                        console.error("❌ detectionDetails still not array after sanitization:", result);
+                        this.showToast('Analysis Error', 'Unable to display analysis: data incomplete', 'error');
+                        return;
+                    }
 
                     console.trace("📍 displayQRScanResults called from:");
                     
@@ -7298,28 +7303,25 @@ Respond with JSON:
                         console.error('QR results div not found');
                         return;
                     }
-
-                    // Analysis object is force-sanitized, proceed with rendering
-                    const safeAnalysis = analysis;
                     
                     // Final safety confirmation before rendering
                     console.log('✅ Validated analysis structure before rendering:', {
-                        trustLevel: safeAnalysis.trustLevel,
-                        riskScore: safeAnalysis.riskScore,
-                        detectionDetailsLength: safeAnalysis.detectionDetails.length,
-                        detectionDetailsType: Array.isArray(safeAnalysis.detectionDetails) ? 'array' : typeof safeAnalysis.detectionDetails,
-                        verifiedBrand: !!safeAnalysis.verifiedBrand
+                        trustLevel: result.trustLevel,
+                        riskScore: result.riskScore,
+                        detectionDetailsLength: result.detectionDetails.length,
+                        detectionDetailsType: Array.isArray(result.detectionDetails) ? 'array' : typeof result.detectionDetails,
+                        verifiedBrand: !!result.verifiedBrand
                     });
 
-                    const riskClass = this.getRiskClass(safeAnalysis.trustLevel);
-                    const riskIcon = this.getRiskIcon(safeAnalysis.trustLevel);
+                    const riskClass = this.getRiskClass(result.trustLevel);
+                    const riskIcon = this.getRiskIcon(result.trustLevel);
                 
                     resultsDiv.innerHTML = `
                         <div class="alert alert-${riskClass}">
                             <div class="d-flex align-items-center mb-2">
                                 <i data-feather="${riskIcon}" class="me-2"></i>
-                                <strong>QR URL Analysis: ${safeAnalysis.trustLevel.toUpperCase()}</strong>
-                                <span class="badge bg-secondary ms-auto">Score: ${safeAnalysis.riskScore}</span>
+                                <strong>QR URL Analysis: ${result.trustLevel.toUpperCase()}</strong>
+                                <span class="badge bg-secondary ms-auto">Score: ${result.riskScore}</span>
                             </div>
                             
                             <div class="mb-3">
@@ -7327,42 +7329,42 @@ Respond with JSON:
                                 <code class="small">${qrContent || 'Unknown URL'}</code>
                             </div>
                             
-                            <p class="mb-2">${safeAnalysis.explanation}</p>
+                            <p class="mb-2">${result.explanation}</p>
                             
-                            ${safeAnalysis.verifiedBrand ? `
+                            ${result.verifiedBrand ? `
                                 <div class="alert alert-success mb-3">
                                     <div class="d-flex align-items-center">
                                         <i data-feather="shield-check" class="me-2"></i>
-                                        <strong>✓ VERIFIED: ${safeAnalysis.verifiedBrand.brand || 'Verified Institution'}</strong>
+                                        <strong>✓ VERIFIED: ${result.verifiedBrand.brand || 'Verified Institution'}</strong>
                                     </div>
-                                    <small>${safeAnalysis.verifiedBrand.institution || 'Verified financial institution'}</small>
+                                    <small>${result.verifiedBrand.institution || 'Verified financial institution'}</small>
                                 </div>
                             ` : ''}
                             
-                            ${safeAnalysis.isScamMimic ? `
+                            ${result.isScamMimic ? `
                                 <div class="alert alert-danger mb-3">
                                     <div class="d-flex align-items-center">
                                         <i data-feather="alert-triangle" class="me-2"></i>
                                         <strong>⚠️ SCAM MIMIC DETECTED</strong>
                                     </div>
-                                    <small>This URL appears to impersonate ${safeAnalysis.targetBrand || 'a legitimate institution'}</small>
+                                    <small>This URL appears to impersonate ${result.targetBrand || 'a legitimate institution'}</small>
                                 </div>
                             ` : ''}
                             
-                            ${safeAnalysis.detectionDetails.length > 0 ? `
+                            ${result.detectionDetails.length > 0 ? `
                                 <div class="mt-3">
                                     <strong>Detection Details:</strong>
                                     <ul class="small mb-0">
-                                        ${safeAnalysis.detectionDetails.slice(0, 5).map(detail => `<li>${detail}</li>`).join('')}
+                                        ${result.detectionDetails.slice(0, 5).map(detail => `<li>${detail}</li>`).join('')}
                                     </ul>
                                 </div>
                             ` : ''}
                             
                             <div class="mt-3 text-center">
                                 <strong>Recommendation:</strong>
-                                ${safeAnalysis.trustLevel === 'SAFE' ? 
+                                ${result.trustLevel === 'SAFE' ? 
                                     'This QR code appears to be legitimate and safe to use.' :
-                                    safeAnalysis.trustLevel === 'SUSPICIOUS' ?
+                                    result.trustLevel === 'SUSPICIOUS' ?
                                     'Exercise caution. Verify the source before proceeding.' :
                                     'HIGH RISK: Do not use this QR code. It shows multiple scam indicators.'
                                 }
@@ -7396,7 +7398,7 @@ Respond with JSON:
                 
                 // Store last result to prevent disappearing
                 this.lastQRAnalysis = {
-                    analysis: safeAnalysis,
+                    analysis: result,
                     content: qrContent,
                     timestamp: Date.now()
                 };
