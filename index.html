@@ -789,9 +789,37 @@
                 this.setupEventListeners();
                 this.initializeQRScanner();
                 this.displayScanHistory();
+                this.cleanupIncorrectFingerprints();
                 feather.replace();
                 this.showWelcomeMessage();
                 console.log('PaySavvy Pro initialized successfully');
+            }
+
+            // Clean up any incorrect fingerprints for verified brands
+            cleanupIncorrectFingerprints() {
+                let cleaned = 0;
+                const fingerprintsToRemove = [];
+
+                // Check all stored fingerprints against verified brands
+                for (const fingerprint in this.scamFingerprints) {
+                    const scamData = this.scamFingerprints[fingerprint];
+                    if (scamData.url) {
+                        const brandVerification = this.detectVerifiedBrand(scamData.url);
+                        if (brandVerification.match) {
+                            console.log(`Cleaning incorrect fingerprint for verified brand: ${brandVerification.brand}`);
+                            fingerprintsToRemove.push(fingerprint);
+                            cleaned++;
+                        }
+                    }
+                }
+
+                // Remove incorrect fingerprints
+                fingerprintsToRemove.forEach(fp => delete this.scamFingerprints[fp]);
+                
+                if (cleaned > 0) {
+                    this.saveScamFingerprints();
+                    console.log(`Cleaned ${cleaned} incorrect scam fingerprints for verified brands`);
+                }
             }
 
             initializeQRScanner() {
@@ -1254,11 +1282,32 @@
                 }
             }
 
-            // SHA-256 Scam DNA Fingerprinting
+            // SHA-256 Scam DNA Fingerprinting with Brand Verification Override
             async checkScamFingerprint(url) {
                 const fingerprint = await this.generateFingerprint(url);
                 const flags = [];
                 let score = 0;
+
+                // CRITICAL: Check verified brands FIRST to prevent false positives
+                const brandVerification = this.detectVerifiedBrand(url);
+                if (brandVerification.match) {
+                    // This is a verified legitimate brand - remove any incorrect fingerprint
+                    if (this.scamFingerprints[fingerprint]) {
+                        console.log(`Removing incorrect scam fingerprint for verified brand: ${brandVerification.brand}`);
+                        delete this.scamFingerprints[fingerprint];
+                        this.saveScamFingerprints();
+                    }
+                    
+                    return {
+                        score: 0,
+                        flags: [`Verified ${brandVerification.region} brand: ${brandVerification.brand}`],
+                        fingerprint,
+                        isKnownScam: false,
+                        isVerifiedBrand: true,
+                        brandData: brandVerification,
+                        confidence: 0.95
+                    };
+                }
 
                 // Check if this URL fingerprint matches known scams
                 if (this.scamFingerprints[fingerprint]) {
@@ -1324,14 +1373,26 @@
                     confidenceCount++;
                 }
 
-                // SHA-256 Fingerprint Analysis (highest priority)
+                // SHA-256 Fingerprint Analysis with Brand Verification Override
                 if (results.fingerprintAnalysis) {
+                    // CRITICAL: Verified brands override scam fingerprinting
+                    if (results.fingerprintAnalysis.isVerifiedBrand) {
+                        return {
+                            score: 0,
+                            level: 'safe',
+                            explanation: `SAFE: Verified ${results.fingerprintAnalysis.brandData.region} financial institution - ${results.fingerprintAnalysis.brandData.institution}`,
+                            confidence: 0.95,
+                            flags: [`✓ Government-authorized: ${results.fingerprintAnalysis.brandData.brand}`],
+                            isVerifiedBrand: true
+                        };
+                    }
+
                     totalScore += results.fingerprintAnalysis.score;
                     allFlags.push(...results.fingerprintAnalysis.flags);
                     totalConfidence += results.fingerprintAnalysis.confidence;
                     confidenceCount++;
 
-                    // If known scam fingerprint, immediately classify as dangerous
+                    // If known scam fingerprint (and not verified brand), classify as dangerous
                     if (results.fingerprintAnalysis.isKnownScam) {
                         return {
                             score: totalScore,
