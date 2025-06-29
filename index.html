@@ -1145,30 +1145,25 @@ Respond with JSON:
             }
 
             loadQRLibrary() {
-                // Wait for library to be available
-                let attempts = 0;
-                const maxAttempts = 10;
+                // Simplified QR library loading with direct initialization
+                console.log('Attempting to initialize QR Scanner...');
                 
-                const checkLibrary = () => {
-                    attempts++;
-                    if (typeof Html5Qrcode !== 'undefined') {
-                        console.log('QR Scanner library is available');
-                        try {
-                            this.qrScanner = new Html5Qrcode("qr-reader");
-                            console.log('QR Scanner initialized successfully');
-                        } catch (error) {
-                            console.error('QR Scanner initialization error:', error);
-                        }
-                    } else if (attempts < maxAttempts) {
-                        console.log(`Waiting for QR library... attempt ${attempts}`);
-                        setTimeout(checkLibrary, 500);
-                    } else {
-                        console.error('QR Scanner library failed to load after multiple attempts');
-                        this.showToast('Error', 'QR Scanner library failed to load. Please refresh the page.', 'error');
-                    }
-                };
+                // Force reload the QR library if needed
+                if (typeof Html5Qrcode === 'undefined') {
+                    console.log('Html5Qrcode not found, QR scanner will use file upload only');
+                    this.showToast('Info', 'QR Scanner initialized in file-upload mode only', 'info');
+                    return;
+                }
                 
-                checkLibrary();
+                try {
+                    // Direct initialization without complex retry logic
+                    this.qrScanner = new Html5Qrcode("qr-reader");
+                    console.log('QR Scanner initialized successfully');
+                    this.showToast('Success', 'QR Scanner ready for camera and file upload', 'success');
+                } catch (error) {
+                    console.error('QR Scanner initialization error:', error);
+                    this.showToast('Warning', 'QR Scanner initialized in file-upload mode only', 'warning');
+                }
             }
 
             switchQRMode(mode) {

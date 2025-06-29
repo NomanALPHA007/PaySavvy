@@ -44,14 +44,14 @@ app.use((req, res, next) => {
 
 // Root endpoint - serve production app
 app.get('/', (req, res) => {
-  // Aggressive cache-busting headers and CSP
+  // Cache-busting headers with permissive CSP for QR scanner
   res.set({
     'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
     'Pragma': 'no-cache',
     'Expires': '0',
     'Last-Modified': new Date().toUTCString(),
     'ETag': `"${Date.now()}"`,
-
+    'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; media-src * data: blob:; connect-src *;",
     'Vary': '*'
   });
   
