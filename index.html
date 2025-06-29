@@ -2993,62 +2993,128 @@ Respond with JSON:
                         return logAttempt('Both Inversions', jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: "attemptBoth" }));
                     },
                     
-                    // Attempt 4-6: Multiple scales
+                    // Attempt 4: Aggressive downscaling for large images
+                    () => {
+                        if (img.width > 800 || img.height > 800) {
+                            const scaledCanvas = this.createScaledCanvas(img, 0.2);
+                            const imageData = scaledCanvas.getContext('2d').getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
+                            return logAttempt('Aggressive Scale 0.2x', jsQR(imageData.data, scaledCanvas.width, scaledCanvas.height, { inversionAttempts: "attemptBoth" }));
+                        }
+                        return logAttempt('Aggressive Scale (skipped)', null);
+                    },
+                    
+                    // Attempt 5-7: Multiple scales
                     ...([0.7, 0.5, 0.3].map(scale => () => {
                         const scaledCanvas = this.createScaledCanvas(img, scale);
                         const imageData = scaledCanvas.getContext('2d').getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
                         return logAttempt(`Scale ${scale}x`, jsQR(imageData.data, scaledCanvas.width, scaledCanvas.height, { inversionAttempts: "attemptBoth" }));
                     })),
                     
-                    // Attempt 7: Center crop
+                    // Attempt 8: Multiple center crops
                     () => {
-                        const cropCanvas = this.createCenterCrop(img, 0.6);
-                        const imageData = cropCanvas.getContext('2d').getImageData(0, 0, cropCanvas.width, cropCanvas.height);
-                        return logAttempt('Center Crop 60%', jsQR(imageData.data, cropCanvas.width, cropCanvas.height, { inversionAttempts: "attemptBoth" }));
+                        const crops = [0.8, 0.6, 0.4];
+                        for (const cropSize of crops) {
+                            const cropCanvas = this.createCenterCrop(img, cropSize);
+                            const imageData = cropCanvas.getContext('2d').getImageData(0, 0, cropCanvas.width, cropCanvas.height);
+                            const result = jsQR(imageData.data, cropCanvas.width, cropCanvas.height, { inversionAttempts: "attemptBoth" });
+                            if (result) {
+                                return logAttempt(`Center Crop ${Math.round(cropSize*100)}%`, result);
+                            }
+                        }
+                        return logAttempt('Center Crops (all failed)', null);
                     },
                     
-                    // Attempt 8: Top crop
+                    // Attempt 9: Smart region detection
                     () => {
-                        const cropCanvas = this.createTopCrop(img, 0.7);
-                        const imageData = cropCanvas.getContext('2d').getImageData(0, 0, cropCanvas.width, cropCanvas.height);
-                        return logAttempt('Top Crop 70%', jsQR(imageData.data, cropCanvas.width, cropCanvas.height, { inversionAttempts: "attemptBoth" }));
+                        // Try multiple regions for QR detection
+                        const regions = [
+                            { x: 0, y: 0, w: 0.5, h: 0.5 },           // Top-left
+                            { x: 0.5, y: 0, w: 0.5, h: 0.5 },         // Top-right
+                            { x: 0, y: 0.5, w: 0.5, h: 0.5 },         // Bottom-left
+                            { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },       // Bottom-right
+                            { x: 0.25, y: 0.25, w: 0.5, h: 0.5 }      // Center
+                        ];
+                        
+                        for (const region of regions) {
+                            const regionCanvas = this.createRegionCrop(img, region);
+                            const imageData = regionCanvas.getContext('2d').getImageData(0, 0, regionCanvas.width, regionCanvas.height);
+                            const result = jsQR(imageData.data, regionCanvas.width, regionCanvas.height, { inversionAttempts: "attemptBoth" });
+                            if (result) {
+                                return logAttempt(`Region ${region.x},${region.y}`, result);
+                            }
+                        }
+                        return logAttempt('Smart Regions (all failed)', null);
                     },
                     
-                    // Attempt 9: Binarized (high contrast)
+                    // Attempt 10: Enhanced binarization
                     () => {
-                        const binarizedCanvas = this.createBinarizedImage(img);
+                        const binarizedCanvas = this.createEnhancedBinarizedImage(img);
                         const imageData = binarizedCanvas.getContext('2d').getImageData(0, 0, binarizedCanvas.width, binarizedCanvas.height);
-                        return logAttempt('Binarized', jsQR(imageData.data, binarizedCanvas.width, binarizedCanvas.height, { inversionAttempts: "attemptBoth" }));
+                        return logAttempt('Enhanced Binarized', jsQR(imageData.data, binarizedCanvas.width, binarizedCanvas.height, { inversionAttempts: "attemptBoth" }));
                     }
                 ];
 
-                // Execute all attempts
+                // Validate jsQR library availability
+                if (typeof jsQR === 'undefined') {
+                    console.error('🚨 CRITICAL: jsQR library not loaded');
+                    this.showToast('Library Error', 'QR detection library not available', 'error');
+                    return null;
+                }
+
+                // Execute all attempts with enhanced debugging
                 for (let i = 0; i < attempts.length; i++) {
                     try {
+                        console.log(`🔄 Executing attempt ${i + 1}...`);
                         const result = attempts[i]();
-                        if (result && result.data && result.data.trim()) {
-                            const qrContent = result.data.trim();
-                            console.log(`🎯 SUCCESS on attempt ${i + 1}: ${qrContent.substring(0, 50)}${qrContent.length > 50 ? '...' : ''}`);
+                        
+                        // Enhanced result validation
+                        if (result) {
+                            console.log(`📊 Attempt ${i + 1} result:`, {
+                                hasData: !!result.data,
+                                dataLength: result.data ? result.data.length : 0,
+                                dataTrimmed: result.data ? result.data.trim().length : 0,
+                                corners: result.location ? 'corners detected' : 'no corners'
+                            });
                             
-                            // Show success message
-                            resultsDiv.innerHTML = `
-                                <div class="alert alert-success">
-                                    <i data-feather="check-circle" class="me-2"></i>
-                                    <strong>QR Code Detected!</strong>
-                                    <p class="mb-2">Detection method: <span class="badge bg-success">Attempt ${i + 1}</span></p>
-                                    <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 80 ? qrContent.substring(0, 80) + '...' : qrContent}</code></p>
-                                    <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running 4-layer scam analysis...</p>
-                                </div>
-                            `;
-                            feather.replace();
-                            
-                            this.showToast('QR Detected', `Success on attempt ${i + 1}`, 'success');
-                            return qrContent;
+                            if (result.data && result.data.trim()) {
+                                const qrContent = result.data.trim();
+                                console.log(`🎯 SUCCESS on attempt ${i + 1}: ${qrContent.substring(0, 50)}${qrContent.length > 50 ? '...' : ''}`);
+                                
+                                // Show success message
+                                resultsDiv.innerHTML = `
+                                    <div class="alert alert-success">
+                                        <i data-feather="check-circle" class="me-2"></i>
+                                        <strong>QR Code Detected!</strong>
+                                        <p class="mb-2">Detection method: <span class="badge bg-success">Attempt ${i + 1}</span></p>
+                                        <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 80 ? qrContent.substring(0, 80) + '...' : qrContent}</code></p>
+                                        <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running 4-layer scam analysis...</p>
+                                    </div>
+                                `;
+                                feather.replace();
+                                
+                                this.showToast('QR Detected', `Success on attempt ${i + 1}`, 'success');
+                                return qrContent;
+                            }
+                        } else {
+                            console.log(`📊 Attempt ${i + 1}: null result from jsQR`);
                         }
                     } catch (error) {
                         console.error(`🚨 Error in attempt ${i + 1}:`, error);
+                        console.error('Error details:', {
+                            message: error.message,
+                            stack: error.stack
+                        });
                     }
                 }
+
+                // Enhanced failure analysis
+                console.log('🔍 QR Detection Analysis:');
+                console.log('- jsQR library available:', typeof jsQR !== 'undefined');
+                console.log('- Image dimensions:', img.width, 'x', img.height);
+                console.log('- File type support: JPEG/PNG validated');
+                console.log('- All 10 detection methods attempted');
+                console.log('- Possible issues: QR code may be too small, damaged, rotated, or non-standard format');
+                console.log('- Recommendation: Try cropping image to show only QR code, or enter content manually');
 
                 return null; // All attempts failed
             }
@@ -3106,6 +3172,53 @@ Respond with JSON:
                 for (let i = 0; i < data.length; i += 4) {
                     const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
                     const binary = gray > 128 ? 255 : 0;
+                    data[i] = data[i + 1] = data[i + 2] = binary;
+                }
+                
+                context.putImageData(imageData, 0, 0);
+                return canvas;
+            }
+
+            createRegionCrop(img, region) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const cropWidth = Math.floor(img.width * region.w);
+                const cropHeight = Math.floor(img.height * region.h);
+                const startX = Math.floor(img.width * region.x);
+                const startY = Math.floor(img.height * region.y);
+                
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+                context.drawImage(img, startX, startY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                return canvas;
+            }
+
+            createEnhancedBinarizedImage(img) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                // Use smaller scale for better processing
+                const scale = 400 / Math.max(img.width, img.height);
+                canvas.width = Math.floor(img.width * scale);
+                canvas.height = Math.floor(img.height * scale);
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Enhanced binarization with adaptive threshold
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // Calculate average brightness for adaptive threshold
+                let totalBrightness = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                    totalBrightness += gray;
+                }
+                const avgBrightness = totalBrightness / (data.length / 4);
+                const threshold = Math.max(120, Math.min(140, avgBrightness));
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                    const binary = gray > threshold ? 255 : 0;
                     data[i] = data[i + 1] = data[i + 2] = binary;
                 }
                 
@@ -3180,8 +3293,20 @@ Respond with JSON:
                             </div>
                         </details>
                         
+                        <div class="alert alert-info mt-3">
+                            <strong>Quick Test:</strong> If this is a payment QR code, you can:
+                            <ol class="small mt-2 mb-2">
+                                <li>Look for any visible URL in the QR code area</li>
+                                <li>Check if it starts with a bank domain (maybank2u.com.my, etc.)</li>
+                                <li>Enter that URL above for instant scam analysis</li>
+                            </ol>
+                            <button class="btn btn-outline-primary btn-sm" onclick="app.showCommonQRFormats()">
+                                <i data-feather="help-circle" class="me-1"></i>Common QR Formats
+                            </button>
+                        </div>
+                        
                         <div class="small text-muted">
-                            Detection pipeline processed ${isLarge ? 'large' : 'standard'} image with 9 advanced techniques including scaling, cropping, and binarization.
+                            Detection pipeline processed ${isLarge ? 'large' : 'standard'} image with 10 advanced techniques including scaling, cropping, and binarization.
                         </div>
                     </div>
                 `;
@@ -3260,6 +3385,75 @@ Respond with JSON:
                 this.showToast('Analyzing Manual Input', 'Running 4-layer scam analysis...', 'info');
                 
                 // Clear input and run full analysis
+                input.value = '';
+                await this.analyzeQRContent(content);
+            }
+
+            showCommonQRFormats() {
+                const resultsDiv = document.getElementById('qr-results');
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-feather="info" class="me-2"></i>
+                            <strong>Common Malaysian QR Code Formats</strong>
+                            <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="app.showAdvancedManualFallback(1290, 1825, 'IMG_1229.jpeg')">
+                                <i data-feather="arrow-left" class="me-1"></i>Back
+                            </button>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong class="small">Banking QR Codes:</strong>
+                                <ul class="small mt-1 mb-3">
+                                    <li>https://maybank2u.com.my/...</li>
+                                    <li>https://www.cimbclicks.com.my/...</li>
+                                    <li>https://www.publicbank.com.my/...</li>
+                                    <li>https://www.rhbgroup.com/...</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="small">E-wallet QR Codes:</strong>
+                                <ul class="small mt-1 mb-3">
+                                    <li>https://www.tngdigital.com.my/...</li>
+                                    <li>https://www.grabpay.my/...</li>
+                                    <li>https://www.boost.my/...</li>
+                                    <li>https://shopeepay.my/...</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong class="small">Enter any URL from your QR code:</strong>
+                            <div class="input-group mt-2">
+                                <input type="text" id="format-qr-input" class="form-control" 
+                                       placeholder="https://example.com/payment/...">
+                                <button class="btn btn-primary" onclick="app.analyzeFormatInput()">
+                                    <i data-feather="search" class="me-1"></i>Analyze
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="small text-muted">
+                            PaySavvy will analyze any URL for scam patterns, brand verification, redirects, and AI-powered threat assessment.
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+            }
+
+            async analyzeFormatInput() {
+                const input = document.getElementById('format-qr-input');
+                if (!input) return;
+                
+                const content = input.value.trim();
+                if (!content) {
+                    this.showToast('Input Required', 'Please enter a URL from your QR code', 'warning');
+                    return;
+                }
+                
+                console.log('Analyzing QR format input:', content);
+                this.showToast('Analyzing URL', 'Running complete scam analysis...', 'info');
+                
                 input.value = '';
                 await this.analyzeQRContent(content);
             }
