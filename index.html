@@ -2795,7 +2795,196 @@
                 }
             }
 
+            // Platform detection and optimization
+            detectPlatform() {
+                const userAgent = navigator.userAgent;
+                const platform = {
+                    isMobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent),
+                    isDesktop: !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent),
+                    isIOS: /iPad|iPhone|iPod/.test(userAgent),
+                    isAndroid: /Android/.test(userAgent),
+                    isSafari: /Safari/.test(userAgent) && !/Chrome/.test(userAgent),
+                    isChrome: /Chrome/.test(userAgent),
+                    isFirefox: /Firefox/.test(userAgent),
+                    touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+                    cameraSupport: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                    webRTCSupport: !!(window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection)
+                };
+                
+                console.log('Platform detected:', platform);
+                this.platform = platform;
+                
+                // Apply platform-specific optimizations
+                this.applyPlatformOptimizations();
+                
+                return platform;
+            }
+
+            // Apply platform-specific optimizations
+            applyPlatformOptimizations() {
+                const videoElement = document.getElementById('qr-reader');
+                const fileButton = document.getElementById('qr-file-input-button');
+                
+                if (this.platform.isMobile) {
+                    console.log('Applying mobile optimizations...');
+                    
+                    // Mobile camera optimizations
+                    if (videoElement) {
+                        videoElement.setAttribute('playsinline', 'true');
+                        videoElement.setAttribute('webkit-playsinline', 'true');
+                        videoElement.style.webkitTransform = 'translateZ(0)';
+                        videoElement.style.transform = 'translateZ(0)';
+                    }
+                    
+                    // Mobile file input optimizations
+                    if (fileButton) {
+                        fileButton.setAttribute('accept', 'image/*');
+                        fileButton.setAttribute('capture', 'environment');
+                    }
+                    
+                    // Mobile touch optimizations
+                    document.body.style.touchAction = 'manipulation';
+                    document.body.style.webkitTouchCallout = 'none';
+                    document.body.style.webkitUserSelect = 'none';
+                    
+                } else {
+                    console.log('Applying desktop optimizations...');
+                    
+                    // Desktop optimizations
+                    if (videoElement) {
+                        videoElement.style.cursor = 'crosshair';
+                    }
+                    
+                    // Desktop file input optimizations
+                    if (fileButton) {
+                        fileButton.setAttribute('accept', 'image/png,image/jpg,image/jpeg,image/gif,image/bmp,image/webp');
+                    }
+                }
+            }
+
+            // Comprehensive diagnostic test
+            async runDiagnostics() {
+                console.log('Running comprehensive platform diagnostics...');
+                const results = {
+                    platform: this.platform,
+                    camera: await this.testCameraAccess(),
+                    fileAPI: this.testFileAPI(),
+                    canvas: this.testCanvasAPI(),
+                    jsQR: this.testJsQRLibrary(),
+                    crypto: this.testCryptoAPI(),
+                    localStorage: this.testLocalStorage(),
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Diagnostic results:', results);
+                
+                // Show diagnostic summary to user
+                this.showDiagnosticSummary(results);
+                
+                return results;
+            }
+
+            // Test camera access capability
+            async testCameraAccess() {
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        return { supported: false, error: 'MediaDevices API not available' };
+                    }
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'environment' } 
+                    });
+                    
+                    // Stop the stream immediately after test
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    return { supported: true, tracks: stream.getTracks().length };
+                } catch (error) {
+                    return { supported: false, error: error.name, message: error.message };
+                }
+            }
+
+            // Test File API capability
+            testFileAPI() {
+                return {
+                    supported: !!(window.File && window.FileReader && window.FileList && window.Blob),
+                    createObjectURL: !!URL.createObjectURL,
+                    revokeObjectURL: !!URL.revokeObjectURL
+                };
+            }
+
+            // Test Canvas API capability
+            testCanvasAPI() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    return {
+                        supported: !!context,
+                        getImageData: !!context?.getImageData,
+                        putImageData: !!context?.putImageData,
+                        drawImage: !!context?.drawImage
+                    };
+                } catch (error) {
+                    return { supported: false, error: error.message };
+                }
+            }
+
+            // Test jsQR library availability
+            testJsQRLibrary() {
+                return {
+                    available: typeof jsQR !== 'undefined',
+                    version: typeof jsQR !== 'undefined' ? 'loaded' : 'not loaded'
+                };
+            }
+
+            // Test Crypto API capability
+            testCryptoAPI() {
+                return {
+                    supported: !!(crypto && crypto.subtle),
+                    digest: !!(crypto?.subtle?.digest),
+                    fallbackHash: true
+                };
+            }
+
+            // Test localStorage capability
+            testLocalStorage() {
+                try {
+                    const testKey = 'paysavvy_test';
+                    localStorage.setItem(testKey, 'test');
+                    localStorage.removeItem(testKey);
+                    return { supported: true };
+                } catch (error) {
+                    return { supported: false, error: error.message };
+                }
+            }
+
+            // Show diagnostic summary to user
+            showDiagnosticSummary(results) {
+                const issues = [];
+                const warnings = [];
+                
+                if (!results.camera.supported) issues.push('Camera access not available');
+                if (!results.fileAPI.supported) issues.push('File API not supported');
+                if (!results.canvas.supported) issues.push('Canvas API not supported');
+                if (!results.jsQR.available) issues.push('QR scanning library not loaded');
+                
+                if (!results.crypto.supported) warnings.push('Advanced fingerprinting unavailable');
+                if (!results.localStorage.supported) warnings.push('Local storage unavailable');
+                
+                if (issues.length === 0 && warnings.length === 0) {
+                    this.showToast('System Check', 'All systems operational', 'success');
+                } else {
+                    const message = issues.length > 0 
+                        ? `Issues detected: ${issues.join(', ')}` 
+                        : `Warnings: ${warnings.join(', ')}`;
+                    this.showToast('System Check', message, issues.length > 0 ? 'error' : 'warning');
+                }
+            }
+
             init() {
+                // Detect platform and apply optimizations
+                this.detectPlatform();
+                
                 // Ensure DOM is ready before setting up listeners
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', () => this.initializeComponents());
@@ -2815,6 +3004,40 @@
                 
                 // Debug QR button availability
                 this.debugQRButtons();
+                
+                // Auto-run diagnostics on startup for verification
+                setTimeout(() => {
+                    console.log('Running startup diagnostics...');
+                    this.runQuickDiagnostics();
+                }, 2000);
+            }
+
+            // Quick diagnostic check without user permission prompts
+            async runQuickDiagnostics() {
+                const results = {
+                    platform: this.platform,
+                    fileAPI: this.testFileAPI(),
+                    canvas: this.testCanvasAPI(),
+                    jsQR: this.testJsQRLibrary(),
+                    crypto: this.testCryptoAPI(),
+                    localStorage: this.testLocalStorage()
+                };
+                
+                console.log('Quick diagnostic results:', results);
+                
+                const criticalIssues = [];
+                if (!results.fileAPI.supported) criticalIssues.push('File API');
+                if (!results.canvas.supported) criticalIssues.push('Canvas API');
+                if (!results.jsQR.available) criticalIssues.push('QR Library');
+                
+                if (criticalIssues.length > 0) {
+                    console.error('Critical issues detected:', criticalIssues);
+                    this.showToast('System Warning', `Critical components unavailable: ${criticalIssues.join(', ')}`, 'error');
+                } else {
+                    console.log('All critical systems operational');
+                }
+                
+                return results;
             }
 
             debugQRButtons() {
