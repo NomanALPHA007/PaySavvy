@@ -1,0 +1,137 @@
+Debug This Like a PhD Using Replit DevTools
+🧠 Root Cause Summary
+From the logs:
+
+js
+Copy
+Edit
+at PaySavvyPro.displayQRScanResults ((index):7684:48)
+That tells us:
+
+At line 7684, you’re trying something like:
+
+js
+Copy
+Edit
+data.detectionDetails.map(...)
+But detectionDetails is undefined.
+
+🧪 Step-by-Step Debugging on Replit
+✅ Step 1: Locate the Error Line
+Search this in Replit:
+
+js
+Copy
+Edit
+function displayQRScanResults(result) {
+  ...
+  const details = result.detectionDetails.map(...); // <-- 💥
+}
+✅ Step 2: Add Defensive Guards (Before .map())
+Update that part of the code like this:
+
+js
+Copy
+Edit
+function displayQRScanResults(result) {
+  const detectionDetails = result?.detectionDetails;
+  
+  if (!Array.isArray(detectionDetails)) {
+    console.warn("❗ detectionDetails is undefined or not an array:", detectionDetails);
+    toast("⚠️ No detection details found for this QR. Scan may have incomplete analysis.");
+    return;
+  }
+
+  const detailHTML = detectionDetails.map(d => `
+    <li>${d.rule}: ${d.reason}</li>
+  `).join("");
+
+  document.getElementById("detectionSummary").innerHTML = `<ul>${detailHTML}</ul>`;
+}
+🔬 Step 3: Ensure detectionDetails Exists in All Pipelines
+Your QR pipeline must ensure that result.detectionDetails is always created, even if empty.
+
+Update Every Return Like This:
+js
+Copy
+Edit
+return {
+  url: scannedUrl,
+  riskLevel: "Safe",
+  detectionDetails: [], // Ensure this exists
+  ...
+};
+Even if the analysis failed or skipped, initialize detectionDetails as an empty array.
+
+🧩 Step 4: Live Replit Debug Trace
+In analyzeQRContent or analyzeURLQR functions:
+js
+Copy
+Edit
+console.log("🔍 Final QR Result Object", JSON.stringify(result, null, 2));
+Inspect in browser dev tools (Ctrl+Shift+I → Console):
+
+json
+Copy
+Edit
+{
+  "url": "https://maybank2u.com.my/...",
+  "riskLevel": "Safe",
+  "detectionDetails": undefined
+}
+→ This confirms the structure that led to the .map() failure.
+
+🧠 Step 5: Add a Unified Result Formatter
+Before calling displayQRScanResults(), sanitize your result:
+
+js
+Copy
+Edit
+const safeResult = {
+  ...result,
+  detectionDetails: Array.isArray(result.detectionDetails) ? result.detectionDetails : []
+};
+displayQRScanResults(safeResult);
+🛠 Step 6: Replit Console Breakpoint Debug (Optional)
+You can simulate this in Replit:
+
+js
+Copy
+Edit
+const testResult = {
+  url: "https://maybank2u.com.my/...",
+  riskLevel: "Safe",
+  detectionDetails: undefined
+};
+
+displayQRScanResults(testResult); // should not crash now
+✅ Final Checklist After Fix
+Checkpoint	✅ Status
+detectionDetails validated before .map()	✅
+All pipeline result objects initialized with detectionDetails	✅
+Developer logging in Console enabled	✅
+Toast error shown for undefined result	✅
+Prevent runtime crash & maintain UX	✅
+
+💡 Optional (Bonus Feature)
+To prevent false errors on real bank URLs, you can inject a fallback:
+
+js
+Copy
+Edit
+if (verifiedBankDomain(scannedUrl)) {
+  result.detectionDetails = [
+    { rule: "Verified Domain", reason: "Official banking domain detected" }
+  ];
+}
+✅ Summary Fix
+Add this to bulletproof the .map() call:
+
+js
+Copy
+Edit
+const detectionDetails = Array.isArray(result.detectionDetails) ? result.detectionDetails : [];
+
+const detailHTML = detectionDetails.map(item => `
+  <li>${item.rule}: ${item.reason}</li>
+`).join("");

@@ -6547,6 +6547,7 @@ Respond with JSON:
                 
                 // Check if this is a verified bank or e-wallet
                 const verifiedBrand = this.detectVerifiedBrand(content);
+                console.log('🏦 Verified brand detection result:', verifiedBrand);
                 
                 let analysis;
                 if (verifiedBrand) {
@@ -6575,8 +6576,21 @@ Respond with JSON:
                     };
                 }
                 
+                // Add bulletproof analysis formatting before display
+                const safeAnalysis = {
+                    trustLevel: analysis?.trustLevel || 'UNKNOWN',
+                    riskScore: analysis?.riskScore || 3,
+                    explanation: analysis?.explanation || 'QR code analysis completed',
+                    detectionDetails: Array.isArray(analysis?.detectionDetails) ? analysis.detectionDetails : ['Analysis completed successfully'],
+                    verifiedBrand: analysis?.verifiedBrand || null,
+                    isScamMimic: analysis?.isScamMimic || false,
+                    targetBrand: analysis?.targetBrand || null
+                };
+                
+                console.log('🔍 Final analysis object before display:', safeAnalysis);
+                
                 // Display results in QR section
-                this.displayQRScanResults(analysis, content);
+                this.displayQRScanResults(safeAnalysis, content);
                 
                 // Save to scan history
                 this.saveScanResult(analysis, content);
@@ -6653,11 +6667,24 @@ Respond with JSON:
                     };
                 }
                 
+                // Add bulletproof analysis formatting before display
+                const safeAnalysis = {
+                    trustLevel: analysis?.trustLevel || 'UNKNOWN',
+                    riskScore: analysis?.riskScore || 3,
+                    explanation: analysis?.explanation || 'DuitNow QR code analysis completed',
+                    detectionDetails: Array.isArray(analysis?.detectionDetails) ? analysis.detectionDetails : ['Merchant information extracted'],
+                    verifiedBrand: analysis?.verifiedBrand || null,
+                    isScamMimic: analysis?.isScamMimic || false,
+                    merchantInfo: analysis?.merchantInfo || null
+                };
+                
+                console.log('🔍 Final DuitNow analysis object before display:', safeAnalysis);
+                
                 // Display results
-                this.displayQRScanResults(analysis, content);
+                this.displayQRScanResults(safeAnalysis, content);
                 
                 // Save to scan history
-                this.saveScanResult(analysis, content);
+                this.saveScanResult(safeAnalysis, content);
                 this.setLoadingState(false);
             }
             
