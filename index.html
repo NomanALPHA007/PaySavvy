@@ -2506,6 +2506,35 @@
             app.displayQRScanResults(safeResult, qrContent);
         }
 
+        // Developer testing hooks for malformed results
+        window.testMalformedQRResult = function() {
+            console.log("🧪 Testing malformed QR result...");
+            const malformedResult = {
+                trustLevel: "DANGEROUS",
+                riskScore: 8,
+                // Intentionally missing detectionDetails array
+                detectionDetails: null,
+                explanation: "Test malformed result",
+                brandMatch: null
+            };
+            
+            if (window.paysavvyApp) {
+                console.log("📋 Original malformed result:", malformedResult);
+                safeDisplayQRResults(window.paysavvyApp, malformedResult, "test://malformed-qr");
+            } else {
+                console.error("❌ PaySavvy app not initialized");
+            }
+        };
+
+        window.testUndefinedQRResult = function() {
+            console.log("🧪 Testing undefined QR result...");
+            if (window.paysavvyApp) {
+                safeDisplayQRResults(window.paysavvyApp, undefined, "test://undefined-qr");
+            } else {
+                console.error("❌ PaySavvy app not initialized");
+            }
+        };
+
         // PaySavvy Pro - Refactored with Centralized Risk Scoring
         class PaySavvyPro {
             constructor() {
@@ -7248,20 +7277,19 @@ Respond with JSON:
             }
 
             // Enhanced QR results display for URL scanning
-            displayQRScanResults(analysis, qrContent) {
+            displayQRScanResults(rawAnalysis, qrContent) {
                 try {
-                    // Strong runtime assertion to prevent undefined errors
-                    if (!analysis || typeof analysis !== "object") {
-                        console.error("❌ Invalid analysis object passed:", analysis);
-                        this.showToast('Display Error', 'Invalid analysis result', 'error');
-                        return;
-                    }
-
-                    if (!Array.isArray(analysis.detectionDetails)) {
-                        console.error("❌ detectionDetails is not an array. Analysis was:", analysis);
-                        this.showToast('Display Error', 'Detection details missing or invalid', 'error');
-                        return;
-                    }
+                    // FORCE sanitization at entry point to guarantee shape
+                    const analysis = sanitizeAnalysisObject(rawAnalysis);
+                    
+                    // Detailed structure logging for debugging
+                    console.log("🔍 displayQRScanResults received:", {
+                        rawType: typeof rawAnalysis,
+                        rawDetectionDetails: rawAnalysis?.detectionDetails,
+                        sanitizedType: typeof analysis,
+                        sanitizedDetectionDetailsType: Array.isArray(analysis.detectionDetails) ? 'array' : typeof analysis.detectionDetails,
+                        sanitizedDetectionDetailsLength: analysis.detectionDetails?.length || 0
+                    });
 
                     console.trace("📍 displayQRScanResults called from:");
                     
@@ -7271,7 +7299,7 @@ Respond with JSON:
                         return;
                     }
 
-                    // Analysis object is validated, proceed with rendering
+                    // Analysis object is force-sanitized, proceed with rendering
                     const safeAnalysis = analysis;
                     
                     // Final safety confirmation before rendering
@@ -7585,113 +7613,7 @@ Respond with JSON:
                 this.showToast('Unknown QR Format', 'Please try scanning a payment or website QR code', 'info');
             }
 
-            // Display QR scan results in the same format as URL scanner
-            displayQRScanResults(analysis, url) {
-                const resultsDiv = document.getElementById('qr-results');
-                const riskClass = this.getRiskClass(analysis.trustLevel);
-                const riskIcon = this.getRiskIcon(analysis.trustLevel);
-                
-                let brandInfo = '';
-                if (analysis.brandMatch && analysis.brandMatch.isVerified) {
-                    const brand = analysis.brandMatch.brand;
-                    brandInfo = `
-                        <div class="brand-info mt-3 p-3 bg-light rounded">
-                            <div class="d-flex align-items-center mb-2">
-                                <img src="${brand.logo}" alt="${brand.name}" style="width: 32px; height: 32px; margin-right: 12px;">
-                                <div>
-                                    <strong>${brand.name}</strong>
-                                    <div class="small text-muted">${brand.country} • ${brand.type}</div>
-                                </div>
-                            </div>
-                            <div class="verification-badge">
-                                <i data-feather="shield-check" class="me-1"></i>
-                                <span class="badge bg-success">Government Authorized</span>
-                                <small class="text-muted ms-2">Licensed by ${brand.regulatoryBody}</small>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                let redirectInfo = '';
-                if (analysis.redirects && analysis.redirects.length > 1) {
-                    redirectInfo = `
-                        <div class="redirect-chain mt-3">
-                            <h6><i data-feather="link" class="me-2"></i>Redirect Chain</h6>
-                            <div class="redirect-list">
-                                ${analysis.redirects.map((redirect, index) => `
-                                    <div class="redirect-step">
-                                        <span class="step-number">${index + 1}</span>
-                                        <code>${redirect}</code>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                let aiInfo = '';
-                if (analysis.aiAnalysis && analysis.aiAnalysis.analysis) {
-                    aiInfo = `
-                        <div class="ai-analysis mt-3">
-                            <h6><i data-feather="cpu" class="me-2"></i>AI Analysis</h6>
-                            <p class="small mb-2">${analysis.aiAnalysis.analysis}</p>
-                            <div class="ai-confidence">
-                                Confidence: <span class="badge bg-info">${Math.round(analysis.aiAnalysis.confidence * 100)}%</span>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                resultsDiv.innerHTML = `
-                    <div class="scan-result ${riskClass}">
-                        <div class="result-header">
-                            <div class="risk-indicator">
-                                <i data-feather="${riskIcon}" class="risk-icon"></i>
-                                <span class="risk-level">${analysis.trustLevel.toUpperCase()}</span>
-                            </div>
-                            <div class="risk-score">
-                                Risk Score: <span class="score">${analysis.riskScore}/10</span>
-                            </div>
-                        </div>
-                        
-                        <div class="url-display mt-2">
-                            <strong>QR URL:</strong> <code>${url}</code>
-                        </div>
-                        
-                        ${brandInfo}
-                        ${redirectInfo}
-                        ${aiInfo}
-                        
-                        <div class="risk-factors mt-3">
-                            <h6><i data-feather="list" class="me-2"></i>Risk Factors</h6>
-                            ${analysis.factors.map(factor => `
-                                <div class="factor-item">
-                                    <i data-feather="arrow-right" class="me-2"></i>
-                                    ${factor}
-                                </div>
-                            `).join('')}
-                        </div>
-                        
-                        <div class="scan-metadata mt-3">
-                            <small class="text-muted">
-                                <i data-feather="clock" class="me-1"></i>
-                                Scanned via QR Code • ${new Date().toLocaleString()}
-                            </small>
-                        </div>
-                    </div>
-                `;
-                
-                feather.replace();
-                
-                // Show appropriate toast notification
-                if (analysis.trustLevel === 'DANGEROUS') {
-                    this.showToast('DANGEROUS QR CODE', 'This QR code leads to a suspected scam website', 'error');
-                } else if (analysis.trustLevel === 'SUSPICIOUS') {
-                    this.showToast('Suspicious QR Code', 'Exercise caution with this QR code', 'warning'); 
-                } else {
-                    this.showToast('QR Code Analyzed', 'This QR code appears to be safe', 'success');
-                }
-            }
+
 
             analyzeTextContent(content) {
                 let score = 0;
@@ -8508,6 +8430,7 @@ Respond with JSON:
         // Initialize PaySavvy Pro
         document.addEventListener('DOMContentLoaded', () => {
             window.app = new PaySavvyPro();
+            window.paysavvyApp = window.app; // Global reference for testing hooks
             window.paysar = window.app; // Keep backward compatibility
             
             // Backup QR button initialization
