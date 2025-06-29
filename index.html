@@ -1115,36 +1115,60 @@ Respond with JSON:
 
             // QR Scanner Implementation
             initializeQRScanner() {
+                // Wait for DOM to be fully loaded
+                if (document.readyState !== 'complete') {
+                    window.addEventListener('load', () => this.initializeQRScanner());
+                    return;
+                }
+
                 try {
+                    // Check if HTML5 QR Code library is available
                     if (typeof Html5Qrcode !== 'undefined') {
-                        this.qrScanner = new Html5Qrcode("qr-reader");
-                        console.log('QR Scanner initialized successfully');
+                        // Verify qr-reader element exists
+                        const qrReaderElement = document.getElementById("qr-reader");
+                        if (qrReaderElement) {
+                            this.qrScanner = new Html5Qrcode("qr-reader");
+                            console.log('QR Scanner initialized successfully');
+                            return;
+                        } else {
+                            console.error('QR reader element not found');
+                        }
                     } else {
-                        console.warn('Html5Qrcode library not loaded');
-                        // Try to load the library if not available
-                        this.loadQRLibrary();
+                        console.warn('Html5Qrcode library not loaded, retrying...');
                     }
                 } catch (error) {
-                    console.warn('QR Scanner initialization failed:', error);
-                    this.loadQRLibrary();
+                    console.error('QR Scanner initialization failed:', error);
                 }
+                
+                // Fallback initialization
+                this.loadQRLibrary();
             }
 
             loadQRLibrary() {
-                // Fallback to load QR library if not already loaded
-                if (!document.querySelector('script[src*="html5-qrcode"]')) {
-                    const script = document.createElement('script');
-                    script.src = 'https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js';
-                    script.onload = () => {
-                        console.log('QR Scanner library loaded');
-                        this.qrScanner = new Html5Qrcode("qr-reader");
-                    };
-                    script.onerror = () => {
-                        console.error('Failed to load QR Scanner library');
+                // Wait for library to be available
+                let attempts = 0;
+                const maxAttempts = 10;
+                
+                const checkLibrary = () => {
+                    attempts++;
+                    if (typeof Html5Qrcode !== 'undefined') {
+                        console.log('QR Scanner library is available');
+                        try {
+                            this.qrScanner = new Html5Qrcode("qr-reader");
+                            console.log('QR Scanner initialized successfully');
+                        } catch (error) {
+                            console.error('QR Scanner initialization error:', error);
+                        }
+                    } else if (attempts < maxAttempts) {
+                        console.log(`Waiting for QR library... attempt ${attempts}`);
+                        setTimeout(checkLibrary, 500);
+                    } else {
+                        console.error('QR Scanner library failed to load after multiple attempts');
                         this.showToast('Error', 'QR Scanner library failed to load. Please refresh the page.', 'error');
-                    };
-                    document.head.appendChild(script);
-                }
+                    }
+                };
+                
+                checkLibrary();
             }
 
             switchQRMode(mode) {
@@ -1247,13 +1271,130 @@ Respond with JSON:
 
             async handleQRFile(event) {
                 const file = event.target.files[0];
-                if (!file || !this.qrScanner) return;
+                if (!file) return;
+
+                // Show loading state
+                const resultsDiv = document.getElementById('qr-results');
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <i data-feather="loader" class="me-2"></i>
+                        Processing QR code image...
+                    </div>
+                `;
+                feather.replace();
 
                 try {
-                    const result = await this.qrScanner.scanFile(file, true);
-                    this.handleQRResult(result);
+                    // Try with QR scanner library first
+                    if (this.qrScanner) {
+                        try {
+                            const result = await this.qrScanner.scanFile(file, true);
+                            this.handleQRResult(result);
+                            return;
+                        } catch (scanError) {
+                            console.warn('QR library scan failed, trying alternative method:', scanError);
+                        }
+                    }
+
+                    // Alternative approach using canvas and image processing
+                    await this.processQRImageAlternative(file);
+
                 } catch (error) {
-                    this.showToast('Error', 'Failed to scan QR code from image', 'error');
+                    console.error('QR scan error:', error);
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <h6><i data-feather="alert-triangle" class="me-2"></i>Scan Failed</h6>
+                            <p class="small mb-2">Could not detect QR code in the uploaded image.</p>
+                            <p class="small mb-0">Please ensure:</p>
+                            <ul class="small">
+                                <li>The image contains a clear QR code</li>
+                                <li>The QR code is not blurry or damaged</li>
+                                <li>The image format is JPG, PNG, or similar</li>
+                            </ul>
+                        </div>
+                    `;
+                    feather.replace();
+                }
+            }
+
+            async processQRImageAlternative(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            try {
+                                // Create canvas for image processing
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                ctx.drawImage(img, 0, 0);
+
+                                // Try to initialize QR scanner if not available
+                                if (!this.qrScanner && typeof Html5Qrcode !== 'undefined') {
+                                    this.qrScanner = new Html5Qrcode("qr-reader");
+                                }
+
+                                // If still no scanner, show manual input option
+                                if (!this.qrScanner) {
+                                    this.showManualQRInput();
+                                    resolve();
+                                    return;
+                                }
+
+                                // Convert canvas to blob and try scanning
+                                canvas.toBlob(async (blob) => {
+                                    try {
+                                        const result = await this.qrScanner.scanFile(blob, true);
+                                        this.handleQRResult(result);
+                                        resolve();
+                                    } catch (error) {
+                                        this.showManualQRInput();
+                                        resolve();
+                                    }
+                                });
+
+                            } catch (error) {
+                                this.showManualQRInput();
+                                resolve();
+                            }
+                        };
+                        img.onerror = () => {
+                            reject(new Error('Failed to load image'));
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = () => {
+                        reject(new Error('Failed to read file'));
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            showManualQRInput() {
+                const resultsDiv = document.getElementById('qr-results');
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-secondary">
+                        <h6><i data-feather="edit-3" class="me-2"></i>Manual QR Code Input</h6>
+                        <p class="small mb-3">Could not automatically scan the QR code. Please enter the QR code content manually:</p>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="manual-qr-input" placeholder="Paste QR code content here...">
+                            <button class="btn btn-primary" onclick="window.paysar.processManualQR()">
+                                <i data-feather="search" class="me-1"></i>Analyze
+                            </button>
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+            }
+
+            processManualQR() {
+                const input = document.getElementById('manual-qr-input');
+                const content = input.value.trim();
+                if (content) {
+                    this.handleQRResult(content);
+                } else {
+                    this.showToast('Warning', 'Please enter QR code content', 'warning');
                 }
             }
 
