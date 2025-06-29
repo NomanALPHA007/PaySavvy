@@ -2927,51 +2927,75 @@ Respond with JSON:
                                 let qrResult = null;
                                 
                                 if (typeof jsQR !== 'undefined') {
-                                    // Attempt 1: Normal scanning
+                                    console.log('Attempting QR detection on uploaded image...');
+                                    
+                                    // Attempt 1: Normal scanning with high precision
                                     qrResult = jsQR(imageData.data, canvas.width, canvas.height, {
                                         inversionAttempts: "dontInvert"
                                     });
+                                    console.log('Normal scan result:', qrResult ? 'SUCCESS' : 'FAILED');
                                     
                                     // Attempt 2: Inverted scanning for dark mode QR codes
                                     if (!qrResult) {
                                         qrResult = jsQR(imageData.data, canvas.width, canvas.height, {
                                             inversionAttempts: "onlyInvert"
                                         });
+                                        console.log('Inverted scan result:', qrResult ? 'SUCCESS' : 'FAILED');
                                     }
                                     
-                                    // Attempt 3: Both normal and inverted
+                                    // Attempt 3: Both normal and inverted with all options
                                     if (!qrResult) {
                                         qrResult = jsQR(imageData.data, canvas.width, canvas.height, {
                                             inversionAttempts: "attemptBoth"
                                         });
+                                        console.log('Both attempts scan result:', qrResult ? 'SUCCESS' : 'FAILED');
+                                    }
+                                    
+                                    // Attempt 4: Scale down image for better detection if still no result
+                                    if (!qrResult && (canvas.width > 800 || canvas.height > 800)) {
+                                        console.log('Attempting scaled down detection...');
+                                        const scaledCanvas = document.createElement('canvas');
+                                        const scaledContext = scaledCanvas.getContext('2d');
+                                        const scale = Math.min(800 / canvas.width, 800 / canvas.height);
+                                        scaledCanvas.width = canvas.width * scale;
+                                        scaledCanvas.height = canvas.height * scale;
+                                        
+                                        scaledContext.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+                                        const scaledImageData = scaledContext.getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
+                                        
+                                        qrResult = jsQR(scaledImageData.data, scaledCanvas.width, scaledCanvas.height, {
+                                            inversionAttempts: "attemptBoth"
+                                        });
+                                        console.log('Scaled scan result:', qrResult ? 'SUCCESS' : 'FAILED');
                                     }
                                     
                                     if (qrResult && qrResult.data && qrResult.data.trim()) {
-                                        console.log('✅ QR Code detected from uploaded file:', qrResult.data);
+                                        console.log('✅ QR Code detected from uploaded file:', qrResult.data.trim());
                                         
-                                        // Show detection success
+                                        // Show detection success with content preview
+                                        const qrContent = qrResult.data.trim();
                                         resultsDiv.innerHTML = `
-                                            <div class="alert alert-info">
+                                            <div class="alert alert-success">
                                                 <i data-feather="check-circle" class="me-2"></i>
-                                                <strong>QR Code Detected!</strong>
-                                                <p class="mb-2"><strong>Content:</strong> <code>${qrResult.data}</code></p>
-                                                <p class="small mb-0">Running 4-layer scam analysis...</p>
+                                                <strong>QR Code Successfully Detected!</strong>
+                                                <p class="mb-2"><strong>Content:</strong> <code>${qrContent.length > 100 ? qrContent.substring(0, 100) + '...' : qrContent}</code></p>
+                                                <p class="small mb-0"><i data-feather="loader" class="me-1"></i>Running complete 4-layer scam analysis...</p>
                                             </div>
                                         `;
                                         feather.replace();
                                         
-                                        this.showToast('QR Detected', 'Analyzing content for scams...', 'success');
+                                        this.showToast('QR Successfully Detected', 'Running 4-layer scam analysis...', 'success');
                                         
-                                        // Trigger full PaySavvy analysis
-                                        await this.analyzeQRContent(qrResult.data.trim());
+                                        // Trigger full PaySavvy 4-layer analysis
+                                        await this.analyzeQRContent(qrContent);
                                         return;
                                     }
                                 }
                                 
-                                // No QR code detected - show manual input
-                                console.log('❌ No QR code detected in uploaded image');
-                                this.showToast('No QR Found', 'QR code not detected. Try uploading a clearer image.', 'warning');
-                                this.showManualQRInput();
+                                // No QR code detected - show enhanced manual input with helpful guidance
+                                console.log('❌ No QR code detected in uploaded image after all attempts');
+                                this.showToast('QR Not Detected', 'Could not detect QR code. Please try manual input or upload a clearer image.', 'warning');
+                                this.showEnhancedManualQRInput(canvas.width, canvas.height);
                                 
                             } catch (error) {
                                 console.error('QR processing error:', error);
@@ -3011,7 +3035,7 @@ Respond with JSON:
                         <p class="mb-2">Could not automatically detect QR code. Please enter the content manually:</p>
                         <div class="input-group">
                             <input type="text" id="manual-qr-input" class="form-control" placeholder="Enter QR code content (URL) here...">
-                            <button class="btn btn-success" onclick="payApp.analyzeQRContent(document.getElementById('manual-qr-input').value)">
+                            <button class="btn btn-success" onclick="app.analyzeManualQRInput()">
                                 <i data-feather="search" class="me-1"></i>Analyze
                             </button>
                         </div>
@@ -3019,6 +3043,55 @@ Respond with JSON:
                 `;
                 feather.replace();
                 this.showToast('Manual Input', 'Please enter QR code content manually', 'info');
+            }
+
+            showEnhancedManualQRInput(imgWidth, imgHeight) {
+                const resultsDiv = document.getElementById('qr-results');
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i data-feather="upload" class="me-2"></i>
+                        <strong>QR Code Not Detected</strong>
+                        <p class="mb-2">Processed image (${imgWidth}x${imgHeight}) but could not find QR code after multiple detection attempts.</p>
+                        <p class="small mb-3"><strong>Manual Input:</strong> Please enter the QR code content below:</p>
+                        <div class="input-group mb-2">
+                            <input type="text" id="manual-qr-input" class="form-control" placeholder="Enter QR code content (URL) here...">
+                            <button class="btn btn-success" onclick="app.analyzeManualQRInput()">
+                                <i data-feather="search" class="me-1"></i>Analyze
+                            </button>
+                        </div>
+                        <details class="mt-2">
+                            <summary class="small text-muted" style="cursor: pointer;">Tips for better QR detection</summary>
+                            <ul class="small text-muted mt-2 mb-0">
+                                <li>Ensure QR code is well-lit and clearly visible</li>
+                                <li>Try cropping the image to focus only on the QR code</li>
+                                <li>Upload a higher resolution image if possible</li>
+                                <li>Ensure QR code is not rotated or distorted</li>
+                            </ul>
+                        </details>
+                    </div>
+                `;
+                feather.replace();
+            }
+
+            async analyzeManualQRInput() {
+                const input = document.getElementById('manual-qr-input');
+                if (!input) {
+                    this.showToast('Error', 'Input field not found', 'error');
+                    return;
+                }
+                
+                const content = input.value.trim();
+                if (!content) {
+                    this.showToast('Input Required', 'Please enter QR code content', 'warning');
+                    return;
+                }
+                
+                console.log('Analyzing manual QR input:', content);
+                this.showToast('Analyzing Manual Input', 'Running 4-layer scam analysis...', 'info');
+                
+                // Clear input and run full analysis
+                input.value = '';
+                await this.analyzeQRContent(content);
             }
 
             // Display QR analysis results with same format as URL scanner
