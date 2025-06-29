@@ -26,6 +26,56 @@ app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
 
+// Coffee tip payment endpoint
+app.post('/api/create-tip-payment', async (req, res) => {
+  try {
+    const { amount, currency = 'myr', description } = req.body;
+    
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(500).json({ 
+        error: 'Payment system not configured. Please contact support.' 
+      });
+    }
+
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: currency,
+          product_data: {
+            name: 'PaySavvy Pro Coffee Tip',
+            description: description,
+            images: ['https://img.icons8.com/emoji/96/000000/coffee-emoji.png']
+          },
+          unit_amount: amount,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${req.protocol}://${req.get('host')}/?payment=success`,
+      cancel_url: `${req.protocol}://${req.get('host')}/?payment=cancelled`,
+      metadata: {
+        service: 'PaySavvy Pro Coffee Tip',
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    res.json({
+      checkoutUrl: session.url,
+      sessionId: session.id
+    });
+    
+  } catch (error) {
+    console.error('Stripe payment error:', error);
+    res.status(500).json({ 
+      error: 'Payment processing error. Please try again.' 
+    });
+  }
+});
+
 // Block ALL legacy JavaScript files to prevent import.meta errors
 app.use((req, res, next) => {
   const path = req.path;

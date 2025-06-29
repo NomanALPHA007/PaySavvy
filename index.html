@@ -468,9 +468,11 @@
         .welcome-content {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 30px;
             position: relative;
             z-index: 1;
+            text-align: center;
         }
 
         .anime-mascot {
@@ -676,9 +678,11 @@
         .tip-container {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 30px;
             position: relative;
             z-index: 1;
+            text-align: center;
         }
 
         .anime-coffee-mascot {
@@ -902,11 +906,11 @@
                 </div>
                 <div class="welcome-text">
                     <h1 class="welcome-title">
-                        <span class="gradient-text">こんにちは！Welcome to PaySavvy Pro</span>
+                        <span class="gradient-text">Welcome to PaySavvy Pro</span>
                         <div class="title-sparkles">✨</div>
                     </h1>
                     <p class="welcome-subtitle">
-                        Your kawaii AI guardian protecting Malaysia from payment scams with advanced detection technology
+                        Your AI guardian protecting Malaysia from payment scams with advanced detection technology
                     </p>
                     <div class="feature-tags">
                         <span class="anime-badge success">✓ AI Analysis</span>
@@ -1075,7 +1079,6 @@
                 </div>
                 <div class="tip-content">
                     <h3 class="tip-title">
-                        <span class="japanese-text">ありがとう！</span>
                         <span class="english-text">Buy me a coffee</span>
                         <span class="sparkle">✨</span>
                     </h3>
@@ -1084,16 +1087,16 @@
                         Your support keeps this free protection service running for everyone in Malaysia.
                     </p>
                     <div class="tip-buttons">
-                        <button class="tip-btn small" onclick="payApp.tipDeveloperSimple(300)">
+                        <button class="tip-btn small" onclick="payApp.tipDeveloper(300)">
                             <span class="tip-amount">RM 3</span>
                             <span class="tip-desc">Teh Tarik</span>
                         </button>
-                        <button class="tip-btn medium popular" onclick="payApp.tipDeveloperSimple(500)">
+                        <button class="tip-btn medium popular" onclick="payApp.tipDeveloper(500)">
                             <span class="tip-amount">RM 5</span>
                             <span class="tip-desc">Coffee ☕</span>
                             <div class="popular-badge">Popular</div>
                         </button>
-                        <button class="tip-btn large" onclick="payApp.tipDeveloperSimple(1000)">
+                        <button class="tip-btn large" onclick="payApp.tipDeveloper(1000)">
                             <span class="tip-amount">RM 10</span>
                             <span class="tip-desc">Meal Support</span>
                         </button>
@@ -4077,17 +4080,19 @@ Respond with JSON:
                     });
 
                     if (!response.ok) {
-                        throw new Error('Payment setup failed');
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Payment setup failed');
                     }
 
-                    const { clientSecret, paymentIntentId } = await response.json();
+                    const { checkoutUrl } = await response.json();
                     
                     // Redirect to Stripe Checkout
-                    window.location.href = `https://checkout.stripe.com/pay/${clientSecret}#fidkdWxOYHwnPyd1blpxYHZxWjA0S2JGMmJ8bTdtTElvMTJOT2hvNkFGajVKQUpkNkNIfEN0T08xTlJmVWtLalFGSzBONGNON0Z2Y2tHPUdyfHQ2Q3F2XGl8Y1ZpZDNnbzZhRnc1dUMwQWd8RUg3M1c3N2dRdmMnKSd2MHxqWEppYmc9NkZjPTd2fExGJ3gl`;
+                    this.showToast('Redirecting to Payment', 'Opening secure Stripe checkout...', 'success');
+                    window.open(checkoutUrl, '_blank');
                     
                 } catch (error) {
                     console.error('Tip payment error:', error);
-                    this.showToast('Payment Failed', 'Unable to process payment. Please try again.', 'error');
+                    this.showToast('Payment Error', error.message || 'Unable to process payment. Please try again.', 'error');
                 }
             }
 
