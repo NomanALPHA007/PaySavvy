@@ -3181,87 +3181,168 @@ Respond with JSON:
             }
 
             async analyzeQRContent(content) {
+                console.log('Analyzing QR content:', content);
+                const resultsDiv = document.getElementById('qr-results');
+                
                 try {
                     // Check if content is a URL
                     if (this.isValidUrl(content)) {
-                        this.showToast('Info', 'Analyzing QR code URL with 4-layer detection...', 'info');
+                        this.showToast('Analyzing QR URL', 'Running 4-layer scam detection...', 'info');
                         
-                        // Check for verified brand in QR code content
-                        const brandMatch = this.detectVerifiedBrand(content);
+                        // Set loading state
+                        this.setLoadingState(true);
                         
-                        if (brandMatch.match) {
-                            this.showToast(`✅ QR code contains verified brand: ${brandMatch.brand} (${brandMatch.region})`, '', 'success');
-                            this.displayBrandDetails(brandMatch);
-                        } else if (brandMatch.scamMimic) {
-                            this.showToast(`🚨 QR code contains known scam mimic of ${brandMatch.brand}`, '', 'error');
-                            this.displayBrandDetails(brandMatch);
-                        }
+                        // Run the exact same 4-layer analysis as URL scanner
+                        const redirectChain = await this.analyzeRedirects(content);
+                        const aiAssessment = await this.getAIAssessment(content);
                         
-                        // Use the same comprehensive 4-layer analysis
-                        const results = await this.analyzeUrl(content);
+                        // Use centralized risk assessment with verified brands
+                        const analysis = assessRisk(content, this.verifiedBrands, redirectChain, aiAssessment);
                         
-                        // Add brand analysis to results
-                        results.brandAnalysis = brandMatch;
+                        // Display results in QR section using same format as URL scanner
+                        this.displayQRScanResults(analysis, content);
                         
-                        // Display results using the same format as URL scanner
-                        this.displayQRResults(results, content);
+                        // Save to scan history
+                        this.saveScanResult(analysis, content);
                         
-                        // Also save to scan history
-                        this.saveScanResult(results);
-                        this.displayScanHistory();
+                        this.setLoadingState(false);
                         
-                        // Save scam fingerprint if dangerous
-                        if (results.finalRiskLevel === 'dangerous') {
-                            const fingerprint = await this.generateFingerprint(content);
-                            this.scamFingerprints[fingerprint] = {
-                                url: content,
-                                timestamp: Date.now(),
-                                riskScore: results.finalScore
-                            };
-                            this.saveScamFingerprints();
-                            this.showToast('Warning', 'Dangerous QR code fingerprinted for future detection', 'warning');
-                        }
                     } else {
-                        // Analyze text content for scam patterns
-                        const analysis = this.analyzeTextContent(content);
-                        this.displayQRTextAnalysis(analysis);
+                        // Handle non-URL QR content
+                        resultsDiv.innerHTML = `
+                            <div class="alert alert-secondary">
+                                <i data-feather="info" class="me-2"></i>
+                                <strong>QR Content (Non-URL):</strong>
+                                <p class="mb-2"><code>${content}</code></p>
+                                <p class="small mb-0">This QR code contains text/data that is not a web link.</p>
+                            </div>
+                        `;
+                        feather.replace();
+                        this.showToast('QR Content', 'Non-URL content detected', 'info');
                     }
                 } catch (error) {
                     console.error('QR analysis error:', error);
-                    this.showToast('Error', 'Failed to analyze QR code content', 'error');
+                    this.setLoadingState(false);
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i data-feather="alert-circle" class="me-2"></i>
+                            <strong>Analysis Error</strong>
+                            <p class="mb-2">Failed to analyze QR content: ${error.message}</p>
+                            <p class="small mb-0">Content: <code>${content}</code></p>
+                        </div>
+                    `;
+                    feather.replace();
+                    this.showToast('Analysis Failed', 'Error analyzing QR content', 'error');
                 }
             }
 
-            displayQRResults(results) {
+            // Display QR scan results in the same format as URL scanner
+            displayQRScanResults(analysis, url) {
                 const resultsDiv = document.getElementById('qr-results');
-                const riskClass = this.getRiskClass(results.finalRiskLevel);
-                const riskIcon = this.getRiskIcon(results.finalRiskLevel);
+                const riskClass = this.getRiskClass(analysis.trustLevel);
+                const riskIcon = this.getRiskIcon(analysis.trustLevel);
+                
+                let brandInfo = '';
+                if (analysis.brandMatch && analysis.brandMatch.isVerified) {
+                    const brand = analysis.brandMatch.brand;
+                    brandInfo = `
+                        <div class="brand-info mt-3 p-3 bg-light rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="${brand.logo}" alt="${brand.name}" style="width: 32px; height: 32px; margin-right: 12px;">
+                                <div>
+                                    <strong>${brand.name}</strong>
+                                    <div class="small text-muted">${brand.country} • ${brand.type}</div>
+                                </div>
+                            </div>
+                            <div class="verification-badge">
+                                <i data-feather="shield-check" class="me-1"></i>
+                                <span class="badge bg-success">Government Authorized</span>
+                                <small class="text-muted ms-2">Licensed by ${brand.regulatoryBody}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                let redirectInfo = '';
+                if (analysis.redirects && analysis.redirects.length > 1) {
+                    redirectInfo = `
+                        <div class="redirect-chain mt-3">
+                            <h6><i data-feather="link" class="me-2"></i>Redirect Chain</h6>
+                            <div class="redirect-list">
+                                ${analysis.redirects.map((redirect, index) => `
+                                    <div class="redirect-step">
+                                        <span class="step-number">${index + 1}</span>
+                                        <code>${redirect}</code>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                let aiInfo = '';
+                if (analysis.aiAnalysis && analysis.aiAnalysis.analysis) {
+                    aiInfo = `
+                        <div class="ai-analysis mt-3">
+                            <h6><i data-feather="cpu" class="me-2"></i>AI Analysis</h6>
+                            <p class="small mb-2">${analysis.aiAnalysis.analysis}</p>
+                            <div class="ai-confidence">
+                                Confidence: <span class="badge bg-info">${Math.round(analysis.aiAnalysis.confidence * 100)}%</span>
+                            </div>
+                        </div>
+                    `;
+                }
                 
                 resultsDiv.innerHTML = `
-                    <div class="alert alert-${riskClass}">
-                        <div class="d-flex align-items-center mb-2">
-                            <i data-feather="${riskIcon}" class="me-2"></i>
-                            <strong>QR Code Analysis: ${results.finalRiskLevel.toUpperCase()}</strong>
-                            <span class="badge bg-secondary ms-auto">Score: ${results.finalScore}</span>
-                        </div>
-                        <p class="small mb-2"><strong>URL:</strong> ${results.url}</p>
-                        <p class="small mb-2">${results.explanation}</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <small><strong>Heuristics:</strong> ${results.heuristicAnalysis?.score || 0} pts</small>
+                    <div class="scan-result ${riskClass}">
+                        <div class="result-header">
+                            <div class="risk-indicator">
+                                <i data-feather="${riskIcon}" class="risk-icon"></i>
+                                <span class="risk-level">${analysis.trustLevel.toUpperCase()}</span>
                             </div>
-                            <div class="col-6">
-                                <small><strong>Confidence:</strong> ${Math.round(results.confidence * 100)}%</small>
+                            <div class="risk-score">
+                                Risk Score: <span class="score">${analysis.riskScore}/10</span>
                             </div>
                         </div>
-                        ${results.fingerprintAnalysis?.isKnownScam ? `
-                            <div class="mt-2 p-2 bg-danger text-white rounded">
-                                <small><strong>⚠️ SCAM DNA MATCH:</strong> Known scam QR code!</small>
-                            </div>
-                        ` : ''}
+                        
+                        <div class="url-display mt-2">
+                            <strong>QR URL:</strong> <code>${url}</code>
+                        </div>
+                        
+                        ${brandInfo}
+                        ${redirectInfo}
+                        ${aiInfo}
+                        
+                        <div class="risk-factors mt-3">
+                            <h6><i data-feather="list" class="me-2"></i>Risk Factors</h6>
+                            ${analysis.factors.map(factor => `
+                                <div class="factor-item">
+                                    <i data-feather="arrow-right" class="me-2"></i>
+                                    ${factor}
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="scan-metadata mt-3">
+                            <small class="text-muted">
+                                <i data-feather="clock" class="me-1"></i>
+                                Scanned via QR Code • ${new Date().toLocaleString()}
+                            </small>
+                        </div>
                     </div>
                 `;
+                
                 feather.replace();
+                
+                // Show appropriate toast notification
+                if (analysis.trustLevel === 'DANGEROUS') {
+                    this.showToast('DANGEROUS QR CODE', 'This QR code leads to a suspected scam website', 'error');
+                } else if (analysis.trustLevel === 'SUSPICIOUS') {
+                    this.showToast('Suspicious QR Code', 'Exercise caution with this QR code', 'warning'); 
+                } else {
+                    this.showToast('QR Code Analyzed', 'This QR code appears to be safe', 'success');
+                }
             }
 
             analyzeTextContent(content) {
