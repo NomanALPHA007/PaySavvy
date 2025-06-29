@@ -2840,6 +2840,11 @@
                     if (fileButton) {
                         fileButton.setAttribute('accept', 'image/*');
                         fileButton.setAttribute('capture', 'environment');
+                        
+                        // Add mobile-specific touch event for better responsiveness
+                        fileButton.addEventListener('touchstart', function() {
+                            console.log('Mobile file input touched');
+                        });
                     }
                     
                     // Mobile touch optimizations
@@ -3020,7 +3025,8 @@
                     canvas: this.testCanvasAPI(),
                     jsQR: this.testJsQRLibrary(),
                     crypto: this.testCryptoAPI(),
-                    localStorage: this.testLocalStorage()
+                    localStorage: this.testLocalStorage(),
+                    mobileFileUpload: this.testMobileFileUpload()
                 };
                 
                 console.log('Quick diagnostic results:', results);
@@ -3030,6 +3036,11 @@
                 if (!results.canvas.supported) criticalIssues.push('Canvas API');
                 if (!results.jsQR.available) criticalIssues.push('QR Library');
                 
+                // Mobile-specific warnings
+                if (this.platform.isMobile && !results.mobileFileUpload.inputFound) {
+                    criticalIssues.push('Mobile File Input');
+                }
+                
                 if (criticalIssues.length > 0) {
                     console.error('Critical issues detected:', criticalIssues);
                     this.showToast('System Warning', `Critical components unavailable: ${criticalIssues.join(', ')}`, 'error');
@@ -3038,6 +3049,73 @@
                 }
                 
                 return results;
+            }
+
+            // Test mobile file upload functionality
+            testMobileFileUpload() {
+                const fileInput = document.getElementById('qr-file-input');
+                const fileButton = document.getElementById('qr-file-input-button');
+                
+                const result = {
+                    inputFound: !!fileInput,
+                    buttonFound: !!fileButton,
+                    hasChangeHandler: fileInput ? !!fileInput.onchange || fileInput.eventListeners : false,
+                    acceptAttribute: fileInput ? fileInput.getAttribute('accept') : null,
+                    captureAttribute: fileInput ? fileInput.getAttribute('capture') : null
+                };
+                
+                if (this.platform.isMobile) {
+                    console.log('Mobile file upload test:', result);
+                }
+                
+                return result;
+            }
+
+            // Debug mobile upload functionality
+            debugMobileUpload() {
+                const resultsDiv = document.getElementById('qr-results');
+                const fileInput = document.getElementById('qr-file-input');
+                const fileButton = document.getElementById('qr-file-input-button');
+                
+                const diagnostics = {
+                    platform: this.platform,
+                    fileInput: !!fileInput,
+                    fileButton: !!fileButton,
+                    fileInputDisplay: fileInput ? window.getComputedStyle(fileInput).display : 'N/A',
+                    fileButtonDisplay: fileButton ? window.getComputedStyle(fileButton).display : 'N/A',
+                    hasEventListeners: fileInput ? fileInput.hasAttribute('data-listeners') : false,
+                    windowApp: !!window.app,
+                    handleQRFile: !!(window.app && window.app.handleQRFile)
+                };
+                
+                console.log('Mobile Upload Debug:', diagnostics);
+                
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <h5><i data-feather="smartphone" class="me-2"></i>Mobile Debug Report</h5>
+                            <ul class="mb-0">
+                                <li>Platform: ${this.platform.isMobile ? 'Mobile' : 'Desktop'}</li>
+                                <li>File Input Found: ${diagnostics.fileInput ? '✓' : '✗'}</li>
+                                <li>File Button Found: ${diagnostics.fileButton ? '✓' : '✗'}</li>
+                                <li>App Handler: ${diagnostics.handleQRFile ? '✓' : '✗'}</li>
+                                <li>User Agent: ${navigator.userAgent.substring(0, 50)}...</li>
+                            </ul>
+                            <button class="btn btn-primary btn-sm mt-2" onclick="document.getElementById('qr-file-input').click()">
+                                Test File Input
+                            </button>
+                        </div>
+                    `;
+                    feather.replace();
+                }
+                
+                // Try manual file input trigger
+                if (fileInput) {
+                    console.log('Attempting manual file input trigger...');
+                    fileInput.click();
+                }
+                
+                return diagnostics;
             }
 
             debugQRButtons() {
@@ -9405,8 +9483,26 @@ Respond with JSON:
                 qrFileInput.onchange = null;
                 
                 qrFileInput.addEventListener('change', function(e) {
-                    console.log('File input changed - single unified handler');
+                    console.log('Mobile QR file input changed');
                     console.log('Files selected:', e.target.files.length);
+                    console.log('File details:', e.target.files[0] ? {
+                        name: e.target.files[0].name,
+                        size: e.target.files[0].size,
+                        type: e.target.files[0].type
+                    } : 'No file');
+                    
+                    // Show immediate feedback on mobile
+                    const resultsDiv = document.getElementById('qr-results');
+                    if (resultsDiv) {
+                        resultsDiv.innerHTML = `
+                            <div class="alert alert-info">
+                                <i data-feather="upload" class="me-2"></i>
+                                <strong>Mobile File Upload Detected</strong>
+                                <p class="mb-0">Processing your QR image...</p>
+                            </div>
+                        `;
+                        feather.replace();
+                    }
                     
                     // Prevent multiple simultaneous processing
                     if (window.fileProcessingInProgress) {
@@ -9415,17 +9511,34 @@ Respond with JSON:
                     }
                     window.fileProcessingInProgress = true;
                     
-                    if (window.app && window.app.handleQRFile) {
-                        console.log('Calling app.handleQRFile');
-                        window.app.handleQRFile(e).finally(() => {
-                            window.fileProcessingInProgress = false;
-                        });
-                    } else {
-                        console.error('Window.app or handleQRFile not available, using fallback');
-                        handleQRFileDirectly(e).finally(() => {
-                            window.fileProcessingInProgress = false;
-                        });
-                    }
+                    // Add mobile-specific delay
+                    setTimeout(() => {
+                        if (window.app && window.app.handleQRFile) {
+                            console.log('Calling app.handleQRFile for mobile');
+                            window.app.handleQRFile(e).catch(error => {
+                                console.error('Mobile QR processing error:', error);
+                                if (resultsDiv) {
+                                    resultsDiv.innerHTML = `
+                                        <div class="alert alert-danger">
+                                            <i data-feather="x-circle" class="me-2"></i>
+                                            <strong>Mobile Processing Error</strong>
+                                            <p class="mb-0">${error.message}</p>
+                                        </div>
+                                    `;
+                                    feather.replace();
+                                }
+                            }).finally(() => {
+                                window.fileProcessingInProgress = false;
+                            });
+                        } else {
+                            console.error('Window.app not available, using mobile fallback');
+                            handleQRFileDirectly(e).catch(error => {
+                                console.error('Mobile fallback error:', error);
+                            }).finally(() => {
+                                window.fileProcessingInProgress = false;
+                            });
+                        }
+                    }, 100);
                 }, { once: false });
                 console.log('QR file input unified onchange handler set');
             }
@@ -9745,6 +9858,55 @@ Respond with JSON:
                 window.feather.replace();
             }
         }
+        // Global mobile debug function accessible from console
+        window.debugMobileQR = function() {
+            console.log('=== Mobile QR Debug ===');
+            const fileInput = document.getElementById('qr-file-input');
+            const fileButton = document.getElementById('qr-file-input-button');
+            const resultsDiv = document.getElementById('qr-results');
+            
+            const debug = {
+                isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+                fileInput: !!fileInput,
+                fileButton: !!fileButton,
+                resultsDiv: !!resultsDiv,
+                appReady: !!(window.app && window.app.handleQRFile),
+                processingFlag: !!window.fileProcessingInProgress
+            };
+            
+            console.log('Debug results:', debug);
+            
+            if (resultsDiv) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <h5><i data-feather="smartphone" class="me-2"></i>Mobile Debug Results</h5>
+                        <ul class="mb-0">
+                            <li>Mobile Device: ${debug.isMobile ? 'Yes' : 'No'}</li>
+                            <li>File Input Found: ${debug.fileInput ? 'Yes' : 'No'}</li>
+                            <li>File Button Found: ${debug.fileButton ? 'Yes' : 'No'}</li>
+                            <li>App Handler Ready: ${debug.appReady ? 'Yes' : 'No'}</li>
+                            <li>Processing Active: ${debug.processingFlag ? 'Yes' : 'No'}</li>
+                        </ul>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="document.getElementById('qr-file-input').click()">
+                            Test File Input Now
+                        </button>
+                    </div>
+                `;
+                if (window.feather && window.feather.replace) {
+                    window.feather.replace();
+                }
+            }
+            
+            // Try triggering file input
+            if (fileInput) {
+                console.log('Attempting to trigger file input...');
+                fileInput.click();
+            }
+            
+            return debug;
+        };
+        
+        console.log('Mobile debug helper loaded - type debugMobileQR() in console to test');
     </script>
 </body>
 </html>
