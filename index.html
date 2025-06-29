@@ -8493,9 +8493,11 @@ Respond with JSON:
                             
                             <div class="mt-3 text-center">
                                 <strong>Recommendation:</strong>
-                                ${result.trustLevel === 'SAFE' ? 
+                                ${result.verifiedBrand ? 
+                                    `SAFE: This is an official ${result.verifiedBrand.name} website - safe to use.` :
+                                    result.trustLevel === 'Safe' || result.trustLevel === 'SAFE' ? 
                                     'This QR code appears to be legitimate and safe to use.' :
-                                    result.trustLevel === 'SUSPICIOUS' ?
+                                    result.trustLevel === 'Suspicious' || result.trustLevel === 'SUSPICIOUS' ?
                                     'Exercise caution. Verify the source before proceeding.' :
                                     'HIGH RISK: Do not use this QR code. It shows multiple scam indicators.'
                                 }
