@@ -530,6 +530,9 @@
             </div>
         </div>
 
+        <!-- Brand Information Display -->
+        <div id="brand-info" class="mb-3"></div>
+        
         <!-- Advanced Analysis Results -->
         <div id="advancedResults" style="display: none;">
             <div class="collapsible-card">
@@ -621,7 +624,7 @@
                        null;
             }
 
-            // Load brand whitelist/blacklist data
+            // Load brand whitelist/blacklist data and verified brands
             async loadBrandData() {
                 try {
                     const response = await fetch('/brandList.json');
@@ -629,6 +632,16 @@
                 } catch (error) {
                     console.warn('Failed to load brand data, using fallback');
                     this.brandList = this.getFallbackBrandData();
+                }
+                
+                // Load verified brands dataset for ASEAN region
+                try {
+                    const verifiedResponse = await fetch('/data/verifiedBrands.json');
+                    this.verifiedBrands = await verifiedResponse.json();
+                    console.log('Verified brands loaded successfully');
+                } catch (error) {
+                    console.warn('Failed to load verified brands data');
+                    this.verifiedBrands = {};
                 }
             }
 
@@ -656,6 +669,92 @@
 
             saveScamFingerprints() {
                 localStorage.setItem('scam_fingerprints', JSON.stringify(this.scamFingerprints));
+            }
+
+            // Brand Detection Function for ASEAN Verified Brands
+            detectVerifiedBrand(url) {
+                try {
+                    const parsed = new URL(url);
+                    const domain = parsed.hostname.toLowerCase();
+
+                    for (const region in this.verifiedBrands) {
+                        for (const brand in this.verifiedBrands[region]) {
+                            const brandData = this.verifiedBrands[region][brand];
+                            if (brandData.domains.some(d => domain.endsWith(d))) {
+                                return {
+                                    match: true,
+                                    brand,
+                                    region,
+                                    logo: brandData.logo,
+                                    institution: brandData.institution,
+                                    services: brandData.services,
+                                    scamTips: brandData.commonScamMimics
+                                };
+                            }
+                        }
+                    }
+
+                    // Check for scam mimics
+                    for (const region in this.verifiedBrands) {
+                        for (const brand in this.verifiedBrands[region]) {
+                            const brandData = this.verifiedBrands[region][brand];
+                            for (const scam of brandData.commonScamMimics) {
+                                if (domain.includes(scam.toLowerCase()) || url.toLowerCase().includes(scam.toLowerCase())) {
+                                    return {
+                                        match: false,
+                                        scamMimic: true,
+                                        brand,
+                                        region,
+                                        mimicPattern: scam
+                                    };
+                                }
+                            }
+                        }
+                    }
+
+                    return { match: false };
+                } catch (e) {
+                    return { match: false, error: "URL parse failed" };
+                }
+            }
+
+            // Display Brand Details Function
+            displayBrandDetails(data) {
+                const infoBox = document.getElementById("brand-info");
+                if (data.match) {
+                    infoBox.innerHTML = `
+                        <div class="card shadow-sm border-success p-3 mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="${data.logo}" alt="${data.brand} logo" height="40" class="me-3" onerror="this.style.display='none'"/>
+                                <div>
+                                    <h5 class="mb-1 text-success">${data.brand} – ${data.institution}</h5>
+                                    <small class="text-muted">Verified ${data.region} Payment Provider</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Services:</strong> ${data.services.join(", ")}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="badge bg-success">✓ Verified Brand</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (data.scamMimic) {
+                    infoBox.innerHTML = `
+                        <div class="card shadow-sm border-danger p-3 mb-3">
+                            <div class="alert alert-danger mb-2">
+                                <strong>⚠️ SCAM ALERT:</strong> This URL matches a known scam mimic of ${data.brand}
+                            </div>
+                            <p><strong>Detected Pattern:</strong> <code>${data.mimicPattern}</code></p>
+                            <p><strong>Legitimate Brand:</strong> ${data.brand} (${data.region})</p>
+                            <small class="text-muted">This appears to be a fraudulent website impersonating a legitimate payment provider.</small>
+                        </div>
+                    `;
+                } else {
+                    infoBox.innerHTML = '';
+                }
             }
 
             // Generate SHA-256 fingerprint for scam DNA tracking
@@ -760,7 +859,25 @@
                 this.setLoadingState(true);
 
                 try {
+                    // Check for verified brand first
+                    const brandMatch = this.detectVerifiedBrand(url);
+                    
+                    if (brandMatch.match) {
+                        this.showToast(`✅ Verified brand detected: ${brandMatch.brand} (${brandMatch.region})`, '', 'success');
+                        this.displayBrandDetails(brandMatch);
+                    } else if (brandMatch.scamMimic) {
+                        this.showToast(`🚨 This link matches a known scam mimic of ${brandMatch.brand}`, '', 'error');
+                        this.displayBrandDetails(brandMatch);
+                    } else {
+                        this.showToast('⚠️ Unverified domain — use caution', '', 'warning');
+                        this.displayBrandDetails({ match: false });
+                    }
+                    
                     const results = await this.analyzeUrl(url);
+                    
+                    // Add brand analysis to results
+                    results.brandAnalysis = brandMatch;
+                    
                     this.displayResults(results);
                     this.saveScanResult(results);
                     this.displayScanHistory();
@@ -2022,8 +2139,22 @@ Respond with JSON:
                     if (this.isValidUrl(content)) {
                         this.showToast('Info', 'Analyzing QR code URL with 4-layer detection...', 'info');
                         
+                        // Check for verified brand in QR code content
+                        const brandMatch = this.detectVerifiedBrand(content);
+                        
+                        if (brandMatch.match) {
+                            this.showToast(`✅ QR code contains verified brand: ${brandMatch.brand} (${brandMatch.region})`, '', 'success');
+                            this.displayBrandDetails(brandMatch);
+                        } else if (brandMatch.scamMimic) {
+                            this.showToast(`🚨 QR code contains known scam mimic of ${brandMatch.brand}`, '', 'error');
+                            this.displayBrandDetails(brandMatch);
+                        }
+                        
                         // Use the same comprehensive 4-layer analysis
                         const results = await this.analyzeUrl(content);
+                        
+                        // Add brand analysis to results
+                        results.brandAnalysis = brandMatch;
                         
                         // Display results in QR section
                         this.displayQRResults(results);

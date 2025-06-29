@@ -1,0 +1,139 @@
+Please help me integrate and use the verifiedBrands.json dataset in my Vite + JavaScript web app (PaySavvy Pro). This dataset contains verified payment brand domains across ASEAN for Malaysia, Singapore, Indonesia, Philippines, Thailand, and Vietnam.
+
+I want to use it to detect whether a scanned URL belongs to a verified domain or is potentially a fake, and provide visual feedback and context.
+
+🧠 Step-by-Step Requirements
+✅ 1. 📂 Load JSON Safely
+Goal: Load the external verifiedBrands.json file from /data/verifiedBrands.json.
+
+Instructions:
+
+Use dynamic import (ESM style):
+
+js
+Copy
+Edit
+import verifiedBrands from './data/verifiedBrands.json';
+Make sure it's included in the Replit directory:
+
+pgsql
+Copy
+Edit
+📁 public/
+  └── index.html
+📁 src/
+  └── main.js
+📁 data/
+  └── verifiedBrands.json ✅
+✅ 2. 🧠 Create Domain Detection Function
+Create a new function inside detectors/brandValidator.js (or inside main script if needed):
+
+js
+Copy
+Edit
+export function detectVerifiedBrand(url, verifiedData) {
+  try {
+    const parsed = new URL(url);
+    const domain = parsed.hostname.toLowerCase();
+
+    for (const region in verifiedData) {
+      for (const brand in verifiedData[region]) {
+        const brandData = verifiedData[region][brand];
+        if (brandData.domains.some(d => domain.endsWith(d))) {
+          return {
+            match: true,
+            brand,
+            region,
+            logo: brandData.logo,
+            institution: brandData.institution,
+            service: brandData.services,
+            scamTips: brandData.commonScamMimics
+          };
+        }
+      }
+    }
+
+    return { match: false };
+  } catch (e) {
+    return { match: false, error: "URL parse failed" };
+  }
+}
+✅ Add this to the scan pipeline after parsing the user-submitted URL.
+
+✅ 3. 🎯 Call the Validator in Scanner Logic
+Update your handleScan() function:
+
+js
+Copy
+Edit
+const brandMatch = detectVerifiedBrand(userURL, verifiedBrands);
+
+if (brandMatch.match) {
+  showToast(`✅ Verified brand detected: ${brandMatch.brand} (${brandMatch.region})`, "success");
+  displayBrandDetails(brandMatch); // custom function for visual feedback
+} else {
+  showToast("⚠️ Unverified domain — use caution", "warning");
+}
+✅ 4. 🖼️ UI Display Integration
+Create a displayBrandDetails(brandMatch) function:
+
+js
+Copy
+Edit
+function displayBrandDetails(data) {
+  const infoBox = document.getElementById("brand-info");
+  infoBox.innerHTML = `
+    <div class="card shadow p-3 mb-3">
+      <img src="${data.logo}" alt="${data.brand} logo" height="40"/>
+      <h5 class="mt-2">${data.brand} – ${data.institution}</h5>
+      <p><strong>Region:</strong> ${data.region}</p>
+      <p><strong>Services:</strong> ${data.service.join(", ")}</p>
+    </div>
+  `;
+}
+✅ Place a <div id="brand-info"></div> below the scan result section in your HTML.
+
+✅ 5. 🚨 Optional: Match Common Scam Mimics
+For suspicious URLs:
+
+js
+Copy
+Edit
+for (const scam of brandData.commonScamMimics) {
+  if (url.includes(scam)) {
+    toast(`🚨 This link matches a known scam mimic of ${brand}`, "error");
+    break;
+  }
+}
+✅ 6. 🌐 Make Sure .json Loads in Vite
+In vite.config.js, if needed:
+
+js
+Copy
+Edit
+export default defineConfig({
+  json: {
+    stringify: false
+  }
+});
+✅ 7. Test & Confirm
+Add verifiedBrands.json to data/ directory in Replit
+
+Run site, paste test URLs:
+
+✅ Verified: https://maybank2u.com.my/login
+
+⚠️ Fake: http://mayb4nk-login.tk/
+
+Ensure toast notifications appear
+
+Check if brand-info box populates correctly
+
+Confirm no errors in Console
+
+🔐 8. Security Notes
+Always use .endsWith() not .includes() to avoid typosquatting detection bypasses
+
+Do not allow JSON overwrite from the frontend
+
+In the future, allow updating from Firebase via admin

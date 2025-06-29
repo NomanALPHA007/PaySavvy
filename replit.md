@@ -150,6 +150,14 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Added defensive programming patterns throughout the codebase
   - Ensured scan history displays "AI scan failed — fallback used" when appropriate
   - Validated all 4-layer detection components maintain 95%+ accuracy with graceful degradation
+- June 29, 2025: Integrated ASEAN verifiedBrands.json dataset for enhanced brand protection
+  - Created comprehensive verifiedBrands.json with Malaysia, Singapore, Indonesia, Philippines, Thailand, Vietnam payment providers
+  - Added detectVerifiedBrand() function for real-time brand validation against legitimate domains
+  - Implemented scam mimic detection to identify fraudulent sites impersonating verified brands
+  - Added visual brand display with logos, institution details, and verification status
+  - Integrated brand detection into both URL scanning and QR code analysis pipelines
+  - Enhanced user feedback with specific toast notifications for verified brands vs scam mimics
+  - Supports 18 major ASEAN payment brands including Maybank, CIMB, TNG, GCash, OVO, PayNow
 - June 28, 2025: Enhanced deployment robustness and health check system
   - Added multiple health check endpoints (/health, /healthz, /ping) for different deployment platforms
   - Enhanced server startup with comprehensive error handling and connection verification

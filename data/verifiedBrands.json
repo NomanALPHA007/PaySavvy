@@ -1,0 +1,140 @@
+{
+  "Malaysia": {
+    "Maybank": {
+      "domains": ["maybank2u.com.my", "maybank.com.my"],
+      "institution": "Malayan Banking Berhad",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/1/1e/Maybank_logo.svg",
+      "services": ["Banking", "Online Transfers", "DuitNow", "Mobile Wallet"],
+      "countryCode": "MY",
+      "region": "Malaysia",
+      "commonScamMimics": ["mayb4nk.com", "maybank-login.tk"]
+    },
+    "CIMB": {
+      "domains": ["cimbclicks.com.my", "cimb.com.my"],
+      "institution": "CIMB Group Holdings Berhad",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/7/77/CIMB_Group_logo.svg",
+      "services": ["Banking", "Remittance", "QR Payment", "E-Wallet"],
+      "countryCode": "MY",
+      "region": "Malaysia",
+      "commonScamMimics": ["cimbcliks.com", "cimbclicks-login.me"]
+    },
+    "Public Bank": {
+      "domains": ["pbebank.com", "publicbank.com.my"],
+      "institution": "Public Bank Berhad",
+      "logo": "https://www.pbebank.com/Images/PBB/logo-pbe.png",
+      "services": ["Banking", "FPX", "Mobile Transfers"],
+      "countryCode": "MY",
+      "region": "Malaysia",
+      "commonScamMimics": ["publicbnk.com", "pbebank-login.site"]
+    },
+    "RHB": {
+      "domains": ["rhbnow.com.my", "rhbgroup.com"],
+      "institution": "RHB Banking Group",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/e/e2/RHB_Bank_logo.svg",
+      "services": ["Banking", "DuitNow", "Insurance"],
+      "countryCode": "MY",
+      "region": "Malaysia",
+      "commonScamMimics": ["rhb-secure.me", "rhbnow.tk"]
+    },
+    "TNG eWallet": {
+      "domains": ["tngdigital.com.my", "touchngo.com.my"],
+      "institution": "Touch 'n Go Digital",
+      "logo": "https://www.tngdigital.com.my/assets/images/logo.svg",
+      "services": ["E-Wallet", "QR Code Payment", "Prepaid Reloads"],
+      "countryCode": "MY",
+      "region": "Malaysia",
+      "commonScamMimics": ["tng-secure-login.tk", "tngwallet.gift"]
+    },
+    "DuitNow": {
+      "domains": ["duitnow.my", "paynet.my"],
+      "institution": "PayNet Malaysia",
+      "logo": "https://www.duitnow.my/assets/images/logo.png",
+      "services": ["QR Payment Standard", "Bank Transfers"],
+      "countryCode": "MY",
+      "region": "Malaysia",
+      "commonScamMimics": ["duitn0w.me", "duitnow-login.tk"]
+    }
+  },
+  "Singapore": {
+    "PayNow": {
+      "domains": ["paynow.com.sg"],
+      "institution": "Association of Banks in Singapore",
+      "logo": "https://www.abs.org.sg/images/default-source/paynow/logo.png",
+      "services": ["Instant Bank Transfer", "QR Code Payment"],
+      "countryCode": "SG",
+      "region": "Singapore",
+      "commonScamMimics": ["payn0w.sg", "paynow-gift.com"]
+    },
+    "DBS PayLah": {
+      "domains": ["dbs.com.sg", "paylah.dbs.com.sg"],
+      "institution": "DBS Bank",
+      "logo": "https://www.dbs.com/etc/designs/dbs/logo.svg",
+      "services": ["Banking", "E-Wallet", "Payments"],
+      "countryCode": "SG",
+      "region": "Singapore",
+      "commonScamMimics": ["dbs-secure.sg", "dbspaylah.me"]
+    }
+  },
+  "Indonesia": {
+    "OVO": {
+      "domains": ["ovo.id"],
+      "institution": "PT Visionet Internasional",
+      "logo": "https://ovo.id/images/logo.png",
+      "services": ["E-Wallet", "Retail Payments", "Cashbacks"],
+      "countryCode": "ID",
+      "region": "Indonesia",
+      "commonScamMimics": ["ov0.id", "ovo-gift.com"]
+    },
+    "GoPay": {
+      "domains": ["gopay.co.id"],
+      "institution": "GoTo Financial",
+      "logo": "https://gopay.co.id/assets/logo.png",
+      "services": ["Wallet", "QR Pay", "Gojek Integration"],
+      "countryCode": "ID",
+      "region": "Indonesia",
+      "commonScamMimics": ["g0pay.id", "gopay-win.me"]
+    }
+  },
+  "Philippines": {
+    "GCash": {
+      "domains": ["gcash.com", "gcashapp.com"],
+      "institution": "Mynt (Globe Fintech)",
+      "logo": "https://www.gcash.com/img/logo.png",
+      "services": ["E-Wallet", "Bills", "Bank Transfers"],
+      "countryCode": "PH",
+      "region": "Philippines",
+      "commonScamMimics": ["gcashtopup.site", "gcash-help.me"]
+    },
+    "PayMaya": {
+      "domains": ["paymaya.com", "maya.ph"],
+      "institution": "PayMaya Philippines, Inc.",
+      "logo": "https://www.paymaya.com/images/logo.svg",
+      "services": ["Wallet", "Remittance", "Bill Pay"],
+      "countryCode": "PH",
+      "region": "Philippines",
+      "commonScamMimics": ["paymaya-login.tk", "maya-claim.xyz"]
+    }
+  },
+  "Thailand": {
+    "PromptPay": {
+      "domains": ["promptpay.io"],
+      "institution": "Bank of Thailand",
+      "logo": "https://www.bot.or.th/English/PaymentSystems/PromptPay/logo.png",
+      "services": ["QR Code Banking", "Person-to-Person Payments"],
+      "countryCode": "TH",
+      "region": "Thailand",
+      "commonScamMimics": ["pr0mptpay.com", "promptpay-win.me"]
+    }
+  },
+  "Vietnam": {
+    "MoMo": {
+      "domains": ["momo.vn"],
+      "institution": "M-Service JSC",
+      "logo": "https://static.mservice.io/images/logo.png",
+      "services": ["E-Wallet", "Bank Transfers", "Loyalty"],
+      "countryCode": "VN",
+      "region": "Vietnam",
+      "commonScamMimics": ["mom0.vn", "momo-lucky.tk"]
+    }
+  }
+}
