@@ -220,6 +220,13 @@ PaySavvy is a web-based application designed to help Malaysian users identify an
   - Created comprehensive hackathon recruitment documentation (HACKATHON-RECRUITMENT.md)
   - Documented all 8 advanced cybersecurity features and Malaysian-specific advantages
   - Added technical architecture details and team member recruitment guidelines
+- June 29, 2025: Fixed critical bank QR recommendation bug and CSP violation for file uploads
+  - Resolved hardcoded "HIGH RISK" recommendation showing for verified bank QR codes
+  - Updated recommendation logic to properly prioritize verified brand status over generic risk assessment
+  - Added VERIFIED trust level check and proper fallback logic for legitimate financial institutions
+  - Fixed Content Security Policy violation by adding blob: to img-src directive in server.js
+  - Enhanced mobile QR file upload compatibility with URL.createObjectURL() support
+  - Verified bank QR codes now correctly display "SAFE" recommendations instead of contradictory warnings
 - June 28, 2025: Complete production compatibility fixes applied
   - Fixed import.meta module errors by consolidating all JavaScript into single HTML file
   - Replaced invalid 'fingerprint' Feather icons with valid alternatives (shield, check-circle, etc.)
